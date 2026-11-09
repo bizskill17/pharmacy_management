@@ -1,0 +1,253 @@
+(function () {
+  'use strict';
+
+  var csrf = document.querySelector('meta[name=csrf]').content;
+
+  function post(url, form) {
+    return fetch(url, { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: form }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok) { throw new Error(data.error || 'Something went wrong. Please try again.'); }
+        return data;
+      });
+    });
+  }
+
+  /* Update form */
+  var page = document.getElementById('document');
+  if (page) {
+    var id = page.dataset.id;
+    var message = document.getElementById('form-message');
+
+    var show = function (ok, text) {
+      message.hidden = false;
+      message.className = ok ? 'success' : 'error';
+      message.textContent = text;
+    };
+
+    var refresh = function () {
+      return fetch(location.href, { headers: { 'X-Requested-With': 'fetch' } }).then(function (response) { return response.text(); }).then(function (html) {
+        var next = new DOMParser().parseFromString(html, 'text/html');
+        ['doc-head', 'doc-details'].forEach(function (name) {
+          document.getElementById(name).replaceWith(next.getElementById(name));
+        });
+        document.querySelectorAll('.photo-group').forEach(function (group) {
+          group.replaceWith(next.getElementById(group.id));
+        });
+      });
+    };
+
+    var compress = function (file) {
+      if (!window.createImageBitmap) { return Promise.resolve(file); }
+      return createImageBitmap(file).then(function (bitmap) {
+        var scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        return new Promise(function (resolve) {
+          canvas.toBlob(function (blob) { resolve(blob || file); }, 'image/jpeg', 0.82);
+        });
+      }).catch(function () { return file; });
+    };
+
+    var setBusy = function (group, busy) {
+      group.querySelectorAll('button').forEach(function (button) { button.disabled = busy; });
+    };
+
+    page.addEventListener('click', function (event) {
+      var pick = event.target.closest('[data-pick]');
+      if (pick) {
+        pick.parentElement.querySelectorAll('input[type=file]')[Number(pick.dataset.pick)].click();
+        return;
+      }
+      var remove = event.target.closest('[data-remove]');
+      if (remove) {
+        var group = remove.closest('.photo-group');
+        setBusy(group, true);
+        post('/api/documents/' + id + '/attachments/' + remove.dataset.remove + '/delete', new FormData()).then(refresh).catch(function (error) {
+          setBusy(group, false);
+          show(false, error.message);
+        });
+        return;
+      }
+      var form = event.target.closest('#delete-form');
+      if (form && event.target.matches('[data-confirm-delete], [data-keep]')) {
+        var confirming = event.target.matches('[data-confirm-delete]');
+        form.querySelector('[data-confirm-delete]').hidden = confirming;
+        form.querySelector('[data-keep]').hidden = !confirming;
+        form.querySelector('[data-do-delete]').hidden = !confirming;
+      }
+    });
+
+    page.addEventListener('change', function (event) {
+      var input = event.target;
+      if (!input.matches('input[type=file][data-kind]') || !input.files[0]) { return; }
+      var file = input.files[0];
+      var group = input.closest('.photo-group');
+      message.hidden = true;
+      setBusy(group, true);
+      compress(file).then(function (blob) {
+        var form = new FormData();
+        form.append('kind', input.dataset.kind);
+        form.append('file', blob, file.name || 'photo.jpg');
+        return post('/api/documents/' + id + '/attachments', form);
+      }).then(refresh).catch(function (error) {
+        setBusy(group, false);
+        input.value = '';
+        show(false, error.message);
+      });
+    });
+
+    var save = document.getElementById('save-update');
+    if (save) {
+      save.addEventListener('click', function () {
+        var remarks = document.getElementById('remarks');
+        if (!remarks) { show(true, 'Update saved.'); return; }
+        save.disabled = true;
+        var form = new FormData();
+        form.append('remarks', remarks.value);
+        post('/documents/' + id + '/remarks', form).then(function (data) {
+          show(true, data.message);
+        }).catch(function (error) {
+          show(false, error.message);
+        }).finally(function () { save.disabled = false; });
+      });
+    }
+  }
+
+  /* Bulk upload */
+  var bulk = document.getElementById('bulk');
+  if (bulk) {
+    var registers = JSON.parse(bulk.dataset.registers);
+    var slug = bulk.dataset.initial;
+    var chosen = null;
+    var rows = null;
+    var finished = false;
+    var el = function (name) { return document.getElementById('bulk-' + name); };
+    var current = function () { return registers.filter(function (item) { return item.slug === slug; })[0]; };
+    var outcomeCount = function (outcome) { return rows.filter(function (row) { return row.outcome === outcome; }).length; };
+
+    var csvCell = function (value) {
+      var text = String(value === null || value === undefined ? '' : value);
+      if (/^[=+\-@\t\r]/.test(text)) { text = "'" + text; }
+      return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    };
+
+    var drawResult = function () {
+      el('result').hidden = !rows;
+      if (!rows) { return; }
+      var ready = outcomeCount('ready'), skipped = outcomeCount('skipped'), failed = outcomeCount('failed');
+      el('result-title').textContent = finished ? 'Upload result' : 'Check the file';
+      el('summary').textContent = finished ? rows.length + ' rows processed' : ready + ' ready, ' + skipped + ' skipped, ' + failed + ' failed';
+      el('download').hidden = skipped + failed === 0;
+      el('save').hidden = finished;
+      el('save').disabled = ready === 0;
+      var body = el('rows');
+      body.textContent = '';
+      rows.slice(0, 200).forEach(function (row) {
+        var tr = document.createElement('tr');
+        var values = [row.row, row.no, row.date || 'Blank', row.party, row.amount];
+        values.forEach(function (value, index) {
+          var td = document.createElement('td');
+          td.textContent = value;
+          if (index === 4) { td.className = 'right'; }
+          tr.appendChild(td);
+        });
+        var result = document.createElement('td');
+        result.style.fontWeight = '600';
+        result.style.color = row.outcome === 'ready' ? '#0b5c55' : row.outcome === 'skipped' ? '#7a4b00' : '#a32a17';
+        result.textContent = row.outcome === 'ready' ? (finished ? 'Saved' : 'Ready') : (row.outcome === 'skipped' ? 'Skipped: ' : 'Failed: ') + row.reason;
+        tr.appendChild(result);
+        body.appendChild(tr);
+      });
+      el('more').hidden = rows.length <= 200;
+      el('more').textContent = 'Showing the first 200 of ' + rows.length + ' rows.';
+    };
+
+    var clearStatus = function () {
+      el('error').hidden = true;
+      el('done').hidden = true;
+    };
+
+    var draw = function () {
+      var register = current();
+      var tabs = el('tabs');
+      tabs.textContent = '';
+      registers.forEach(function (item) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'toggle' + (item.slug === slug ? ' on' : '');
+        button.textContent = item.label;
+        button.addEventListener('click', function () {
+          slug = item.slug; chosen = null; rows = null; finished = false;
+          clearStatus(); el('name').textContent = ''; draw();
+        });
+        tabs.appendChild(button);
+      });
+      el('title').textContent = register.label + ' template columns';
+      el('template').href = '/api/templates/' + slug;
+      var chips = el('chips');
+      chips.textContent = '';
+      register.columns.forEach(function (column, index) {
+        var chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = (index + 1) + '. ' + column;
+        chips.appendChild(chip);
+      });
+      drawResult();
+    };
+
+    var send = function (mode) {
+      var form = new FormData();
+      form.append('file', chosen);
+      form.append('mode', mode);
+      el('pick-text').textContent = 'Checking...';
+      el('save').disabled = true;
+      clearStatus();
+      post('/api/bulk/' + slug, form).then(function (data) {
+        rows = data.rows;
+        finished = mode === 'confirm';
+        if (finished) {
+          var done = el('done');
+          done.textContent = 'Upload complete: ' + data.created + ' created, ' + data.skipped + ' skipped, ' + data.failed + ' failed. New rows are Pending. ';
+          var view = document.createElement('a');
+          view.href = '/r/' + slug;
+          view.textContent = 'View ' + current().label;
+          done.appendChild(view);
+          done.hidden = false;
+        }
+        drawResult();
+      }).catch(function (error) {
+        rows = null;
+        el('error').textContent = error.message;
+        el('error').hidden = false;
+        drawResult();
+      }).finally(function () { el('pick-text').textContent = 'Upload filled file'; });
+    };
+
+    el('file').addEventListener('change', function (event) {
+      chosen = event.target.files[0] || null;
+      finished = false;
+      if (chosen) {
+        el('name').textContent = chosen.name;
+        event.target.value = '';
+        send('preview');
+      }
+    });
+    el('save').addEventListener('click', function () { if (chosen) { send('confirm'); } });
+    el('download').addEventListener('click', function () {
+      var header = ['Row'].concat(current().columns, ['Reason']).map(csvCell).join(',');
+      var lines = rows.filter(function (row) { return row.outcome !== 'ready'; }).map(function (row) {
+        return [row.row].concat(row.cells, [row.reason]).map(csvCell).join(',');
+      });
+      var url = URL.createObjectURL(new Blob(['﻿' + [header].concat(lines).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = slug + '-rows-to-fix.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+    draw();
+  }
+})();

@@ -13,7 +13,7 @@ The design rests on four decisions:
 - **Real data types.** Dates are true dates and amounts are numbers, which removes the mixed date formats and text sorting in the sheet.
 - **Linked masters.** Parties, areas and users are chosen from lists. The exact name from the upload file is kept so imports can match it.
 
-Assumed stack: Next.js, PostgreSQL and S3-compatible file storage. If your host only offers MySQL 8, this design still works with small changes. Expiry is out of scope for now, but can be added later as a fourth `doc_type`.
+Stack: PHP 8.1 or newer and MySQL or MariaDB on Hostinger web hosting, with photos stored privately on the hosting account and deployment by FTP from GitHub. Expiry is out of scope for now, but can be added later as a fourth `doc_type`.
 
 ## Database structure
 

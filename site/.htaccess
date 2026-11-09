@@ -1,0 +1,14 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^(app|storage)(/|$) - [F,L]
+  RewriteRule ^(?!index\.php$).+\.php$ - [F,L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.php [L]
+</IfModule>

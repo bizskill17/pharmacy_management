@@ -1,0 +1,269 @@
+<?php
+declare(strict_types=1);
+
+date_default_timezone_set('Asia/Kolkata');
+ini_set('display_errors', '0');
+
+const MIN_PASSWORD_LENGTH = 8;
+const SCHEMA_VERSION = '1';
+
+final class UserError extends RuntimeException {}
+
+function config(): array
+{
+    static $config = null;
+    if ($config === null) {
+        $path = getenv('PM_CONFIG') ?: __DIR__ . '/config.local.php';
+        if (!is_file($path)) {
+            http_response_code(503);
+            exit('The app is not configured yet.');
+        }
+        $config = require $path;
+    }
+    return $config;
+}
+
+function storage_dir(): string
+{
+    return rtrim(config()['storage_dir'] ?? dirname(__DIR__) . '/storage', '/');
+}
+
+function e(mixed $value): string
+{
+    return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function db(): PDO
+{
+    static $pdo = null;
+    if ($pdo === null) {
+        $c = config();
+        $port = $c['db_port'] ?? 3306;
+        $pdo = new PDO("mysql:host={$c['db_host']};port={$port};dbname={$c['db_name']};charset=utf8mb4", $c['db_user'], $c['db_pass'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+        $pdo->exec("SET time_zone = '+05:30'");
+        ensure_schema($pdo);
+    }
+    return $pdo;
+}
+
+function ensure_schema(PDO $pdo): void
+{
+    $marker = storage_dir() . '/.schema-' . SCHEMA_VERSION;
+    if (!is_file($marker)) {
+        foreach (require __DIR__ . '/schema.php' as $statement) {
+            $pdo->exec($statement);
+        }
+        if (!is_dir(storage_dir())) {
+            mkdir(storage_dir(), 0755, true);
+        }
+        file_put_contents($marker, date('c'));
+    }
+    $count = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    if ($count > 0) {
+        return;
+    }
+    $c = config();
+    if (empty($c['admin_phone']) || strlen((string) ($c['admin_password'] ?? '')) < MIN_PASSWORD_LENGTH) {
+        return;
+    }
+    $statement = $pdo->prepare("INSERT INTO users (full_name, phone, password_hash, role) VALUES (?, ?, ?, 'ADMIN')");
+    $statement->execute([$c['admin_name'] ?? 'Admin', $c['admin_phone'], password_hash($c['admin_password'], PASSWORD_DEFAULT)]);
+}
+
+function run(string $sql, array $params = []): PDOStatement
+{
+    $statement = db()->prepare($sql);
+    $statement->execute(array_values($params));
+    return $statement;
+}
+
+function rows(string $sql, array $params = []): array
+{
+    return run($sql, $params)->fetchAll();
+}
+
+function row(string $sql, array $params = []): ?array
+{
+    $result = run($sql, $params)->fetch();
+    return $result === false ? null : $result;
+}
+
+function value(string $sql, array $params = []): mixed
+{
+    return run($sql, $params)->fetchColumn();
+}
+
+function tx(callable $work): mixed
+{
+    db()->beginTransaction();
+    try {
+        $result = $work();
+        db()->commit();
+        return $result;
+    } catch (Throwable $error) {
+        db()->rollBack();
+        throw $error;
+    }
+}
+
+function audit(?int $userId, string $action, string $type, ?int $id, mixed $before = null, mixed $after = null): void
+{
+    run(
+        'INSERT INTO audit_log (user_id, action, entity_type, entity_id, before_data, after_data) VALUES (?, ?, ?, ?, ?, ?)',
+        [$userId, $action, $type, $id, $before === null ? null : json_encode($before), $after === null ? null : json_encode($after)]
+    );
+}
+
+function is_https(): bool
+{
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+}
+
+function start_session(): void
+{
+    session_name('pm_session');
+    session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => is_https(), 'httponly' => true, 'samesite' => 'Lax']);
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.gc_maxlifetime', '43200');
+    session_start();
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+}
+
+function csrf_token(): string
+{
+    return $_SESSION['csrf'];
+}
+
+function csrf_field(): string
+{
+    return '<input type="hidden" name="_token" value="' . e(csrf_token()) . '">';
+}
+
+function csrf_valid(): bool
+{
+    $sent = $_POST['_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    return is_string($sent) && hash_equals(csrf_token(), $sent);
+}
+
+function current_user(): ?array
+{
+    static $user = false;
+    if ($user === false) {
+        $user = null;
+        if (!empty($_SESSION['uid'])) {
+            $user = row('SELECT id, full_name, phone, role FROM users WHERE id = ? AND is_active = 1', [(int) $_SESSION['uid']]);
+            if ($user) {
+                $user['id'] = (int) $user['id'];
+            }
+        }
+    }
+    return $user;
+}
+
+function redirect(string $path): never
+{
+    header('Location: ' . $path, true, 303);
+    exit;
+}
+
+function json_response(array $data, int $status = 200): never
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data);
+    exit;
+}
+
+function flash(string $message, bool $ok = true): void
+{
+    $_SESSION['flash'] = ['ok' => $ok, 'message' => $message];
+}
+
+function require_user(array $roles = []): array
+{
+    $user = current_user();
+    if (!$user) {
+        redirect('/login');
+    }
+    if ($roles && !in_array($user['role'], $roles, true)) {
+        redirect('/');
+    }
+    return $user;
+}
+
+function api_user(array $roles = []): array
+{
+    $user = current_user();
+    if (!$user) {
+        json_response(['error' => 'Please sign in again.'], 401);
+    }
+    if ($roles && !in_array($user['role'], $roles, true)) {
+        json_response(['error' => 'You do not have access to this.'], 403);
+    }
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET' && !csrf_valid()) {
+        json_response(['error' => 'Your session expired. Reload the page.'], 403);
+    }
+    return $user;
+}
+
+function require_csrf(): void
+{
+    if (!csrf_valid()) {
+        http_response_code(403);
+        exit('Your session expired. Go back and reload the page.');
+    }
+}
+
+function render(string $view, array $data = []): never
+{
+    extract($data, EXTR_SKIP);
+    $flash = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    ob_start();
+    require __DIR__ . '/views/' . $view . '.php';
+    $content = ob_get_clean();
+    $user = current_user();
+    $title = $title ?? 'Pharmacy Management';
+    require __DIR__ . '/views/layout.php';
+    exit;
+}
+
+function not_found(): never
+{
+    http_response_code(404);
+    exit('Page not found.');
+}
+
+function display_date(?string $iso): string
+{
+    if (!$iso) {
+        return '-';
+    }
+    [$year, $month, $day] = explode('-', substr($iso, 0, 10));
+    return "$day/$month/$year";
+}
+
+function money(float|string $amount): string
+{
+    $number = (float) $amount;
+    $whole = (string) (int) floor($number);
+    $fraction = round($number - floor($number), 2);
+    $last = substr($whole, -3);
+    $rest = substr($whole, 0, -3);
+    if ($rest !== '' && $rest !== false) {
+        $last = preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', $rest) . ',' . $last;
+    }
+    return "\u{20B9}" . $last . ($fraction > 0 ? rtrim(substr(number_format($fraction, 2, '.', ''), 1), '0') : '');
+}
+
+function like_pattern(string $text): string
+{
+    return '%' . addcslashes($text, '\\%_') . '%';
+}

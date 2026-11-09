@@ -1,0 +1,65 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [php-app]
+    paths:
+      - "site/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      ADMIN_PHONE: ${{ secrets.ADMIN_PHONE }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          for name in DB_NAME DB_USER DB_PASSWORD ADMIN_PHONE ADMIN_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Add the $name secret in GitHub before deploying. Nothing was uploaded."
+              exit 1
+            fi
+          done
+
+      - name: Create server configuration
+        run: |
+          php -r '
+            $config = [
+              "db_host" => "localhost",
+              "db_name" => getenv("DB_NAME"),
+              "db_user" => getenv("DB_USER"),
+              "db_pass" => getenv("DB_PASSWORD"),
+              "admin_name" => "Admin",
+              "admin_phone" => getenv("ADMIN_PHONE"),
+              "admin_password" => getenv("ADMIN_PASSWORD"),
+            ];
+            file_put_contents("site/app/config.local.php", "<?php\nreturn " . var_export($config, true) . ";\n");
+          '
+          php -l site/app/config.local.php
+
+      - name: Upload by FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          security: loose
+          local-dir: ./site/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}/

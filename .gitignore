@@ -1,9 +1,4 @@
-node_modules/
-.next/
-next-env.d.ts
-*.tsbuildinfo
-data/
-.env
-.env.local
-.env.*.local
-!.env.example
+site/app/config.local.php
+site/storage/uploads/
+site/storage/.schema-*
+.ftp-deploy-sync-state.json

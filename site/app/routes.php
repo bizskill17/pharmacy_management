@@ -1,0 +1,421 @@
+<?php
+declare(strict_types=1);
+
+const MANAGERS = ['ADMIN', 'SUPERVISOR'];
+const ADMINS = ['ADMIN'];
+const ROLES = ['ADMIN', 'SUPERVISOR', 'UPLOADER'];
+const LOGIN_LIMIT = 5;
+
+function post_text(string $name, int $limit): string
+{
+    return mb_substr(trim((string) ($_POST[$name] ?? '')), 0, $limit);
+}
+
+function optional_text(string $name, int $limit): ?string
+{
+    $text = post_text($name, $limit);
+    return $text === '' ? null : $text;
+}
+
+function handle_login(): never
+{
+    if (current_user()) {
+        redirect('/');
+    }
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        render('login', ['error' => null]);
+    }
+    require_csrf();
+    $phone = post_text('phone', 15);
+    $password = (string) ($_POST['password'] ?? '');
+    $attempt = row('SELECT failures, locked_until > NOW() AS locked FROM login_attempts WHERE phone = ?', [$phone]);
+    if ($attempt && (int) $attempt['failures'] >= LOGIN_LIMIT && (int) $attempt['locked']) {
+        render('login', ['error' => 'Too many failed attempts. Try again in 15 minutes.']);
+    }
+    $user = row('SELECT id, password_hash FROM users WHERE phone = ? AND is_active = 1', [$phone]);
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        if ($phone !== '') {
+            run(
+                'INSERT INTO login_attempts (phone, failures, locked_until) VALUES (?, 1, DATE_ADD(NOW(), INTERVAL 15 MINUTE))
+                 ON DUPLICATE KEY UPDATE failures = IF(locked_until > NOW(), failures + 1, 1), locked_until = DATE_ADD(NOW(), INTERVAL 15 MINUTE)',
+                [$phone]
+            );
+        }
+        render('login', ['error' => 'Phone number or password is incorrect.']);
+    }
+    run('DELETE FROM login_attempts WHERE phone = ?', [$phone]);
+    run('UPDATE users SET last_login_at = NOW() WHERE id = ?', [$user['id']]);
+    session_regenerate_id(true);
+    $_SESSION['uid'] = (int) $user['id'];
+    redirect('/');
+}
+
+function show_register(array $register): never
+{
+    $user = require_user();
+    $manage = $user['role'] !== 'UPLOADER';
+    $statuses = $manage ? ['ALL', 'PENDING', 'UPLOADED', 'MINE', 'DELETED'] : ['ALL', 'PENDING', 'UPLOADED', 'MINE'];
+    $status = in_array($_GET['status'] ?? '', $statuses, true) ? $_GET['status'] : 'ALL';
+    $dateOnly = fn ($name) => preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) ($_GET[$name] ?? '')) ? $_GET[$name] : '';
+    $filter = [
+        'type' => $register['type'], 'status' => $status, 'q' => trim((string) ($_GET['q'] ?? '')), 'from' => $dateOnly('from'), 'to' => $dateOnly('to'),
+        'area' => (int) ($_GET['area'] ?? 0), 'page' => max(1, (int) ($_GET['page'] ?? 1)), 'user_id' => $user['id'],
+    ];
+    [$documents, $total] = list_documents($filter);
+    $photos = [];
+    foreach (attachments_for(array_map(fn ($d) => (int) $d['id'], $documents)) as $item) {
+        $photos["{$item['document_id']}:{$item['kind']}:{$item['sort_order']}"] = (int) $item['id'];
+    }
+    render('register', compact('register', 'manage', 'statuses', 'status', 'filter', 'documents', 'total', 'photos') + [
+        'counts' => register_counts($register['type']),
+        'areas' => rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name'),
+    ]);
+}
+
+function show_document(array $register, int $id): never
+{
+    $user = require_user();
+    $document = get_document($id);
+    if (!$document || $document['doc_type'] !== $register['type']) {
+        not_found();
+    }
+    $photos = [];
+    foreach (attachments_for([$id]) as $item) {
+        $photos[$item['kind']][] = (int) $item['id'];
+    }
+    $manage = $user['role'] !== 'UPLOADER';
+    render('document', compact('register', 'document', 'photos', 'manage', 'user') + [
+        'areas' => $manage ? rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name') : [],
+    ]);
+}
+
+function document_slug(int $id): string
+{
+    $type = value('SELECT doc_type FROM documents WHERE id = ?', [$id]);
+    if (!$type) {
+        not_found();
+    }
+    return registers()[$type]['slug'];
+}
+
+function handle_correction(int $id): never
+{
+    $user = require_user(MANAGERS);
+    require_csrf();
+    $slug = document_slug($id);
+    $back = "/r/$slug/$id";
+    $rawDate = (string) ($_POST['date'] ?? '');
+    $date = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $rawDate, $m) ? valid_date((int) $m[1], (int) $m[2], (int) $m[3]) : null;
+    $amount = parse_amount((string) ($_POST['amount'] ?? ''));
+    $party = post_text('party', 200);
+    $itemsText = post_text('items', 20);
+    $items = $itemsText === '' ? null : parse_whole($itemsText);
+    $problem = !$date ? 'Enter a valid date.' : ($amount === null ? 'Enter a valid amount.' : ($party === '' ? 'Party name is required.' : (($itemsText !== '' && $items === null) ? 'No of Item must be a whole number.' : null)));
+    if ($problem) {
+        flash($problem, false);
+        redirect($back);
+    }
+    $area = (int) ($_POST['area'] ?? 0);
+    try {
+        correct_document($id, compact('date', 'party', 'amount', 'items') + ['receipt' => optional_text('receipt', 50), 'mr' => optional_text('mr', 120), 'area' => $area > 0 ? $area : null, 'address' => optional_text('address', 255)], $user['id']);
+        flash('Correction saved.');
+    } catch (UserError $error) {
+        flash($error->getMessage(), false);
+    }
+    redirect($back);
+}
+
+function handle_upload_photo(int $id): never
+{
+    $user = api_user();
+    $kind = (string) ($_POST['kind'] ?? '');
+    $file = $_FILES['file'] ?? null;
+    if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        json_response(['error' => 'Choose a photo first.'], 400);
+    }
+    if ($file['size'] > MAX_IMAGE_BYTES) {
+        json_response(['error' => 'Photo must be under 10 MB.'], 400);
+    }
+    $data = (string) file_get_contents($file['tmp_name']);
+    $mime = detect_image($data);
+    if (!$mime) {
+        json_response(['error' => 'Only JPG, PNG or WebP photos are allowed.'], 400);
+    }
+    $key = save_upload($data, $mime);
+    try {
+        json_response(add_attachment($id, $kind, $key, (string) $file['name'], $mime, strlen($data), $user['id']));
+    } catch (UserError $error) {
+        @unlink(storage_dir() . '/uploads/' . $key);
+        json_response(['error' => $error->getMessage()], 400);
+    }
+}
+
+function serve_photo(int $id): never
+{
+    api_user();
+    $file = row('SELECT file_key, mime_type FROM attachments WHERE id = ? AND deleted_at IS NULL', [$id]);
+    $path = $file ? storage_dir() . '/uploads/' . $file['file_key'] : '';
+    if (!$file || !is_file($path)) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    header('Content-Type: ' . $file['mime_type']);
+    header('Content-Length: ' . filesize($path));
+    header('Cache-Control: private, max-age=86400');
+    readfile($path);
+    exit;
+}
+
+function handle_bulk(array $register): never
+{
+    $user = api_user(MANAGERS);
+    $file = $_FILES['file'] ?? null;
+    if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        json_response(['error' => 'Choose a file first.'], 400);
+    }
+    if ($file['size'] > MAX_BULK_BYTES) {
+        json_response(['error' => 'File must be under 10 MB.'], 400);
+    }
+    try {
+        if (($_POST['mode'] ?? '') === 'confirm') {
+            json_response(commit_upload($register, $file, $user['id']));
+        }
+        json_response(['rows' => public_rows(check_sheet($register, read_upload($file)))]);
+    } catch (UserError $error) {
+        json_response(['error' => $error->getMessage()], 400);
+    }
+}
+
+function export_reports(): never
+{
+    api_user(MANAGERS);
+    send_xlsx('reports.xlsx', [
+        'Pending by date' => array_merge([['Date', 'Register', 'Count']], array_map(fn ($r) => [$r['date'], $r['label'], $r['count']], pending_by_date())),
+        'Uploaded today' => array_merge([['Register', 'Count']], array_map(fn ($r) => [$r['label'], $r['count']], uploaded_today())),
+        'Missing numbers' => array_merge([['Register and year', 'From', 'To', 'Count']], array_map(fn ($r) => [$r['label'], $r['from'], $r['to'], $r['count']], missing_numbers())),
+    ]);
+}
+
+function is_duplicate(PDOException $error): bool
+{
+    return ($error->errorInfo[1] ?? 0) === 1062;
+}
+
+function handle_create_user(): never
+{
+    $admin = require_user(ADMINS);
+    require_csrf();
+    $name = post_text('name', 120);
+    $phone = post_text('phone', 15);
+    $password = (string) ($_POST['password'] ?? '');
+    $role = (string) ($_POST['role'] ?? '');
+    if ($name === '' || $phone === '') {
+        flash('Name and phone are required.', false);
+    } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
+        flash('Password must have at least ' . MIN_PASSWORD_LENGTH . ' characters.', false);
+    } elseif (!in_array($role, ROLES, true)) {
+        flash('Choose a role.', false);
+    } else {
+        try {
+            run('INSERT INTO users (full_name, phone, password_hash, role) VALUES (?, ?, ?, ?)', [$name, $phone, password_hash($password, PASSWORD_DEFAULT), $role]);
+            audit($admin['id'], 'USER_CREATE', 'user', (int) db()->lastInsertId(), null, compact('name', 'phone', 'role'));
+            flash('User created.');
+        } catch (PDOException $error) {
+            if (!is_duplicate($error)) {
+                throw $error;
+            }
+            flash('This phone number is already used.', false);
+        }
+    }
+    redirect('/admin/users');
+}
+
+function handle_update_user(): never
+{
+    $admin = require_user(ADMINS);
+    require_csrf();
+    $id = (int) ($_POST['id'] ?? 0);
+    $role = (string) ($_POST['role'] ?? '');
+    $active = isset($_POST['active']) ? 1 : 0;
+    $password = (string) ($_POST['password'] ?? '');
+    if (!in_array($role, ROLES, true)) {
+        flash('Choose a role.', false);
+    } elseif ($id === $admin['id'] && ($role !== 'ADMIN' || !$active)) {
+        flash('You cannot remove your own Admin access.', false);
+    } elseif ($password !== '' && strlen($password) < MIN_PASSWORD_LENGTH) {
+        flash('Password must have at least ' . MIN_PASSWORD_LENGTH . ' characters.', false);
+    } else {
+        run('UPDATE users SET role = ?, is_active = ?, password_hash = COALESCE(?, password_hash) WHERE id = ?', [$role, $active, $password === '' ? null : password_hash($password, PASSWORD_DEFAULT), $id]);
+        audit($admin['id'], 'USER_UPDATE', 'user', $id, null, ['role' => $role, 'active' => $active, 'passwordChanged' => $password !== '']);
+        flash('Saved.');
+    }
+    redirect('/admin/users');
+}
+
+function handle_create_area(): never
+{
+    $admin = require_user(ADMINS);
+    require_csrf();
+    $name = post_text('name', 100);
+    if ($name === '') {
+        flash('Enter an area name.', false);
+        redirect('/admin/areas');
+    }
+    try {
+        run('INSERT INTO areas (name) VALUES (?)', [$name]);
+        audit($admin['id'], 'AREA_CREATE', 'area', (int) db()->lastInsertId(), null, compact('name'));
+        flash('Area added.');
+    } catch (PDOException $error) {
+        if (!is_duplicate($error)) {
+            throw $error;
+        }
+        flash('This area already exists.', false);
+    }
+    redirect('/admin/areas');
+}
+
+function handle_update_party(): never
+{
+    $admin = require_user(ADMINS);
+    require_csrf();
+    $id = (int) ($_POST['id'] ?? 0);
+    $name = post_text('name', 120);
+    $area = (int) ($_POST['area'] ?? 0);
+    $active = isset($_POST['active']) ? 1 : 0;
+    if ($name === '') {
+        flash('Enter a party name.', false);
+    } else {
+        run('UPDATE parties SET name = ?, area_id = ?, is_active = ? WHERE id = ?', [$name, $area > 0 ? $area : null, $active, $id]);
+        audit($admin['id'], 'PARTY_UPDATE', 'party', $id, null, compact('name', 'area', 'active'));
+        flash('Saved.');
+    }
+    redirect('/admin/parties');
+}
+
+function handle_request(string $method, string $path): never
+{
+    $get = $method === 'GET';
+    $post = $method === 'POST';
+    $m = [];
+    if ($path === '/login') {
+        handle_login();
+    }
+    if ($post && $path === '/logout') {
+        require_csrf();
+        $_SESSION = [];
+        session_destroy();
+        redirect('/login');
+    }
+    if ($get && $path === '/') {
+        require_user();
+        render('home');
+    }
+    if ($get && preg_match('#^/r/([a-z-]+)(?:/(\d+))?$#', $path, $m)) {
+        $register = register_by_slug($m[1]) ?? not_found();
+        isset($m[2]) ? show_document($register, (int) $m[2]) : show_register($register);
+    }
+    if ($post && preg_match('#^/documents/(\d+)/(correct|delete|restore|remarks)$#', $path, $m)) {
+        $id = (int) $m[1];
+        if ($m[2] === 'correct') {
+            handle_correction($id);
+        }
+        if ($m[2] === 'remarks') {
+            $user = api_user();
+            try {
+                save_remarks($id, (string) ($_POST['remarks'] ?? ''), $user['id']);
+                json_response(['message' => 'Update saved.']);
+            } catch (UserError $error) {
+                json_response(['error' => $error->getMessage()], 400);
+            }
+        }
+        $user = require_user(MANAGERS);
+        require_csrf();
+        $slug = document_slug($id);
+        try {
+            if ($m[2] === 'delete') {
+                delete_document($id, $user['id']);
+                redirect("/r/$slug");
+            }
+            restore_document($id, $user['id']);
+        } catch (UserError $error) {
+            flash($error->getMessage(), false);
+        }
+        redirect("/r/$slug/$id");
+    }
+    if ($post && preg_match('#^/api/documents/(\d+)/attachments$#', $path, $m)) {
+        handle_upload_photo((int) $m[1]);
+    }
+    if ($post && preg_match('#^/api/documents/(\d+)/attachments/(\d+)/delete$#', $path, $m)) {
+        $user = api_user();
+        try {
+            remove_last_attachment((int) $m[1], (int) $m[2], $user['id']);
+            json_response(['ok' => true]);
+        } catch (UserError $error) {
+            json_response(['error' => $error->getMessage()], 400);
+        }
+    }
+    if ($get && preg_match('#^/api/files/(\d+)$#', $path, $m)) {
+        serve_photo((int) $m[1]);
+    }
+    if ($get && preg_match('#^/api/templates/([a-z-]+)$#', $path, $m)) {
+        api_user(MANAGERS);
+        $register = register_by_slug($m[1]) ?? not_found();
+        send_xlsx($register['slug'] . '-template.xlsx', [str_replace('&', 'and', $register['label']) => [array_map(fn ($c) => $c[0], $register['template'])]]);
+    }
+    if ($post && preg_match('#^/api/bulk/([a-z-]+)$#', $path, $m)) {
+        $register = register_by_slug($m[1]);
+        if (!$register) {
+            json_response(['error' => 'Register not found.'], 404);
+        }
+        handle_bulk($register);
+    }
+    if ($get && $path === '/api/reports/export') {
+        export_reports();
+    }
+    if ($get && $path === '/bulk') {
+        require_user(MANAGERS);
+        $initial = register_by_slug((string) ($_GET['type'] ?? '')) ? $_GET['type'] : 'sale';
+        render('bulk', compact('initial'));
+    }
+    if ($get && $path === '/reports') {
+        require_user(MANAGERS);
+        render('reports', ['pending' => pending_by_date(), 'today' => uploaded_today(), 'missing' => missing_numbers()]);
+    }
+    if ($path === '/admin/users') {
+        if ($post) {
+            handle_create_user();
+        }
+        require_user(ADMINS);
+        render('admin_users', ['users' => rows('SELECT id, full_name, phone, role, is_active FROM users ORDER BY full_name')]);
+    }
+    if ($post && $path === '/admin/users/update') {
+        handle_update_user();
+    }
+    if ($path === '/admin/areas') {
+        if ($post) {
+            handle_create_area();
+        }
+        require_user(ADMINS);
+        render('admin_areas', ['areas' => rows('SELECT id, name, is_active FROM areas ORDER BY name')]);
+    }
+    if ($post && $path === '/admin/areas/toggle') {
+        require_user(ADMINS);
+        require_csrf();
+        run('UPDATE areas SET is_active = 1 - is_active WHERE id = ?', [(int) ($_POST['id'] ?? 0)]);
+        redirect('/admin/areas');
+    }
+    if ($get && $path === '/admin/parties') {
+        require_user(ADMINS);
+        $query = trim((string) ($_GET['q'] ?? ''));
+        $pattern = like_pattern($query);
+        render('admin_parties', [
+            'query' => $query,
+            'parties' => rows('SELECT id, name, source_name, area_id, is_active FROM parties WHERE name LIKE ? OR source_name LIKE ? ORDER BY name LIMIT 50', [$pattern, $pattern]),
+            'areas' => rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name'),
+        ]);
+    }
+    if ($post && $path === '/admin/parties/update') {
+        handle_update_party();
+    }
+    not_found();
+}
