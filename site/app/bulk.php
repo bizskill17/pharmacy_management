@@ -87,7 +87,7 @@ function check_headers(array $register, array $headers): ?string
 }
 
 /** Validates one data row. Duplicate checks need other rows, so they run separately. */
-function check_row(array $register, array $cells, array $areas): array
+function check_row(array $register, array $cells): array
 {
     $value = [];
     foreach ($register['template'] as $index => $column) {
@@ -115,14 +115,6 @@ function check_row(array $register, array $cells, array $areas): array
             return ['outcome' => 'failed', 'reason' => 'No of Item is not a whole number'];
         }
     }
-    $areaId = null;
-    $areaName = cell_text($value['area'] ?? null, 100);
-    if ($areaName !== null) {
-        $areaId = $areas[mb_strtolower($areaName)] ?? null;
-        if ($areaId === null) {
-            return ['outcome' => 'failed', 'reason' => 'Area not found'];
-        }
-    }
     return ['outcome' => 'ready', 'value' => $number + [
         'date' => $date,
         'year' => financial_year($date),
@@ -131,7 +123,7 @@ function check_row(array $register, array $cells, array $areas): array
         'items' => $items,
         'receipt' => cell_text($value['receipt'] ?? null, 50),
         'mr' => cell_text($value['mr'] ?? null, 120),
-        'area' => $areaId,
+        'area' => cell_text($value['area'] ?? null, 100),
         'address' => cell_text($value['address'] ?? null, 255),
     ]];
 }
@@ -191,10 +183,6 @@ function check_sheet(array $register, array $sheet): array
     if ($problem) {
         throw new UserError($problem);
     }
-    $areas = [];
-    foreach (rows('SELECT id, name FROM areas WHERE is_active = 1') as $area) {
-        $areas[mb_strtolower($area['name'])] = (int) $area['id'];
-    }
     $positions = [];
     foreach ($register['template'] as $index => $column) {
         $positions[$column[1]] = $index;
@@ -202,7 +190,7 @@ function check_sheet(array $register, array $sheet): array
     $checks = [];
     $numbers = [];
     foreach ($sheet['rows'] as $row) {
-        $check = check_row($register, $row['cells'], $areas);
+        $check = check_row($register, $row['cells']);
         $checks[] = [$row, $check];
         if ($check['outcome'] === 'ready') {
             $numbers[$check['value']['no']] = true;
@@ -263,7 +251,6 @@ function commit_upload(array $register, array $file, int $userId): array
         run("INSERT INTO import_batches (doc_type, source_kind, file_name, rows_total, imported_by) VALUES (?, 'TEMPLATE_UPLOAD', ?, ?, ?)", [$register['type'], mb_substr((string) $file['name'], 0, 255), count($rows), $userId]);
         $batch = (int) db()->lastInsertId();
         $created = $skipped = $failed = 0;
-        $problems = [];
         foreach ($rows as $row) {
             if ($row['outcome'] === 'failed') {
                 $failed++;
@@ -271,20 +258,21 @@ function commit_upload(array $register, array $file, int $userId): array
                 $skipped++;
             } else {
                 $v = $row['value'];
-                $party = upsert_party($v['party'], $register['type']);
+                $area = $v['area'] === null ? null : upsert_area($v['area']);
+                $party = upsert_party($v['party'], $register['type'], $area);
                 $count = run(
                     'INSERT INTO documents (doc_type, doc_no, doc_prefix, doc_seq, doc_date, financial_year, party_id, party_name_raw, amount, item_count, receipt_ref, mr_name, area_id, address, import_batch_id, created_by)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                      ON DUPLICATE KEY UPDATE id = id',
-                    [$register['type'], $v['no'], $v['prefix'], $v['seq'], $v['date'], $v['year'], $party, $v['party'], $v['amount'], $v['items'], $v['receipt'], $v['mr'], $v['area'], $v['address'], $batch, $userId]
+                    [$register['type'], $v['no'], $v['prefix'], $v['seq'], $v['date'], $v['year'], $party, $v['party'], $v['amount'], $v['items'], $v['receipt'], $v['mr'], $area, $v['address'], $batch, $userId]
                 )->rowCount();
                 $count === 1 ? $created++ : $skipped++;
             }
             if ($row['outcome'] !== 'ready') {
-                $problems[] = ['row' => $row['row'], 'reason' => $row['reason']];
+                run('INSERT INTO import_errors (import_batch_id, row_no, doc_no, outcome, reason) VALUES (?, ?, ?, ?, ?)', [$batch, $row['row'], mb_substr($row['no'], 0, 100), strtoupper($row['outcome']), mb_substr($row['reason'], 0, 255)]);
             }
         }
-        run('UPDATE import_batches SET rows_created = ?, rows_skipped = ?, rows_failed = ?, error_report = ? WHERE id = ?', [$created, $skipped, $failed, json_encode($problems), $batch]);
+        run('UPDATE import_batches SET rows_created = ?, rows_skipped = ?, rows_failed = ? WHERE id = ?', [$created, $skipped, $failed, $batch]);
         audit($userId, 'BULK_UPLOAD', 'import_batch', $batch, null, ['type' => $register['type'], 'created' => $created, 'skipped' => $skipped, 'failed' => $failed]);
         return ['created' => $created, 'skipped' => $skipped, 'failed' => $failed, 'rows' => public_rows($rows)];
     });

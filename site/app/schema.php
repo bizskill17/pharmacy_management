@@ -51,7 +51,6 @@ return [
       rows_created INT NOT NULL DEFAULT 0,
       rows_skipped INT NOT NULL DEFAULT 0,
       rows_failed INT NOT NULL DEFAULT 0,
-      error_report LONGTEXT NULL,
       imported_by BIGINT NOT NULL,
       imported_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT fk_batch_user FOREIGN KEY (imported_by) REFERENCES users(id)
@@ -120,9 +119,28 @@ return [
       action VARCHAR(40) NOT NULL,
       entity_type VARCHAR(30) NOT NULL,
       entity_id BIGINT NULL,
-      before_data LONGTEXT NULL,
-      after_data LONGTEXT NULL,
       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS audit_changes (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      audit_id BIGINT NOT NULL,
+      field_name VARCHAR(60) NOT NULL,
+      old_value TEXT NULL,
+      new_value TEXT NULL,
+      KEY audit_changes_audit (audit_id),
+      CONSTRAINT fk_change_audit FOREIGN KEY (audit_id) REFERENCES audit_log(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS import_errors (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      import_batch_id BIGINT NOT NULL,
+      row_no INT NOT NULL,
+      doc_no VARCHAR(100) NULL,
+      outcome ENUM('FAILED','SKIPPED') NOT NULL,
+      reason VARCHAR(255) NOT NULL,
+      KEY import_errors_batch (import_batch_id),
+      CONSTRAINT fk_error_batch FOREIGN KEY (import_batch_id) REFERENCES import_batches(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 ];

@@ -187,14 +187,28 @@ function save_remarks(int $documentId, string $remarks, int $userId): void
     });
 }
 
-function upsert_party(string $rawName, string $type): int
+function clean_name(string $name): string
 {
+    return trim((string) preg_replace('/\s+/', ' ', $name));
+}
+
+/** Finds a party by name, ignoring capitals and extra spaces, or adds it once. */
+function upsert_party(string $rawName, string $type, ?int $areaId = null): int
+{
+    $name = clean_name($rawName);
     $supplier = $type === 'PURCHASE' ? 1 : 0;
     run(
-        'INSERT INTO parties (name, source_name, is_customer, is_supplier) VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE is_customer = GREATEST(is_customer, VALUES(is_customer)), is_supplier = GREATEST(is_supplier, VALUES(is_supplier)), id = LAST_INSERT_ID(id)',
-        [mb_substr((string) preg_replace('/\s+/', ' ', $rawName), 0, 120), mb_substr($rawName, 0, 200), 1 - $supplier, $supplier]
+        'INSERT INTO parties (name, source_name, area_id, is_customer, is_supplier) VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE area_id = COALESCE(area_id, VALUES(area_id)), is_customer = GREATEST(is_customer, VALUES(is_customer)), is_supplier = GREATEST(is_supplier, VALUES(is_supplier)), id = LAST_INSERT_ID(id)',
+        [mb_substr($name, 0, 120), mb_substr($name, 0, 200), $areaId, 1 - $supplier, $supplier]
     );
+    return (int) db()->lastInsertId();
+}
+
+/** Finds an area by name, ignoring capitals and extra spaces, or adds it once. */
+function upsert_area(string $rawName): int
+{
+    run('INSERT INTO areas (name) VALUES (?) ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)', [mb_substr(clean_name($rawName), 0, 100)]);
     return (int) db()->lastInsertId();
 }
 

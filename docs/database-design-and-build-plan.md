@@ -17,7 +17,7 @@ Stack: PHP 8.1 or newer and MySQL or MariaDB on Hostinger web hosting, with phot
 
 ## Database structure
 
-The database has seven tables, with `documents` at the centre. Every table uses a `bigint` primary key called `id`.
+The database has nine tables, with `documents` at the centre. Every table uses a `bigint` primary key called `id`.
 
 ### documents
 
@@ -114,13 +114,14 @@ One row per uploaded template or history file.
 | source_kind | enum | Yes | TEMPLATE_UPLOAD, HISTORY |
 | file_name | varchar(255) | Yes | |
 | rows_total, rows_created, rows_skipped, rows_failed | integer | Yes | |
-| error_report | jsonb | No | Failed rows and reasons |
 | imported_by | FK users | Yes | |
 | imported_at | timestamptz | Yes | |
 
 ### Audit trail
 
-Use `audit_log` as a supporting table for sensitive changes: user_id, action, entity_type, entity_id, before_data (jsonb), after_data (jsonb) and created_at.
+Use `audit_log` for sensitive changes: user_id, action, entity_type, entity_id and created_at. Each changed field is one row in `audit_changes`: audit_id, field_name, old_value and new_value.
+
+Each skipped or failed upload row is one row in `import_errors`: import_batch_id, row_no, doc_no, outcome and reason. The database stores no JSON.
 
 ### Key rules and indexes
 
@@ -242,8 +243,8 @@ The Required column is proposed; change any row that should work differently.
 - **Numbers:** amounts must be zero or more, and No of Item must be a whole number.
 - **Document numbers:** suffixes such as `18/09` are removed. `doc_prefix`, `doc_seq` and `financial_year` are filled in automatically.
 - **Duplicates:** a number repeated in the file, or already saved for that register and financial year, is skipped.
-- **Parties:** Customer and Supplier names are matched to `parties`. A new name creates a new party marked customer or supplier.
-- **Area:** a filled Area must already exist in `areas`, otherwise the row fails. This stops spelling mistakes from creating new areas.
+- **Parties:** Customer and Supplier names are matched to `parties`, ignoring capitals and extra spaces. A new name is added once, marked customer or supplier.
+- **Area:** a filled Area is matched to `areas` the same way, and a new name is added once.
 
 ## Update forms
 

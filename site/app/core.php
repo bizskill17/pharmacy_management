@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Kolkata');
 ini_set('display_errors', '0');
 
 const MIN_PASSWORD_LENGTH = 8;
-const SCHEMA_VERSION = '2';
+const SCHEMA_VERSION = '3';
 
 final class UserError extends RuntimeException {}
 
@@ -70,6 +70,60 @@ function add_missing_user_columns(PDO $pdo): void
     }
 }
 
+/** Moves history out of the old JSON columns into audit_changes and import_errors, then drops them. */
+function move_json_to_columns(PDO $pdo): void
+{
+    $auditColumns = $pdo->query('SHOW COLUMNS FROM audit_log')->fetchAll(PDO::FETCH_COLUMN);
+    if (in_array('before_data', $auditColumns, true)) {
+        $insert = $pdo->prepare('INSERT INTO audit_changes (audit_id, field_name, old_value, new_value) VALUES (?, ?, ?, ?)');
+        $pdo->beginTransaction();
+        $pdo->exec('DELETE FROM audit_changes');
+        foreach ($pdo->query('SELECT id, before_data, after_data FROM audit_log WHERE before_data IS NOT NULL OR after_data IS NOT NULL')->fetchAll() as $row) {
+            $before = json_decode((string) $row['before_data'], true) ?: [];
+            $after = json_decode((string) $row['after_data'], true) ?: [];
+            foreach (array_keys($before + $after) as $field) {
+                $insert->execute([$row['id'], mb_substr((string) $field, 0, 60), audit_text($before[$field] ?? null), audit_text($after[$field] ?? null)]);
+            }
+        }
+        $pdo->commit();
+        $pdo->exec('ALTER TABLE audit_log DROP COLUMN before_data, DROP COLUMN after_data');
+    }
+    $batchColumns = $pdo->query('SHOW COLUMNS FROM import_batches')->fetchAll(PDO::FETCH_COLUMN);
+    if (in_array('error_report', $batchColumns, true)) {
+        $insert = $pdo->prepare('INSERT INTO import_errors (import_batch_id, row_no, outcome, reason) VALUES (?, ?, ?, ?)');
+        $pdo->beginTransaction();
+        $pdo->exec('DELETE FROM import_errors');
+        foreach ($pdo->query('SELECT id, error_report FROM import_batches WHERE error_report IS NOT NULL')->fetchAll() as $row) {
+            foreach (json_decode((string) $row['error_report'], true) ?: [] as $problem) {
+                $reason = (string) ($problem['reason'] ?? '');
+                $insert->execute([$row['id'], (int) ($problem['row'] ?? 0), stripos($reason, 'exists') !== false || stripos($reason, 'repeated') !== false ? 'SKIPPED' : 'FAILED', mb_substr($reason, 0, 255)]);
+            }
+        }
+        $pdo->commit();
+        $pdo->exec('ALTER TABLE import_batches DROP COLUMN error_report');
+    }
+}
+
+/** Joins parties whose saved names differ only by extra spaces. */
+function merge_spaced_parties(PDO $pdo): void
+{
+    $find = $pdo->prepare('SELECT id FROM parties WHERE source_name = ? AND id <> ?');
+    $move = $pdo->prepare('UPDATE documents SET party_id = ? WHERE party_id = ?');
+    $remove = $pdo->prepare('DELETE FROM parties WHERE id = ?');
+    $rename = $pdo->prepare('UPDATE parties SET source_name = ? WHERE id = ?');
+    foreach ($pdo->query("SELECT id, source_name FROM parties WHERE source_name LIKE '%  %'")->fetchAll() as $party) {
+        $clean = trim((string) preg_replace('/\s+/', ' ', (string) $party['source_name']));
+        $find->execute([$clean, $party['id']]);
+        $target = $find->fetchColumn();
+        if ($target) {
+            $move->execute([$target, $party['id']]);
+            $remove->execute([$party['id']]);
+        } else {
+            $rename->execute([$clean, $party['id']]);
+        }
+    }
+}
+
 function ensure_schema(PDO $pdo): void
 {
     $marker = storage_dir() . '/.schema-' . SCHEMA_VERSION;
@@ -78,6 +132,8 @@ function ensure_schema(PDO $pdo): void
             $pdo->exec($statement);
         }
         add_missing_user_columns($pdo);
+        move_json_to_columns($pdo);
+        merge_spaced_parties($pdo);
         if (!is_dir(storage_dir())) {
             mkdir(storage_dir(), 0755, true);
         }
@@ -131,12 +187,24 @@ function tx(callable $work): mixed
     }
 }
 
-function audit(?int $userId, string $action, string $type, ?int $id, mixed $before = null, mixed $after = null): void
+function audit_text(mixed $value): ?string
 {
-    run(
-        'INSERT INTO audit_log (user_id, action, entity_type, entity_id, before_data, after_data) VALUES (?, ?, ?, ?, ?, ?)',
-        [$userId, $action, $type, $id, $before === null ? null : json_encode($before), $after === null ? null : json_encode($after)]
-    );
+    if ($value === null) {
+        return null;
+    }
+    if (is_bool($value)) {
+        return $value ? 'Yes' : 'No';
+    }
+    return is_array($value) ? implode(', ', array_map('strval', $value)) : (string) $value;
+}
+
+function audit(?int $userId, string $action, string $type, ?int $id, ?array $before = null, ?array $after = null): void
+{
+    run('INSERT INTO audit_log (user_id, action, entity_type, entity_id) VALUES (?, ?, ?, ?)', [$userId, $action, $type, $id]);
+    $auditId = (int) db()->lastInsertId();
+    foreach (array_keys(($before ?? []) + ($after ?? [])) as $field) {
+        run('INSERT INTO audit_changes (audit_id, field_name, old_value, new_value) VALUES (?, ?, ?, ?)', [$auditId, mb_substr((string) $field, 0, 60), audit_text($before[$field] ?? null), audit_text($after[$field] ?? null)]);
+    }
 }
 
 function is_https(): bool
