@@ -1,6 +1,6 @@
 :root {
-  --ink: #17211f;
-  --muted: #52605c;
+  --ink: #000;
+  --muted: #000;
   --green: #0b5c55;
   --line: #d9e0dd;
   --ground: #f4f6f5;
@@ -25,12 +25,12 @@ h3 { margin: 0; font-size: 16px; }
 .page { max-width: 1120px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
 .topbar { max-width: 1120px; margin: 0 auto; padding: 24px 24px 0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
 .topbar-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.signed-in { padding: 6px 12px; border-radius: 999px; background: #fff; font-size: 13px; color: #3f4b47; }
+.signed-in { padding: 6px 12px; border-radius: 999px; background: #fff; font-size: 13px; color: #000; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; border: 1px solid var(--green); border-radius: 8px; background: #fff; color: var(--green); font-weight: 600; text-decoration: none; cursor: pointer; }
 .btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
 .btn.danger { border-color: #a32a17; color: #a32a17; }
-.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled { background: #eceeed; border-color: #b4bbb8; color: #000; cursor: default; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .between { justify-content: space-between; align-items: end; gap: 12px; }
 .muted { margin: 4px 0 0; color: var(--muted); }
@@ -56,7 +56,7 @@ table.data .right { text-align: right; font-variant-numeric: tabular-nums; }
 .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; }
 .pill.PENDING { background: #fce9c8; color: #6b4300; }
 .pill.UPLOADED { background: #d8efe6; color: #0b5041; }
-.pill.DELETED { background: #eee; color: #444; }
+.pill.DELETED { background: #eee; color: #000; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { padding: 5px 10px; border-radius: 6px; background: var(--head); font-size: 14px; }
@@ -211,3 +211,5 @@ table.data .group-row span { position: sticky; left: 8px; display: inline-block;
   .sidebar-foot .signed-in { font-size: 12px; padding: 6px; }
   .sidebar-logout { min-height: 44px; font-size: 14px; }
 }
+
+.input::placeholder { color: #000; opacity: 1; }
