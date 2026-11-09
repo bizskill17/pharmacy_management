@@ -204,3 +204,10 @@ html.menu-hidden .sidebar { display: none; }
 
 table.data .group-row td { background: #f0f5f3; font-weight: 500; }
 table.data .group-row span { position: sticky; left: 8px; display: inline-block; }
+
+@media (max-width: 760px) {
+  .sidebar { flex-basis: 128px; padding: 12px 8px; }
+  .side-home, .side-item { min-height: 50px; font-size: 15px; }
+  .sidebar-foot .signed-in { font-size: 12px; padding: 6px; }
+  .sidebar-logout { min-height: 44px; font-size: 14px; }
+}
