@@ -101,14 +101,14 @@ $barTitle = $register['label'];
       <h3 class="photo-head<?= $group['required'] ? ' req' : '' ?>"><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
       <div class="slots">
         <?php foreach ($items as $index => $photoId): $name = slot_label($group['label'], $index + 1); ?>
-        <div class="slot">
+        <div class="slot slot-filled">
           <?php if ($showNames): ?><div class="slot-name"><?= e($name) ?></div><?php endif; ?>
           <a href="/api/files/<?= (int) $photoId ?>" data-photo="<?= e($name) ?>" aria-label="Open <?= e($name) ?>"><img src="/api/files/<?= (int) $photoId ?>" alt="<?= e($name) ?> preview"></a>
           <?php if ($index === $count - 1): ?><button type="button" class="slot-remove" data-remove="<?= (int) $photoId ?>"><?= $trashIcon ?>Remove</button><?php endif; ?>
         </div>
         <?php endforeach; ?>
         <?php if ($count < $group['max']): $name = slot_label($group['label'], $count + 1); ?>
-        <div class="slot">
+        <div class="slot slot-empty">
           <?php if ($showNames): ?><div class="slot-name"><?= e($name) ?></div><?php endif; ?>
           <input class="sr-input" type="file" accept="image/jpeg,image/png,image/webp" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Upload <?= e($name) ?>">
           <input class="sr-input" type="file" accept="image/*" capture="environment" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Click <?= e($name) ?>">
@@ -121,7 +121,7 @@ $barTitle = $register['label'];
       </div>
     </div>
     <?php elseif ($section === 'auto'): continue; else: ?>
-    <div class="field form-wide"><label for="remarks">Remarks</label><textarea id="remarks" class="input" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
+    <div class="field form-wide"><label for="remarks">Remarks</label><textarea id="remarks" class="input" rows="1" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
     <?php endif; endforeach; ?>
     <div class="form-foot">
       <?php if ($hasAuto): ?>

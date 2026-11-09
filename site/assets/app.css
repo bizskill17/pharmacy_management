@@ -323,3 +323,30 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 
 .slot-pick { min-height: 60px; }
 .slot-pick svg { width: 28px; height: 28px; }
+
+/* Compact update form: each photo sits on one row. */
+.update-form { gap: 8px; }
+.photo-head { padding: 5px 10px; font-size: 14px; }
+.update-form .slots { grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 6px 12px; padding: 6px 8px; }
+.update-form .slot { flex-direction: row; align-items: center; gap: 8px; }
+.update-form .slot-name { flex: 0 0 auto; font-size: 13px; white-space: nowrap; }
+.slot-actions { flex: 1 1 auto; min-width: 0; gap: 6px; }
+.slot-pick { min-height: 44px; padding: 4px; border-radius: 8px; }
+.slot-pick svg { width: 22px; height: 22px; }
+.slot-filled > a { flex: 0 0 auto; }
+.update-form .slot img { width: 72px; height: 44px; }
+.slot-remove { margin-left: auto; min-height: 44px; padding: 0 10px; font-size: 13px; }
+.slot-remove svg { width: 15px; height: 15px; }
+.form-wide { gap: 2px; }
+#remarks { min-height: 44px; padding: 6px 10px; }
+.form-foot { padding: 6px 10px; }
+.form-foot .btn { min-height: 40px; padding: 4px 16px; }
+.auto-info { font-size: 13px; }
+@media (max-width: 760px) {
+  .update-form { gap: 6px; }
+  .photo-head { padding: 4px 8px; font-size: 14px; }
+  .update-form .slots { padding: 5px 6px; }
+  .form-foot { flex-wrap: nowrap; padding: 5px 6px; gap: 6px; }
+  .auto-info { flex-direction: column; gap: 0; font-size: 12px; line-height: 1.3; }
+  .form-foot .btn { width: auto; flex: 0 0 auto; padding: 4px 14px; }
+}
