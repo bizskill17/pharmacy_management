@@ -115,3 +115,12 @@ label.btn { cursor: pointer; }
 .field:has(> .input:required) > label::after, .req::after { content: " *"; color: #c62828; font-weight: 700; }
 .home-row.masters { background: #b8460e; }
 .home-row.masters .home-icon { color: #b8460e; }
+
+.topbar nav { gap: 10px; }
+.section-btn { min-height: 48px; padding: 6px 16px 6px 6px; border-radius: 12px; color: #fff; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; }
+.section-icon { width: 36px; height: 36px; border-radius: 9px; background: #fff; display: flex; align-items: center; justify-content: center; }
+.section-btn[aria-current="page"] { outline: 3px solid #17211f; outline-offset: 2px; }
+.section-btn.sale { background: #d81b60; } .section-btn.sale .section-icon { color: #d81b60; }
+.section-btn.cf-sales { background: #1565c0; } .section-btn.cf-sales .section-icon { color: #1565c0; }
+.section-btn.purchase { background: #00796b; } .section-btn.purchase .section-icon { color: #00796b; }
+.section-btn.masters { background: #b8460e; } .section-btn.masters .section-icon { color: #b8460e; }

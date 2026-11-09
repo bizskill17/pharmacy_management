@@ -108,3 +108,26 @@ function is_complete(array $register, array $counts): bool
     }
     return true;
 }
+
+function section_icon(string $slug): string
+{
+    return [
+        'sale' => '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/>',
+        'cf-sales' => '<path d="M2 6h12v11H2z"/><path d="M14 10h4l4 4v3h-8z"/><circle cx="7" cy="18.5" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/>',
+        'purchase' => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"/>',
+        'masters' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
+    ][$slug];
+}
+
+/** Buttons for the main sections. Masters is for Admins only. */
+function section_links(array $user): array
+{
+    $links = [];
+    foreach (registers() as $register) {
+        $links[] = ['slug' => $register['slug'], 'label' => $register['label'], 'href' => '/r/' . $register['slug'], 'match' => '/r/' . $register['slug']];
+    }
+    if ($user['role'] === 'ADMIN') {
+        $links[] = ['slug' => 'masters', 'label' => 'Masters', 'href' => '/admin/users', 'match' => '/admin'];
+    }
+    return $links;
+}
