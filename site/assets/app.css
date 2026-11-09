@@ -134,3 +134,25 @@ label.btn { cursor: pointer; }
 .lightbox::backdrop { background: rgba(10, 20, 18, 0.72); }
 .lightbox-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; }
 .lightbox img { display: block; width: 100%; max-height: calc(92vh - 66px); object-fit: contain; background: #16201d; }
+
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar { flex: 0 0 212px; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 18px 12px; background: #0e3b3a; display: flex; flex-direction: column; justify-content: space-between; gap: 18px; z-index: 1; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 10px; }
+.sidebar .section-btn { width: 100%; }
+.sidebar .section-btn[aria-current="page"] { outline-color: #fff; }
+.sidebar-foot { display: flex; flex-direction: column; gap: 8px; }
+.sidebar-foot .signed-in { text-align: center; }
+.sidebar-logout { width: 100%; }
+.app-main { flex: 1 1 0; min-width: 0; }
+.app-main .page { max-width: 1400px; }
+.app-main .flash-wrap { max-width: 1400px; }
+.home { min-height: 100vh; }
+@media (max-width: 760px) {
+  .app-shell { flex-direction: column; }
+  .sidebar { flex: 0 0 auto; position: static; height: auto; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+  .sidebar .section-btn { width: auto; }
+  .sidebar-foot { flex-direction: row; justify-content: space-between; align-items: center; }
+  .sidebar-logout { width: auto; }
+  .home { min-height: 0; }
+}
