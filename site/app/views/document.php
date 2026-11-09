@@ -13,12 +13,6 @@ if ($hasField('items')) { $fields[] = ['No of Item', $document['item_count'] ?? 
 if ($hasField('mr')) { array_push($fields, ['MR', $document['mr_name'] ?? ''], ['Area', $document['area'] ?? ''], ['Address', $document['address'] ?? '']); }
 array_push($fields, ['Uploaded by', $document['uploader'] ?? ''], ['Upload date', display_date($document['upload_date'])]);
 if ($register['type'] === 'PURCHASE') { $fields[] = ['Remarks', $document['remarks'] ?? '']; }
-$missing = [];
-foreach ($register['groups'] as $group) {
-    if ($group['required'] && empty($photos[$group['kind']])) {
-        $missing[] = $group['label'];
-    }
-}
 $deleted = (bool) $document['deleted_at'];
 $state = $deleted ? 'DELETED' : $document['status'];
 $id = (int) $document['id'];
@@ -38,18 +32,17 @@ $barTitle = $register['label'];
         <h1><?= e($document['doc_no']) ?></h1>
         <span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span>
       </div>
-      <?php if ($missing): ?><p class="muted"><?= e('Still needed: ' . implode(', ', $missing)) ?></p><?php endif; ?>
     </div>
     <?php if (!$editing): ?>
     <div class="row">
       <?php if ($deleted && $manage): ?>
       <form method="post" action="/documents/<?= $id ?>/restore"><?= csrf_field() ?><button class="btn primary">Restore document</button></form>
       <?php elseif (!$deleted): ?>
-      <a class="btn primary" href="<?= e($viewUrl) ?>?edit=1">Update</a>
+      <a class="icon-button primary" href="<?= e($viewUrl) ?>?edit=1" aria-label="Update" title="Update"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></a>
       <?php if ($manage): ?>
       <form method="post" action="/documents/<?= $id ?>/delete" class="row" id="delete-form">
         <?= csrf_field() ?>
-        <button type="button" class="btn danger" data-confirm-delete>Delete</button>
+        <button type="button" class="icon-button danger" data-confirm-delete aria-label="Delete" title="Delete"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
         <button type="button" class="btn" data-keep hidden>Keep</button>
         <button class="btn danger" data-do-delete hidden>Confirm delete</button>
       </form>

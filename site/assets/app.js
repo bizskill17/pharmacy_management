@@ -257,8 +257,9 @@
         return;
       }
       var form = event.target.closest('#delete-form');
-      if (form && event.target.matches('[data-confirm-delete], [data-keep]')) {
-        var confirming = event.target.matches('[data-confirm-delete]');
+      var deleteToggle = event.target.closest('[data-confirm-delete], [data-keep]');
+      if (form && deleteToggle) {
+        var confirming = deleteToggle.matches('[data-confirm-delete]');
         form.querySelector('[data-confirm-delete]').hidden = confirming;
         form.querySelector('[data-keep]').hidden = !confirming;
         form.querySelector('[data-do-delete]').hidden = !confirming;

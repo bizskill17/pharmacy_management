@@ -227,3 +227,7 @@ table.data tr.group-row.g7 td { background: #e9e3a4; } table.data tr.g7 td { bac
 table.data tr.group-row.g8 td { background: #d9d3c8; } table.data tr.g8 td { background: #f6f4f0; }
 table.data tr.group-row.g9 td { background: #f3c8ee; } table.data tr.g9 td { background: #fdf0fb; }
 table.data tr.row-link:hover td { filter: brightness(0.93); }
+
+.icon-button.primary { background: var(--green); color: #fff; }
+.icon-button.danger { border-color: #a32a17; color: #a32a17; }
+.icon-button[hidden] { display: none; }
