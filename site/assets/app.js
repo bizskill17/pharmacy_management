@@ -153,6 +153,40 @@
     });
   });
 
+  /* Filter panel on the right of the page. */
+  var filterForm = document.querySelector('form[data-filter-form]');
+  if (filterForm) {
+    var panel = filterForm.querySelector('[data-filter-panel]');
+    var openButton = filterForm.querySelector('[data-filter-open]');
+    var badge = filterForm.querySelector('[data-filter-count]');
+    var fields = ['from', 'to', 'area'].map(function (name) { return filterForm.elements[name]; });
+    var drawCount = function () {
+      var active = fields.filter(function (field) { return field.value.trim() !== ''; }).length;
+      badge.hidden = active === 0;
+      badge.textContent = active;
+    };
+    var setPanel = function (open) {
+      panel.hidden = !open;
+      openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    openButton.addEventListener('click', function () { setPanel(panel.hidden); });
+    filterForm.querySelector('[data-filter-close]').addEventListener('click', function () {
+      setPanel(false);
+      openButton.focus();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !panel.hidden && !document.querySelector('dialog[open]')) { setPanel(false); }
+    });
+    filterForm.querySelector('[data-filter-clear]').addEventListener('click', function () {
+      fields.forEach(function (field) { field.value = ''; });
+      drawCount();
+      filterForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    filterForm.addEventListener('input', drawCount);
+    filterForm.addEventListener('change', drawCount);
+    drawCount();
+  }
+
   /* Employee documents */
   document.querySelectorAll('input[data-compress]').forEach(function (input) {
     input.addEventListener('change', function () {

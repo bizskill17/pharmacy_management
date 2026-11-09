@@ -1,11 +1,9 @@
 <?php
+$barTitle = 'Bulk upload';
 $info = array_map(fn ($register) => ['slug' => $register['slug'], 'label' => $register['label'], 'columns' => array_map(fn ($c) => $c[0], $register['template']), 'required' => array_map(fn ($c) => $c[2], $register['template'])], array_values(registers()));
 ?>
 <main class="page" id="bulk" data-initial="<?= e($initial) ?>" data-registers="<?= e(json_encode($info)) ?>">
-  <div>
-    <h1>Bulk upload</h1>
-    <p class="muted">Download a template, fill it in, then check the rows before saving.</p>
-  </div>
+  <p class="muted">Download a template, fill it in, then check the rows before saving.</p>
   <section class="card">
     <h2 id="bulk-title"></h2>
     <div class="chips" id="bulk-chips"></div>

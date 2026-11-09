@@ -24,6 +24,7 @@ $state = $deleted ? 'DELETED' : $document['status'];
 $id = (int) $document['id'];
 $viewUrl = '/r/' . $register['slug'] . '/' . $id;
 $editing = isset($_GET['edit']) && !$deleted;
+$barTitle = $register['label'];
 ?>
 <main class="page" id="document" data-id="<?= $id ?>">
   <div class="row between">

@@ -1,4 +1,5 @@
 <?php
+$barTitle = $register['label'];
 $dateText = fn (string $iso) => $iso === '' ? '' : display_date($iso);
 $link = function (array $change) use ($register, $filter, $status, $dateText) {
     $values = array_merge(['q' => $filter['q'], 'from' => $dateText($filter['from']), 'to' => $dateText($filter['to']), 'area' => $filter['area'] ?: '', 'status' => $status === 'ALL' ? '' : $status], $change);
@@ -23,25 +24,32 @@ $textValue = function (array $d, string $field) {
 };
 ?>
 <main class="page">
-  <div class="row between">
-    <div>
-      <h1><?= e($register['label']) ?></h1>
-      <p class="muted"><?= number_format($counts['PENDING']) ?> pending, <?= number_format($counts['UPLOADED']) ?> uploaded</p>
-    </div>
-  </div>
-
-  <form class="filters" method="get" data-live-filter>
+  <form method="get" data-live-filter data-filter-form>
     <?php if ($status !== 'ALL'): ?><input type="hidden" name="status" value="<?= e($status) ?>"><?php endif; ?>
-    <div class="field"><label for="q">Search number or party</label><input id="q" name="q" class="input" type="search" value="<?= e($filter['q']) ?>"></div>
-    <div class="field"><label for="from">From date</label><input id="from" name="from" class="input" data-date value="<?= e($dateText($filter['from'])) ?>"></div>
-    <div class="field"><label for="to">To date</label><input id="to" name="to" class="input" data-date value="<?= e($dateText($filter['to'])) ?>"></div>
-    <div class="field">
-      <label for="area">Area</label>
-      <select id="area" name="area" class="input">
-        <option value="">All areas</option>
-        <?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === $filter['area'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?>
-      </select>
+    <div class="search-row">
+      <label for="q" class="visually-hidden">Search number or party</label>
+      <input id="q" name="q" class="input" type="search" placeholder="Search number or party" value="<?= e($filter['q']) ?>">
+      <button type="button" class="icon-button" data-filter-open aria-label="Open filters" title="Filters" aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+        <span class="filter-count" data-filter-count hidden></span>
+      </button>
     </div>
+    <aside class="filter-panel" data-filter-panel aria-label="Filters" hidden>
+      <div class="row between center">
+        <h2>Filters</h2>
+        <button type="button" class="icon-button" data-filter-close aria-label="Close filters" title="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <div class="field"><label for="from">From date</label><input id="from" name="from" class="input" data-date value="<?= e($dateText($filter['from'])) ?>"></div>
+      <div class="field"><label for="to">To date</label><input id="to" name="to" class="input" data-date value="<?= e($dateText($filter['to'])) ?>"></div>
+      <div class="field">
+        <label for="area">Area</label>
+        <select id="area" name="area" class="input">
+          <option value="">All areas</option>
+          <?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === $filter['area'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?>
+        </select>
+      </div>
+      <button type="button" class="btn" data-filter-clear>Clear filters</button>
+    </aside>
   </form>
 
   <div id="live-results">
@@ -79,4 +87,5 @@ $textValue = function (array $d, string $field) {
 
   <?= pager($filter['page'], $total, fn ($number) => $link(['page' => $number])) ?>
   </div>
+  <p class="muted"><?= number_format($counts['PENDING']) ?> pending, <?= number_format($counts['UPLOADED']) ?> uploaded</p>
 </main>

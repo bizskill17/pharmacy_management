@@ -11,7 +11,7 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <script>try { if (localStorage.getItem('menuHidden') === '1') { document.documentElement.classList.add('menu-hidden'); } } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=18">
+<link rel="stylesheet" href="/assets/app.css?v=19">
 </head>
 <body>
 <?php
@@ -35,7 +35,7 @@ $account = function () use ($user) { ?>
     <div class="sidebar-foot"><?php $account(); ?></div>
   </aside>
   <div class="app-main">
-    <div class="menu-bar"><button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="true" aria-label="Hide menu" title="Hide menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div>
+    <div class="menu-bar"><button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="true" aria-label="Hide menu" title="Hide menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><?php if (!empty($barTitle)): ?><h1 class="bar-title"><?= e($barTitle) ?></h1><?php endif; ?></div>
 <?php elseif ($user): ?>
 <header class="topbar"><span></span><div class="topbar-group"><?php $account(); ?></div></header>
 <?php endif; ?>
@@ -47,6 +47,6 @@ $account = function () use ($user) { ?>
   </div>
 </div>
 <?php endif; ?>
-<script src="/assets/app.js?v=12"></script>
+<script src="/assets/app.js?v=13"></script>
 </body>
 </html>

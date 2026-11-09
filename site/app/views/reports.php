@@ -1,8 +1,6 @@
+<?php $barTitle = 'Reports'; ?>
 <main class="page">
-  <div class="row between">
-    <h1>Reports</h1>
-    <a class="btn" href="/api/reports/export">Export to Excel</a>
-  </div>
+  <div class="row"><a class="btn" href="/api/reports/export">Export to Excel</a></div>
   <div class="grid-auto">
     <section class="card flush">
       <h2>Pending by date</h2>

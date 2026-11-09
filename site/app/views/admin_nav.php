@@ -1,1 +1,1 @@
-<h1>Masters</h1>
+<?php $barTitle = 'Masters'; ?>
