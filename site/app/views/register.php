@@ -1,5 +1,4 @@
 <?php
-$statusLabels = ['ALL' => 'All', 'PENDING' => 'Pending', 'UPLOADED' => 'Uploaded', 'MINE' => 'My uploads', 'DELETED' => 'Deleted'];
 $lastPage = max(1, (int) ceil($total / PAGE_SIZE));
 $dateText = fn (string $iso) => $iso === '' ? '' : display_date($iso);
 $link = function (array $change) use ($register, $filter, $status, $dateText) {
@@ -46,12 +45,6 @@ $textValue = function (array $d, string $field) {
     </div>
     <button class="btn primary">Apply</button>
   </form>
-
-  <div class="row">
-    <?php foreach (array_intersect($statuses, ['MINE', 'DELETED']) as $value): ?>
-    <a class="toggle<?= $value === $status ? ' on' : '' ?>" href="<?= e($link(['status' => $value === 'ALL' ? '' : $value])) ?>"><?= e($statusLabels[$value]) ?></a>
-    <?php endforeach; ?>
-  </div>
 
   <?php if (!$documents): ?>
   <p class="muted">No documents found.</p>
