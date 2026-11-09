@@ -398,8 +398,105 @@ function save_party_file(array $admin): int
     return count($ready);
 }
 
+const USER_BULK_HEADERS = ['employee name', 'phone no', 'email', 'address', 'passcode', 'salary', 'status'];
+
+/** Users bulk upload: only hashed passcodes wait in the session until the rows are saved. */
+function check_user_file(): void
+{
+    $file = $_FILES['file'] ?? null;
+    if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        throw new UserError('Choose a file to upload.');
+    }
+    $table = read_upload($file);
+    $headers = array_map(fn ($cell) => strtolower(trim((string) ($cell instanceof DateTimeInterface ? '' : $cell))), array_slice($table['headers'], 0, count(USER_BULK_HEADERS)));
+    if ($headers !== USER_BULK_HEADERS) {
+        throw new UserError('Columns must be, in this order: Employee Name, Phone No, Email, Address, Passcode, Salary, Status.');
+    }
+    if (count($table['rows']) > 300) {
+        throw new UserError('A file can have at most 300 employees.');
+    }
+    $existing = array_flip(array_column(rows('SELECT phone FROM users'), 'phone'));
+    $seen = [];
+    $checked = [];
+    foreach ($table['rows'] as $row) {
+        $cell = fn (int $index, int $limit) => (string) (cell_text($row['cells'][$index] ?? null, $limit) ?? '');
+        $name = clean_name($cell(0, 120));
+        $phone = $cell(1, 20);
+        $email = $cell(2, 150);
+        $address = $cell(3, 255);
+        $passcode = $cell(4, 200);
+        $salaryText = $cell(5, 20);
+        $salary = $salaryText === '' ? null : parse_amount($salaryText);
+        $status = strtolower($cell(6, 20));
+        $reason = match (true) {
+            $name === '' => 'Employee Name is blank',
+            !preg_match('/^\d{6,15}$/', $phone) => 'Phone No is not valid',
+            $email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL) => 'Email is not valid',
+            strlen($passcode) < MIN_PASSWORD_LENGTH => 'Passcode must have at least ' . MIN_PASSWORD_LENGTH . ' characters',
+            $salaryText !== '' && $salary === null => 'Salary is not a number',
+            !in_array($status, ['', 'active', 'inactive'], true) => 'Status must be Active or Inactive',
+            default => '',
+        };
+        $outcome = $reason === '' ? 'ready' : 'failed';
+        if ($outcome === 'ready' && isset($existing[$phone])) {
+            [$outcome, $reason] = ['skipped', 'Phone No already exists'];
+        } elseif ($outcome === 'ready' && isset($seen[$phone])) {
+            [$outcome, $reason] = ['skipped', 'Repeated in this file'];
+        }
+        $seen[$phone] = true;
+        $checked[] = [
+            'row' => $row['number'], 'name' => $name, 'phone' => $phone, 'email' => $email, 'address' => $address, 'salary' => $salary, 'active' => $status === 'inactive' ? 0 : 1,
+            'hash' => $outcome === 'ready' ? password_hash($passcode, PASSWORD_DEFAULT) : '', 'outcome' => $outcome, 'reason' => $reason,
+        ];
+    }
+    $_SESSION['user_bulk'] = $checked;
+}
+
+function save_user_file(array $admin): int
+{
+    $ready = array_filter($_SESSION['user_bulk'] ?? [], fn ($row) => $row['outcome'] === 'ready');
+    $created = tx(function () use ($ready, $admin) {
+        $count = 0;
+        foreach ($ready as $row) {
+            $count += run(
+                "INSERT IGNORE INTO users (full_name, phone, email, address, salary, password_hash, role, is_active) VALUES (?, ?, ?, ?, ?, ?, 'UPLOADER', ?)",
+                [$row['name'], $row['phone'], $row['email'] === '' ? null : $row['email'], $row['address'] === '' ? null : $row['address'], $row['salary'], $row['hash'], $row['active']]
+            )->rowCount();
+        }
+        audit($admin['id'], 'USER_BULK_UPLOAD', 'user', null, null, ['created' => $count]);
+        return $count;
+    });
+    unset($_SESSION['user_bulk']);
+    return $created;
+}
+
 function route_masters_additions(bool $get, bool $post, string $path): void
 {
+    if ($get && $path === '/admin/users/template') {
+        require_user(ADMINS);
+        send_xlsx('users-template.xlsx', ['Users' => [['Employee Name', 'Phone No', 'Email', 'Address', 'Passcode', 'Salary', 'Status']]]);
+    }
+    if ($path === '/admin/users/bulk') {
+        $admin = require_user(ADMINS);
+        $error = null;
+        if ($post) {
+            require_csrf();
+            try {
+                if (($_POST['action'] ?? '') === 'save') {
+                    $created = save_user_file($admin);
+                    flash(number_format($created) . ' employees added.');
+                    redirect('/admin/users');
+                }
+                check_user_file();
+            } catch (UserError $failure) {
+                unset($_SESSION['user_bulk']);
+                $error = $failure->getMessage();
+            }
+        } else {
+            unset($_SESSION['user_bulk']);
+        }
+        render('admin_users_bulk', ['rows' => $_SESSION['user_bulk'] ?? null, 'error' => $error]);
+    }
     if ($get && $path === '/admin/parties/template') {
         require_user(ADMINS);
         send_xlsx('parties-template.xlsx', ['Parties' => [['Party Name', 'Area']]]);

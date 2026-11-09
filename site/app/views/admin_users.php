@@ -1,5 +1,6 @@
 <main class="page">
   <?php require __DIR__ . '/admin_nav.php'; ?>
+  <div class="row"><a class="btn" href="/admin/users/bulk">Bulk upload</a></div>
   <details class="card">
     <summary><strong>Add employee</strong></summary>
     <form method="post" action="/admin/users" enctype="multipart/form-data" class="stack">
