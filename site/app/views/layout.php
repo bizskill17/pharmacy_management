@@ -25,7 +25,6 @@ $account = function () use ($user) { ?>
   <aside class="sidebar">
     <div class="sidebar-top">
       <a class="side-home" href="/">Home</a>
-      <div class="side-title"><?= e($sidebar['title']) ?></div>
       <nav class="sidebar-nav" aria-label="<?= e($sidebar['title']) ?>">
         <?php foreach ($sidebar['items'] as $item): ?>
         <a class="side-item" href="<?= e($item['href']) ?>"<?= $item['current'] ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
