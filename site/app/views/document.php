@@ -29,9 +29,9 @@ $editing = isset($_GET['edit']) && !$deleted;
   <div class="row between">
     <div id="doc-head">
       <?php if ($editing): ?>
-      <a class="doc-link" href="<?= e($viewUrl) ?>">Back to details</a>
+      <a class="icon-back" href="<?= e($viewUrl) ?>" aria-label="Back to details" title="Back to details"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
       <?php else: ?>
-      <a class="doc-link" href="/r/<?= e($register['slug']) ?>">Back to <?= e($register['label']) ?></a>
+      <a class="icon-back" href="/r/<?= e($register['slug']) ?>" aria-label="Back to <?= e($register['label']) ?>" title="Back to <?= e($register['label']) ?>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
       <?php endif; ?>
       <div class="row" style="margin-top:8px;gap:12px">
         <h1><?= e($document['doc_no']) ?></h1>

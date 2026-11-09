@@ -184,3 +184,6 @@ html.menu-hidden .sidebar { display: none; }
 .menu-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 10px; border: 1px solid #89958f; border-radius: 8px; background: #fff; color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; }
 .app-main .page { padding-top: 12px; }
 @media (max-width: 760px) { .menu-bar { padding: 8px 12px 0; } .app-main .page { padding-top: 8px; } }
+
+.menu-toggle { justify-content: center; width: 36px; padding: 0; }
+.icon-back { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid #89958f; border-radius: 8px; background: #fff; color: var(--ink); text-decoration: none; }

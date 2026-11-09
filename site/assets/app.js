@@ -99,7 +99,8 @@
     var drawToggle = function () {
       var hidden = root.classList.contains('menu-hidden');
       menuToggle.setAttribute('aria-expanded', hidden ? 'false' : 'true');
-      menuToggle.querySelector('span').textContent = hidden ? 'Show menu' : 'Hide menu';
+      menuToggle.setAttribute('aria-label', hidden ? 'Show menu' : 'Hide menu');
+      menuToggle.title = hidden ? 'Show menu' : 'Hide menu';
     };
     menuToggle.addEventListener('click', function () {
       var hidden = root.classList.toggle('menu-hidden');
