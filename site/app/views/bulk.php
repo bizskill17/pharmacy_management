@@ -1,5 +1,5 @@
 <?php
-$info = array_map(fn ($register) => ['slug' => $register['slug'], 'label' => $register['label'], 'columns' => array_map(fn ($c) => $c[0], $register['template'])], array_values(registers()));
+$info = array_map(fn ($register) => ['slug' => $register['slug'], 'label' => $register['label'], 'columns' => array_map(fn ($c) => $c[0], $register['template']), 'required' => array_map(fn ($c) => $c[2], $register['template'])], array_values(registers()));
 ?>
 <main class="page" id="bulk" data-initial="<?= e($initial) ?>" data-registers="<?= e(json_encode($info)) ?>">
   <div>

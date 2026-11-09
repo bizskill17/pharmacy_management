@@ -82,7 +82,7 @@ $id = (int) $document['id'];
       ?>
       <div class="field photo-group" id="group-<?= e($kind) ?>">
         <div class="row between">
-          <h3><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
+          <h3<?= $group['required'] ? ' class="req"' : '' ?>><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
           <span class="muted"><?= $group['required'] ? 'Required' : 'Optional' ?> &middot; <?= $count ?> of <?= (int) $group['max'] ?> added</span>
         </div>
         <div class="slots">

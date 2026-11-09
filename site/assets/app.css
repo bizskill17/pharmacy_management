@@ -111,3 +111,5 @@ table.data .right { text-align: right; font-variant-numeric: tabular-nums; }
 .btn.end { align-self: end; }
 .btn[hidden], p[hidden], section[hidden] { display: none; }
 label.btn { cursor: pointer; }
+
+.field:has(> .input:required) > label::after, .req::after { content: " *"; color: #c62828; font-weight: 700; }

@@ -206,6 +206,12 @@
         var chip = document.createElement('span');
         chip.className = 'chip';
         chip.textContent = (index + 1) + '. ' + column;
+        if (register.required[index]) {
+          var mark = document.createElement('span');
+          mark.className = 'req';
+          mark.setAttribute('aria-label', 'required');
+          chip.appendChild(mark);
+        }
         chips.appendChild(chip);
       });
       drawResult();
