@@ -279,7 +279,8 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .sidebar-foot { padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--menu) 35%, transparent); }
 .sidebar .signed-in { display: block; padding: 0; background: transparent; color: #000; font-size: 12px; line-height: 1.25; text-align: center; }
 .sidebar .signed-in b { display: block; }
-.sidebar .sidebar-logout { gap: 6px; border-color: #a32a17; background: #fff; color: #a32a17; }
+.btn.sidebar-logout, .sidebar .sidebar-logout { gap: 6px; border-color: #c62828; background: #c62828; color: #fff; }
+.btn.sidebar-logout:hover, .sidebar .sidebar-logout:hover { border-color: #a32a17; background: #a32a17; color: #fff; }
 .topbar .sidebar-logout .menu-icon { display: none; }
 @media (max-width: 760px) {
   .sidebar { flex-basis: 132px; padding: 10px 6px; }
