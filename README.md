@@ -24,7 +24,7 @@ Create these repository secrets under **Settings > Secrets and variables > Actio
 
 | Secret | Value |
 | --- | --- |
-| `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_PORT`, `FTP_REMOTE_DIR` | Hostinger FTP details |
+| `FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_PORT` | Hostinger FTP details |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Hostinger MySQL database |
 | `ADMIN_PHONE`, `ADMIN_PASSWORD` | First Admin login; password of at least 8 characters |
 

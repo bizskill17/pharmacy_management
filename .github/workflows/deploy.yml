@@ -62,4 +62,5 @@ jobs:
           protocol: ftps
           security: loose
           local-dir: ./site/
-          server-dir: ${{ secrets.FTP_REMOTE_DIR }}/
+          # This FTP account opens directly inside the site's public_html folder.
+          server-dir: ./
