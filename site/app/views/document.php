@@ -113,8 +113,8 @@ $barTitle = $register['label'];
           <input class="sr-input" type="file" accept="image/jpeg,image/png,image/webp" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Upload <?= e($name) ?>">
           <input class="sr-input" type="file" accept="image/*" capture="environment" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Click <?= e($name) ?>">
           <div class="slot-actions">
-            <button type="button" class="slot-pick" data-pick="0"><?= $uploadIcon ?>Upload photo</button>
-            <button type="button" class="slot-pick main" data-pick="1"><?= $cameraIcon ?>Click photo</button>
+            <button type="button" class="slot-pick" data-pick="0" aria-label="Upload photo" title="Upload photo"><?= $uploadIcon ?></button>
+            <button type="button" class="slot-pick main" data-pick="1" aria-label="Click photo" title="Click photo"><?= $cameraIcon ?></button>
           </div>
         </div>
         <?php endif; ?>

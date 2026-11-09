@@ -320,3 +320,6 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
   .form-foot .btn { width: 100%; }
   .auto-info { font-size: 13px; }
 }
+
+.slot-pick { min-height: 60px; }
+.slot-pick svg { width: 28px; height: 28px; }
