@@ -9,7 +9,7 @@ function valid_date(int $year, int $month, int $day): ?string
     return checkdate($month, $day, $year) ? sprintf('%04d-%02d-%02d', $year, $month, $day) : null;
 }
 
-/** Accepts Excel dates, DD/MM/YYYY and DD-Mon-YY. Blank and 01/01/1970 are invalid. */
+/** Accepts Excel dates and day numbers, DD/MM/YYYY and DD-Mon-YY. Blank and 01/01/1970 are invalid. */
 function parse_date(mixed $value): ?string
 {
     $months = ['jan' => 1, 'feb' => 2, 'mar' => 3, 'apr' => 4, 'may' => 5, 'jun' => 6, 'jul' => 7, 'aug' => 8, 'sep' => 9, 'oct' => 10, 'nov' => 11, 'dec' => 12];
@@ -23,6 +23,9 @@ function parse_date(mixed $value): ?string
         } elseif (preg_match('/^(\d{1,2})-([A-Za-z]{3})-(\d{2}|\d{4})$/', $text, $m) && isset($months[strtolower($m[2])])) {
             $year = strlen($m[3]) === 2 ? 2000 + (int) $m[3] : (int) $m[3];
             $iso = valid_date($year, $months[strtolower($m[2])], (int) $m[1]);
+        } elseif (preg_match('/^\d{5}(\.\d+)?$/', $text) && (float) $text >= 30000 && (float) $text < 70000) {
+            /* A date cell saved in General format arrives as Excel's day number. */
+            $iso = (new DateTimeImmutable('1899-12-30'))->modify('+' . (int) floor((float) $text) . ' days')->format('Y-m-d');
         }
     }
     return $iso === '1970-01-01' ? null : $iso;
