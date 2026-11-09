@@ -60,7 +60,7 @@ $barTitle = $register['label'];
         <?php foreach ($fields as [$label, $value]): ?><div class="kv"><span><?= e($label) ?></span><span><?= e($value) ?></span></div><?php endforeach; ?>
       </section>
     </div>
-    <section class="card form" aria-label="Photos">
+    <section class="card form" id="doc-photos" aria-label="Photos">
       <h2>Photos</h2>
       <?php foreach ($register['groups'] as $group): $items = $photos[$group['kind']] ?? []; ?>
       <div class="field">

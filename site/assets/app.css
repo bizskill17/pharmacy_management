@@ -265,9 +265,9 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .choice input:focus-visible + span { outline: 2px solid var(--green); outline-offset: 2px; }
 
 /* Left menu: one light colour per section, black text. */
-.app-shell { --menu: #d81b60; --menu-bg: #fbd9e6; }
-.app-shell.menu-cf-sales { --menu: #1565c0; --menu-bg: #d6e8fb; }
-.app-shell.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; }
+.app-shell { --menu: #d81b60; --menu-bg: #fbd9e6; --page-tint: #fdebf2; --photo-head: #5e35b1; }
+.app-shell.menu-cf-sales { --menu: #1565c0; --menu-bg: #d6e8fb; --page-tint: #e8f2fd; --photo-head: #c2410c; }
+.app-shell.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; --page-tint: #e2f6f1; --photo-head: #7b1fa2; }
 .app-shell.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
 .sidebar { background: var(--menu-bg); padding: 12px 8px; }
 .sidebar-top { gap: 4px; }
@@ -355,3 +355,22 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .icon-back:hover { border-color: #a32a17; background: #a32a17; color: #fff; }
 .menu-toggle { border-color: var(--menu); background: var(--menu); color: #fff; }
 .menu-toggle:hover { filter: brightness(0.9); }
+
+/* Colourful details view */
+.app-main:has(#doc-details) { background: var(--page-tint); }
+#doc-details, #doc-photos { gap: 0; padding: 0; overflow: hidden; border: 0; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16); }
+#doc-details h2, #doc-photos h2 { margin: 0; padding: 7px 12px; color: #fff; font-size: 15px; font-weight: 700; }
+#doc-details h2 { background: var(--menu); }
+#doc-photos h2 { background: var(--photo-head); }
+#doc-details .kv { padding: 7px 12px; border-top: 0; font-size: 14px; }
+#doc-details .kv:nth-of-type(5n+1) { background: #fde3ec; }
+#doc-details .kv:nth-of-type(5n+2) { background: #e0eefc; }
+#doc-details .kv:nth-of-type(5n+3) { background: #ddf4e8; }
+#doc-details .kv:nth-of-type(5n+4) { background: #fff0cf; }
+#doc-details .kv:nth-of-type(5n) { background: #ece3fa; }
+#doc-details .kv span:first-child { white-space: nowrap; }
+#doc-details .kv span:last-child { font-weight: 600; }
+#doc-photos .field { padding: 8px 12px; }
+@media (max-width: 760px) {
+  #doc-details .kv { padding: 5px 12px; font-size: 13px; }
+}
