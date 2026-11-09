@@ -113,3 +113,5 @@ table.data .right { text-align: right; font-variant-numeric: tabular-nums; }
 label.btn { cursor: pointer; }
 
 .field:has(> .input:required) > label::after, .req::after { content: " *"; color: #c62828; font-weight: 700; }
+.home-row.masters { background: #b8460e; }
+.home-row.masters .home-icon { color: #b8460e; }

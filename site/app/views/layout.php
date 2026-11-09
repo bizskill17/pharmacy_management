@@ -10,14 +10,13 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <title><?= e($title) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=5">
+<link rel="stylesheet" href="/assets/app.css?v=6">
 </head>
 <body>
 <?php if ($user): ?>
 <header class="topbar">
   <nav class="topbar-group" aria-label="Main">
     <?php if ($currentPath !== '/'): ?><a class="btn" href="/">Home</a><?php endif; ?>
-    <?php if ($user['role'] === 'ADMIN'): ?><a class="btn" href="/admin/users">Masters</a><?php endif; ?>
   </nav>
   <div class="topbar-group">
     <span class="signed-in">Signed in as <?= e($user['full_name']) ?></span>
