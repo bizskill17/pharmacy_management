@@ -15,7 +15,7 @@ $documents = ['photo' => ['Photo', 'photo_key'], 'pan' => ['PAN Card', 'pan_key'
   <div class="field"><label for="u-designation">Designation</label><input id="u-designation" name="designation" class="input" maxlength="100" value="<?= e($v('designation')) ?>"></div>
   <div class="field"><label for="u-password">Passcode<?= $isEdit ? ' (leave blank to keep)' : '' ?></label><input id="u-password" name="password" type="password" class="input"<?= $isEdit ? '' : ' required' ?> minlength="8" autocomplete="new-password"></div>
   <div class="field"><label for="u-salary">Salary</label><input id="u-salary" name="salary" class="input" inputmode="decimal" value="<?= e($v('salary') === '' ? '' : (float) $v('salary')) ?>"></div>
-  <div class="field"><label for="u-joining">Joining Date</label><input id="u-joining" name="joining_date" type="date" class="input" value="<?= e($v('joining_date')) ?>"></div>
+  <div class="field"><label for="u-joining">Joining Date</label><input id="u-joining" name="joining_date" class="input" data-date value="<?= e($v('joining_date') === '' ? '' : display_date($v('joining_date'))) ?>"></div>
   <div class="field"><label for="u-status">Status</label><select id="u-status" name="status" class="input"><option<?= $active ? ' selected' : '' ?>>Active</option><option<?= $active ? '' : ' selected' ?>>Inactive</option></select></div>
   <div class="field"><label for="u-role">Role</label><select id="u-role" name="role" class="input" required><?php foreach ($roleOptions as $value => $label): ?><option value="<?= e($value) ?>"<?= $currentRole === $value ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></div>
 </div>

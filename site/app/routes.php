@@ -56,7 +56,7 @@ function show_register(array $register): never
     $manage = $user['role'] !== 'UPLOADER';
     $statuses = $manage ? ['ALL', 'PENDING', 'UPLOADED', 'MINE', 'DELETED'] : ['ALL', 'PENDING', 'UPLOADED', 'MINE'];
     $status = in_array($_GET['status'] ?? '', $statuses, true) ? $_GET['status'] : 'ALL';
-    $dateOnly = fn ($name) => preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) ($_GET[$name] ?? '')) ? $_GET[$name] : '';
+    $dateOnly = fn ($name) => parse_date(trim((string) ($_GET[$name] ?? ''))) ?? '';
     $filter = [
         'type' => $register['type'], 'status' => $status, 'q' => trim((string) ($_GET['q'] ?? '')), 'from' => $dateOnly('from'), 'to' => $dateOnly('to'),
         'area' => (int) ($_GET['area'] ?? 0), 'page' => max(1, (int) ($_GET['page'] ?? 1)), 'user_id' => $user['id'],
@@ -104,13 +104,12 @@ function handle_correction(int $id): never
     require_csrf();
     $slug = document_slug($id);
     $back = "/r/$slug/$id";
-    $rawDate = (string) ($_POST['date'] ?? '');
-    $date = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $rawDate, $m) ? valid_date((int) $m[1], (int) $m[2], (int) $m[3]) : null;
+    $date = parse_date(post_text('date', 10));
     $amount = parse_amount((string) ($_POST['amount'] ?? ''));
     $party = post_text('party', 200);
     $itemsText = post_text('items', 20);
     $items = $itemsText === '' ? null : parse_whole($itemsText);
-    $problem = !$date ? 'Enter a valid date.' : ($amount === null ? 'Enter a valid amount.' : ($party === '' ? 'Party name is required.' : (($itemsText !== '' && $items === null) ? 'No of Item must be a whole number.' : null)));
+    $problem = !$date ? 'Enter a valid date as dd/mm/yyyy.' : ($amount === null ? 'Enter a valid amount.' : ($party === '' ? 'Party name is required.' : (($itemsText !== '' && $items === null) ? 'No of Item must be a whole number.' : null)));
     if ($problem) {
         flash($problem, false);
         redirect($back);
@@ -226,9 +225,9 @@ function employee_from_post(): array
     $joining = post_text('joining_date', 10);
     $joiningDate = null;
     if ($joining !== '') {
-        $joiningDate = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $joining, $m) ? valid_date((int) $m[1], (int) $m[2], (int) $m[3]) : null;
+        $joiningDate = parse_date($joining);
         if ($joiningDate === null) {
-            throw new UserError('Enter a valid joining date.');
+            throw new UserError('Enter the joining date as dd/mm/yyyy.');
         }
     }
     $role = (string) ($_POST['role'] ?? '');

@@ -112,7 +112,7 @@ table.data .right { text-align: right; font-variant-numeric: tabular-nums; }
 .btn[hidden], p[hidden], section[hidden] { display: none; }
 label.btn { cursor: pointer; }
 
-.field:has(> .input:required) > label::after, .req::after { content: " *"; color: #c62828; font-weight: 700; }
+.field:has(.input:required) > label::after, .req::after { content: " *"; color: #c62828; font-weight: 700; }
 .home-row.masters { background: #b8460e; }
 .home-row.masters .home-icon { color: #b8460e; }
 
@@ -124,3 +124,8 @@ label.btn { cursor: pointer; }
 .section-btn.cf-sales { background: #1565c0; } .section-btn.cf-sales .section-icon { color: #1565c0; }
 .section-btn.purchase { background: #00796b; } .section-btn.purchase .section-icon { color: #00796b; }
 .section-btn.masters { background: #b8460e; } .section-btn.masters .section-icon { color: #b8460e; }
+
+.date-wrap { position: relative; display: block; }
+.date-wrap .input { padding-right: 44px; }
+.date-wrap .sr-input { right: 22px; bottom: 0; }
+.date-pick { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: none; color: var(--green); cursor: pointer; display: flex; align-items: center; justify-content: center; }

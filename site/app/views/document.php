@@ -45,7 +45,7 @@ $id = (int) $document['id'];
         <summary><strong>Correct details or delete</strong></summary>
         <form method="post" action="/documents/<?= $id ?>/correct" class="stack">
           <?= csrf_field() ?>
-          <div class="field"><label for="c-date">Date</label><input id="c-date" name="date" type="date" class="input" value="<?= e($document['doc_date']) ?>" required></div>
+          <div class="field"><label for="c-date">Date</label><input id="c-date" name="date" class="input" data-date value="<?= e(display_date($document['doc_date'])) ?>" required></div>
           <div class="field"><label for="c-party"><?= e($register['party']) ?></label><input id="c-party" name="party" class="input" value="<?= e($document['party_name_raw'] ?? $document['party']) ?>" required maxlength="200"></div>
           <div class="field"><label for="c-amount">Amount</label><input id="c-amount" name="amount" class="input" inputmode="decimal" value="<?= e((float) $document['amount']) ?>" required></div>
           <?php if ($hasField('items')): ?><div class="field"><label for="c-items">No of Item</label><input id="c-items" name="items" class="input" inputmode="numeric" value="<?= e($document['item_count']) ?>"></div><?php endif; ?>

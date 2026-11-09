@@ -27,6 +27,44 @@
       }).catch(function () { return file; });
     };
 
+  /* Dates are always shown and typed as dd/mm/yyyy, whatever the device language. */
+  document.querySelectorAll('input[data-date]').forEach(function (input) {
+    input.placeholder = 'dd/mm/yyyy';
+    input.maxLength = 10;
+    input.inputMode = 'numeric';
+    input.autocomplete = 'off';
+    input.pattern = '\\d{2}/\\d{2}/\\d{4}';
+    input.title = 'Enter the date as dd/mm/yyyy';
+    input.addEventListener('input', function () {
+      var digits = input.value.replace(/\D/g, '').slice(0, 8);
+      input.value = digits.replace(/^(\d{2})(\d)/, '$1/$2').replace(/^(\d{2}\/\d{2})(\d)/, '$1/$2');
+    });
+    var wrap = document.createElement('span');
+    wrap.className = 'date-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    var picker = document.createElement('input');
+    picker.type = 'date';
+    picker.className = 'sr-input';
+    picker.tabIndex = -1;
+    picker.setAttribute('aria-hidden', 'true');
+    picker.addEventListener('change', function () {
+      if (picker.value) { input.value = picker.value.split('-').reverse().join('/'); }
+    });
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'date-pick';
+    button.setAttribute('aria-label', 'Open calendar');
+    button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>';
+    button.addEventListener('click', function () {
+      var match = input.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      picker.value = match ? match[3] + '-' + match[2] + '-' + match[1] : '';
+      if (picker.showPicker) { picker.showPicker(); } else { picker.focus(); picker.click(); }
+    });
+    wrap.appendChild(picker);
+    wrap.appendChild(button);
+  });
+
   /* Employee documents */
   document.querySelectorAll('input[data-compress]').forEach(function (input) {
     input.addEventListener('change', function () {

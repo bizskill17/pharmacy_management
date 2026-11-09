@@ -174,7 +174,7 @@ function read_upload(array $file): array
 
 function display_cell(mixed $cell): string
 {
-    return $cell instanceof DateTimeInterface ? $cell->format('Y-m-d') : trim((string) $cell);
+    return $cell instanceof DateTimeInterface ? $cell->format('d/m/Y') : trim((string) $cell);
 }
 
 function check_sheet(array $register, array $sheet): array
@@ -217,7 +217,9 @@ function check_sheet(array $register, array $sheet): array
         }
         $cells = [];
         foreach ($register['template'] as $index => $column) {
-            $cells[] = display_cell($row['cells'][$index] ?? null);
+            $cell = $row['cells'][$index] ?? null;
+            $iso = $column[1] === 'date' ? parse_date($cell) : null;
+            $cells[] = $iso ? display_date($iso) : display_cell($cell);
         }
         $result[] = [
             'row' => $row['number'],

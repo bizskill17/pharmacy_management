@@ -1,8 +1,9 @@
 <?php
 $statusLabels = ['ALL' => 'All', 'PENDING' => 'Pending', 'UPLOADED' => 'Uploaded', 'MINE' => 'My uploads', 'DELETED' => 'Deleted'];
 $lastPage = max(1, (int) ceil($total / PAGE_SIZE));
-$link = function (array $change) use ($register, $filter, $status) {
-    $values = array_merge(['q' => $filter['q'], 'from' => $filter['from'], 'to' => $filter['to'], 'area' => $filter['area'] ?: '', 'status' => $status === 'ALL' ? '' : $status], $change);
+$dateText = fn (string $iso) => $iso === '' ? '' : display_date($iso);
+$link = function (array $change) use ($register, $filter, $status, $dateText) {
+    $values = array_merge(['q' => $filter['q'], 'from' => $dateText($filter['from']), 'to' => $dateText($filter['to']), 'area' => $filter['area'] ?: '', 'status' => $status === 'ALL' ? '' : $status], $change);
     $query = http_build_query(array_filter($values, fn ($value) => $value !== ''));
     return '/r/' . $register['slug'] . ($query ? '?' . $query : '');
 };
@@ -40,8 +41,8 @@ $textValue = function (array $d, string $field) {
   <form class="filters" method="get">
     <?php if ($status !== 'ALL'): ?><input type="hidden" name="status" value="<?= e($status) ?>"><?php endif; ?>
     <div class="field"><label for="q">Search number or party</label><input id="q" name="q" class="input" type="search" value="<?= e($filter['q']) ?>"></div>
-    <div class="field"><label for="from">From date</label><input id="from" name="from" class="input" type="date" value="<?= e($filter['from']) ?>"></div>
-    <div class="field"><label for="to">To date</label><input id="to" name="to" class="input" type="date" value="<?= e($filter['to']) ?>"></div>
+    <div class="field"><label for="from">From date</label><input id="from" name="from" class="input" data-date value="<?= e($dateText($filter['from'])) ?>"></div>
+    <div class="field"><label for="to">To date</label><input id="to" name="to" class="input" data-date value="<?= e($dateText($filter['to'])) ?>"></div>
     <div class="field">
       <label for="area">Area</label>
       <select id="area" name="area" class="input">
