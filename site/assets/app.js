@@ -92,6 +92,23 @@
     openPhoto(link.getAttribute('href'), link.dataset.photo);
   });
 
+  /* Show or hide the left menu; the choice is remembered on this device. */
+  var menuToggle = document.getElementById('menu-toggle');
+  if (menuToggle) {
+    var root = document.documentElement;
+    var drawToggle = function () {
+      var hidden = root.classList.contains('menu-hidden');
+      menuToggle.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+      menuToggle.querySelector('span').textContent = hidden ? 'Show menu' : 'Hide menu';
+    };
+    menuToggle.addEventListener('click', function () {
+      var hidden = root.classList.toggle('menu-hidden');
+      try { localStorage.setItem('menuHidden', hidden ? '1' : '0'); } catch (error) { /* Works for this page only. */ }
+      drawToggle();
+    });
+    drawToggle();
+  }
+
   /* Employee documents */
   document.querySelectorAll('input[data-compress]').forEach(function (input) {
     input.addEventListener('change', function () {
