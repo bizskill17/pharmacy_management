@@ -6,7 +6,6 @@ $info = array_map(fn ($register) => ['slug' => $register['slug'], 'label' => $re
     <h1>Bulk upload</h1>
     <p class="muted">Download a template, fill it in, then check the rows before saving.</p>
   </div>
-  <div class="row" id="bulk-tabs"></div>
   <section class="card">
     <h2 id="bulk-title"></h2>
     <div class="chips" id="bulk-chips"></div>

@@ -156,3 +156,14 @@ label.btn { cursor: pointer; }
   .sidebar-logout { width: auto; }
   .home { min-height: 0; }
 }
+
+.sidebar-top { display: flex; flex-direction: column; gap: 12px; }
+.side-home { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); color: #fff; font-weight: 600; text-decoration: none; align-self: flex-start; }
+.side-title { padding: 4px 12px 0; color: #fff; font-size: 21px; font-weight: 700; }
+.side-item { display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: 8px; color: #e6f2f0; font-weight: 600; text-decoration: none; }
+.side-item:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.side-item[aria-current="page"] { background: #fff; color: #0e3b3a; }
+.sidebar-nav { gap: 4px; }
+.topbar { justify-content: space-between; }
+.home { min-height: calc(100vh - 110px); }
+@media (max-width: 760px) { .home { min-height: calc(100vh - 110px); } .sidebar-top { gap: 8px; } }

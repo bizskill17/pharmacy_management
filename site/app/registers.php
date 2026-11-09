@@ -131,3 +131,38 @@ function section_links(array $user): array
     }
     return $links;
 }
+
+/** Left menu for the section being viewed, or null where no section applies. */
+function sidebar_for(string $path, array $user): ?array
+{
+    if (str_starts_with($path, '/admin')) {
+        return ['title' => 'Masters', 'items' => [
+            ['label' => 'Users', 'href' => '/admin/users', 'current' => str_starts_with($path, '/admin/users')],
+            ['label' => 'Parties', 'href' => '/admin/parties', 'current' => $path === '/admin/parties'],
+            ['label' => 'Areas', 'href' => '/admin/areas', 'current' => $path === '/admin/areas'],
+        ]];
+    }
+    $slug = null;
+    if (preg_match('#^/r/([a-z-]+)#', $path, $m)) {
+        $slug = $m[1];
+    } elseif ($path === '/bulk' || $path === '/reports') {
+        $slug = (string) ($_GET['type'] ?? 'sale');
+    }
+    $register = $slug === null ? null : register_by_slug($slug);
+    if (!$register) {
+        return null;
+    }
+    $list = '/r/' . $register['slug'];
+    $status = (string) ($_GET['status'] ?? '');
+    $onList = $path === $list;
+    $items = [
+        ['label' => 'Master', 'href' => $list, 'current' => $onList && $status === ''],
+        ['label' => 'Pending', 'href' => $list . '?status=PENDING', 'current' => $onList && $status === 'PENDING'],
+        ['label' => 'Uploaded', 'href' => $list . '?status=UPLOADED', 'current' => $onList && $status === 'UPLOADED'],
+    ];
+    if ($user['role'] !== 'UPLOADER') {
+        $items[] = ['label' => 'Reports', 'href' => '/reports?type=' . $register['slug'], 'current' => $path === '/reports'];
+        $items[] = ['label' => 'Bulk upload', 'href' => '/bulk?type=' . $register['slug'], 'current' => $path === '/bulk'];
+    }
+    return ['title' => $register['label'], 'items' => $items];
+}

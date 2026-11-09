@@ -30,12 +30,6 @@ $textValue = function (array $d, string $field) {
       <h1><?= e($register['label']) ?></h1>
       <p class="muted"><?= number_format($counts['PENDING']) ?> pending, <?= number_format($counts['UPLOADED']) ?> uploaded</p>
     </div>
-    <?php if ($manage): ?>
-    <div class="row">
-      <a class="btn" href="/reports">Reports</a>
-      <a class="btn primary" href="/bulk?type=<?= e($register['slug']) ?>">Bulk upload</a>
-    </div>
-    <?php endif; ?>
   </div>
 
   <form class="filters" method="get">
@@ -54,7 +48,7 @@ $textValue = function (array $d, string $field) {
   </form>
 
   <div class="row">
-    <?php foreach ($statuses as $value): ?>
+    <?php foreach (array_intersect($statuses, ['MINE', 'DELETED']) as $value): ?>
     <a class="toggle<?= $value === $status ? ' on' : '' ?>" href="<?= e($link(['status' => $value === 'ALL' ? '' : $value])) ?>"><?= e($statusLabels[$value]) ?></a>
     <?php endforeach; ?>
   </div>

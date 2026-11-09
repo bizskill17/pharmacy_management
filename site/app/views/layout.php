@@ -10,39 +10,42 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <title><?= e($title) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=10">
+<link rel="stylesheet" href="/assets/app.css?v=11">
 </head>
 <body>
-<?php if ($user):
-    $bulkType = $currentPath === '/bulk' ? '/r/' . ($_GET['type'] ?? 'sale') : '';
-?>
-<div class="app-shell">
-  <aside class="sidebar">
-    <nav class="sidebar-nav" aria-label="Sections">
-      <?php foreach (section_links($user) as $section):
-          $isCurrent = $currentPath === $section['match'] || str_starts_with($currentPath, $section['match'] . '/') || $bulkType === $section['match'];
-      ?>
-      <a class="section-btn <?= e($section['slug']) ?>" href="<?= e($section['href']) ?>"<?= $isCurrent ? ' aria-current="page"' : '' ?>>
-        <span class="section-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= section_icon($section['slug']) ?></svg></span>
-        <?= e($section['label']) ?>
-      </a>
-      <?php endforeach; ?>
-    </nav>
-    <div class="sidebar-foot">
+<?php
+$sidebar = $user ? sidebar_for($currentPath, $user) : null;
+$account = function () use ($user) { ?>
       <span class="signed-in">Signed in as <?= e($user['full_name']) ?></span>
       <form method="post" action="/logout"><?= csrf_field() ?><button class="btn sidebar-logout">Log out</button></form>
+<?php };
+?>
+<?php if ($sidebar): ?>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <a class="side-home" href="/">Home</a>
+      <div class="side-title"><?= e($sidebar['title']) ?></div>
+      <nav class="sidebar-nav" aria-label="<?= e($sidebar['title']) ?>">
+        <?php foreach ($sidebar['items'] as $item): ?>
+        <a class="side-item" href="<?= e($item['href']) ?>"<?= $item['current'] ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
+        <?php endforeach; ?>
+      </nav>
     </div>
+    <div class="sidebar-foot"><?php $account(); ?></div>
   </aside>
   <div class="app-main">
+<?php elseif ($user): ?>
+<header class="topbar"><span></span><div class="topbar-group"><?php $account(); ?></div></header>
 <?php endif; ?>
 <?php if ($flash): ?>
 <div class="flash-wrap"><p class="<?= $flash['ok'] ? 'success' : 'error' ?>" role="status"><?= e($flash['message']) ?></p></div>
 <?php endif; ?>
 <?= $content ?>
-<?php if ($user): ?>
+<?php if ($sidebar): ?>
   </div>
 </div>
 <?php endif; ?>
-<script src="/assets/app.js?v=6"></script>
+<script src="/assets/app.js?v=7"></script>
 </body>
 </html>

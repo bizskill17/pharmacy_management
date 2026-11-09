@@ -250,19 +250,6 @@
 
     var draw = function () {
       var register = current();
-      var tabs = el('tabs');
-      tabs.textContent = '';
-      registers.forEach(function (item) {
-        var button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'toggle' + (item.slug === slug ? ' on' : '');
-        button.textContent = item.label;
-        button.addEventListener('click', function () {
-          slug = item.slug; chosen = null; rows = null; finished = false;
-          clearStatus(); el('name').textContent = ''; draw();
-        });
-        tabs.appendChild(button);
-      });
       el('title').textContent = register.label + ' template columns';
       el('template').href = '/api/templates/' + slug;
       var chips = el('chips');
