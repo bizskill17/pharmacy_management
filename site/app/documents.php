@@ -200,6 +200,29 @@ function save_remarks(int $documentId, string $remarks, int $userId): void
     });
 }
 
+/** Saves the typed fields on an Expiry record. */
+function save_expiry(int $documentId, array $input, int $userId): void
+{
+    $referenceNo = mb_substr(trim((string) ($input['reference_no'] ?? '')), 0, 50);
+    $remarks = mb_substr(trim((string) ($input['remarks'] ?? '')), 0, 2000);
+    $receivedBy = mb_substr(trim((string) ($input['received_by'] ?? '')), 0, 120);
+    $dateText = trim((string) ($input['receipt_date'] ?? ''));
+    $receiptDate = $dateText === '' ? null : parse_date($dateText);
+    if ($dateText !== '' && !$receiptDate) {
+        throw new UserError('Enter Receipt Date as dd/mm/yyyy.');
+    }
+    tx(function () use ($documentId, $referenceNo, $remarks, $receivedBy, $receiptDate, $userId) {
+        $document = lock_document($documentId);
+        if ($document['doc_type'] !== 'EXPIRY') {
+            throw new UserError('These fields are only used for Expiry.');
+        }
+        $before = row('SELECT reference_no, remarks, receipt_date, received_by FROM documents WHERE id = ?', [$documentId]);
+        $after = ['reference_no' => $referenceNo === '' ? null : $referenceNo, 'remarks' => $remarks === '' ? null : $remarks, 'receipt_date' => $receiptDate, 'received_by' => $receivedBy === '' ? null : $receivedBy];
+        run('UPDATE documents SET reference_no = ?, remarks = ?, receipt_date = ?, received_by = ? WHERE id = ?', [$after['reference_no'], $after['remarks'], $after['receipt_date'], $after['received_by'], $documentId]);
+        audit($userId, 'EXPIRY_UPDATE', 'document', $documentId, $before, $after);
+    });
+}
+
 function clean_name(string $name): string
 {
     return trim((string) preg_replace('/\s+/', ' ', $name));

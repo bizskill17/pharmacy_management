@@ -75,6 +75,18 @@ function registers(): array
             ),
             'form' => [['photos', 'CHALLAN_PHOTO'], ['photos', 'GOODS_PHOTO'], ['auto', ''], ['remarks', '']],
         ],
+        'EXPIRY' => [
+            'type' => 'EXPIRY', 'slug' => 'expiry', 'label' => 'Expiry', 'number' => 'Expiry Challan No', 'date' => 'Date',
+            'party' => 'Customer', 'amount' => 'Amount',
+            'groups' => [['kind' => 'EXPIRY_PHOTO', 'label' => 'Expiry Challan Photo', 'max' => 1, 'required' => true]],
+            'template' => [['Expiry Challan No', 'no', true], ['Customer', 'party', true], ['Amount', 'amount', true], ['Date', 'date', true]],
+            'columns' => array_merge(
+                [['type' => 'link', 'label' => 'Expiry Challan No'], text_column('Customer', 'party'), text_column('Amount', 'amount', true), text_column('Date', 'date')],
+                photo_columns('EXPIRY_PHOTO', 'Expiry Challan Photo', 1),
+                [text_column('Expiry Challan No', 'referenceNo'), text_column('Remarks', 'remarks'), text_column('Receipt Date', 'receiptDate'), text_column('Received By', 'receivedBy')]
+            ),
+            'form' => [['photos', 'EXPIRY_PHOTO'], ['expiry', '']],
+        ],
     ];
     return $registers;
 }
@@ -115,6 +127,7 @@ function section_icon(string $slug): string
         'sale' => '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/>',
         'cf-sales' => '<path d="M2 6h12v11H2z"/><path d="M14 10h4l4 4v3h-8z"/><circle cx="7" cy="18.5" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/>',
         'purchase' => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"/>',
+        'expiry' => '<path d="M6 3h12M6 21h12"/><path d="M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/>',
         'masters' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
     ][$slug];
 }
@@ -137,7 +150,7 @@ function section_links(array $user): array
 function group_labels(array $register): array
 {
     return match ($register['type']) {
-        'CF_SALE' => ['date' => 'Date', 'customer' => 'Customer', 'none' => 'No Group'],
+        'CF_SALE', 'EXPIRY' => ['date' => 'Date', 'customer' => 'Customer', 'none' => 'No Group'],
         'PURCHASE' => ['date' => 'Date', 'area' => 'Area', 'mr' => 'MR', 'supplier' => 'Supplier', 'none' => 'No Group'],
         default => ['date' => 'Date', 'area' => 'Area', 'mr' => 'MR', 'none' => 'No Group'],
     };

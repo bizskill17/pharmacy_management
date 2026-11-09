@@ -439,7 +439,7 @@ function handle_request(string $method, string $path): never
         $register = register_by_slug($m[1]) ?? not_found();
         isset($m[2]) ? show_document($register, (int) $m[2]) : show_register($register);
     }
-    if ($post && preg_match('#^/documents/(\d+)/(correct|delete|restore|remarks)$#', $path, $m)) {
+    if ($post && preg_match('#^/documents/(\d+)/(correct|delete|restore|remarks|expiry)$#', $path, $m)) {
         $id = (int) $m[1];
         if ($m[2] === 'correct') {
             handle_correction($id);
@@ -448,6 +448,15 @@ function handle_request(string $method, string $path): never
             $user = api_user();
             try {
                 save_remarks($id, (string) ($_POST['remarks'] ?? ''), $user['id']);
+                json_response(['message' => 'Update saved.']);
+            } catch (UserError $error) {
+                json_response(['error' => $error->getMessage()], 400);
+            }
+        }
+        if ($m[2] === 'expiry') {
+            $user = api_user();
+            try {
+                save_expiry($id, $_POST, $user['id']);
                 json_response(['message' => 'Update saved.']);
             } catch (UserError $error) {
                 json_response(['error' => $error->getMessage()], 400);

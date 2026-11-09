@@ -288,6 +288,19 @@
     var save = document.getElementById('save-update');
     if (save) {
       save.addEventListener('click', function () {
+        var expiry = document.getElementById('expiry-fields');
+        if (expiry) {
+          save.disabled = true;
+          var details = new FormData();
+          expiry.querySelectorAll('[name]').forEach(function (field) { details.append(field.name, field.value); });
+          post('/documents/' + id + '/expiry', details).then(function () {
+            location.href = save.dataset.after;
+          }).catch(function (error) {
+            save.disabled = false;
+            show(false, error.message);
+          });
+          return;
+        }
         var remarks = document.getElementById('remarks');
         if (!remarks) { location.href = save.dataset.after; return; }
         save.disabled = true;

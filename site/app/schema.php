@@ -44,7 +44,7 @@ return [
 
     "CREATE TABLE IF NOT EXISTS import_batches (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      doc_type ENUM('SALE','CF_SALE','PURCHASE') NOT NULL,
+      doc_type ENUM('SALE','CF_SALE','PURCHASE','EXPIRY') NOT NULL,
       source_kind ENUM('TEMPLATE_UPLOAD','HISTORY') NOT NULL,
       file_name VARCHAR(255) NOT NULL,
       rows_total INT NOT NULL DEFAULT 0,
@@ -58,7 +58,7 @@ return [
 
     "CREATE TABLE IF NOT EXISTS documents (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      doc_type ENUM('SALE','CF_SALE','PURCHASE') NOT NULL,
+      doc_type ENUM('SALE','CF_SALE','PURCHASE','EXPIRY') NOT NULL,
       doc_no VARCHAR(30) NOT NULL,
       doc_prefix VARCHAR(10) NOT NULL,
       doc_seq INT NOT NULL,
@@ -74,6 +74,9 @@ return [
       address VARCHAR(255) NULL,
       status ENUM('PENDING','UPLOADED') NOT NULL DEFAULT 'PENDING',
       remarks TEXT NULL,
+      reference_no VARCHAR(50) NULL,
+      receipt_date DATE NULL,
+      received_by VARCHAR(120) NULL,
       uploaded_by BIGINT NULL,
       legacy_uploaded_by VARCHAR(120) NULL,
       uploaded_at DATETIME NULL,
@@ -98,7 +101,7 @@ return [
     "CREATE TABLE IF NOT EXISTS attachments (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
       document_id BIGINT NOT NULL,
-      kind ENUM('RECEIPT_COPY','INVOICE_PHOTO','CHALLAN_PHOTO','GOODS_PHOTO') NOT NULL,
+      kind ENUM('RECEIPT_COPY','INVOICE_PHOTO','CHALLAN_PHOTO','GOODS_PHOTO','EXPIRY_PHOTO') NOT NULL,
       file_key VARCHAR(500) NOT NULL,
       original_name VARCHAR(255) NULL,
       mime_type VARCHAR(100) NOT NULL,

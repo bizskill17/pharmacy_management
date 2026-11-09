@@ -19,6 +19,9 @@ $textValue = function (array $d, string $field) {
         'uploadDate' => display_date($d['upload_date']),
         'uploader' => $d['uploader'] ?? '',
         'remarks' => $d['remarks'] ?? '',
+        'referenceNo' => $d['reference_no'] ?? '',
+        'receiptDate' => display_date($d['receipt_date'] ?? null),
+        'receivedBy' => $d['received_by'] ?? '',
         default => '',
     };
 };

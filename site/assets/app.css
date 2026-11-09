@@ -268,6 +268,7 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .app-shell { --menu: #d81b60; --menu-bg: #fbd9e6; --page-tint: #fdebf2; --photo-head: #5e35b1; }
 .app-shell.menu-cf-sales { --menu: #1565c0; --menu-bg: #d6e8fb; --page-tint: #e8f2fd; --photo-head: #c2410c; }
 .app-shell.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; --page-tint: #e2f6f1; --photo-head: #7b1fa2; }
+.app-shell.menu-expiry { --menu: #6a1b9a; --menu-bg: #e7d9f5; --page-tint: #f3ebfb; --photo-head: #b45309; }
 .app-shell.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
 .sidebar { background: var(--menu-bg); padding: 12px 8px; }
 .sidebar-top { gap: 4px; }
@@ -393,3 +394,14 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 
 table.data, table.data th, table.data td { font-size: 14px; }
 .master-table .input, .master-table .btn { font-size: 14px; }
+
+/* Expiry section */
+.home-row.expiry { background: #6a1b9a; }
+.home-row.expiry .home-icon { color: #6a1b9a; }
+.section-btn.expiry { background: #6a1b9a; } .section-btn.expiry .section-icon { color: #6a1b9a; }
+.expiry-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.expiry-fields .input { min-height: 40px; padding: 6px 10px; }
+.expiry-fields textarea { min-height: 40px; }
+@media (max-width: 760px) {
+  .expiry-fields { grid-template-columns: minmax(0, 1fr); padding: 6px; }
+}

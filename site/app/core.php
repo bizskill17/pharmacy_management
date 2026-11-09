@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Kolkata');
 ini_set('display_errors', '0');
 
 const MIN_PASSWORD_LENGTH = 8;
-const SCHEMA_VERSION = '3';
+const SCHEMA_VERSION = '4';
 
 final class UserError extends RuntimeException {}
 
@@ -124,6 +124,21 @@ function merge_spaced_parties(PDO $pdo): void
     }
 }
 
+/** Adds the Expiry section to databases made before it existed. Safe to run again. */
+function add_expiry_section(PDO $pdo): void
+{
+    $pdo->exec("ALTER TABLE import_batches MODIFY doc_type ENUM('SALE','CF_SALE','PURCHASE','EXPIRY') NOT NULL");
+    $pdo->exec("ALTER TABLE documents MODIFY doc_type ENUM('SALE','CF_SALE','PURCHASE','EXPIRY') NOT NULL");
+    $pdo->exec("ALTER TABLE attachments MODIFY kind ENUM('RECEIPT_COPY','INVOICE_PHOTO','CHALLAN_PHOTO','GOODS_PHOTO','EXPIRY_PHOTO') NOT NULL");
+    $columns = ['reference_no' => 'VARCHAR(50) NULL', 'receipt_date' => 'DATE NULL', 'received_by' => 'VARCHAR(120) NULL'];
+    $existing = $pdo->query('SHOW COLUMNS FROM documents')->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($columns as $name => $definition) {
+        if (!in_array($name, $existing, true)) {
+            $pdo->exec("ALTER TABLE documents ADD COLUMN $name $definition");
+        }
+    }
+}
+
 function ensure_schema(PDO $pdo): void
 {
     $marker = storage_dir() . '/.schema-' . SCHEMA_VERSION;
@@ -132,6 +147,7 @@ function ensure_schema(PDO $pdo): void
             $pdo->exec($statement);
         }
         add_missing_user_columns($pdo);
+        add_expiry_section($pdo);
         move_json_to_columns($pdo);
         merge_spaced_parties($pdo);
         if (!is_dir(storage_dir())) {

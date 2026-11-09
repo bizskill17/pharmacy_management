@@ -13,6 +13,12 @@ if ($hasField('items')) { $fields[] = ['No of Item', $document['item_count'] ?? 
 if ($hasField('mr')) { array_push($fields, ['MR', $document['mr_name'] ?? ''], ['Area', $document['area'] ?? ''], ['Address', $document['address'] ?? '']); }
 array_push($fields, ['Uploaded by', $document['uploader'] ?? ''], ['Upload date', display_date($document['upload_date'])]);
 if ($register['type'] === 'PURCHASE') { $fields[] = ['Remarks', $document['remarks'] ?? '']; }
+if ($register['type'] === 'EXPIRY') {
+    $fields = [
+        ['Expiry Challan No', $document['doc_no']], ['Customer', $document['party'] ?? ''], ['Amount', money($document['amount'])], ['Date', display_date($document['doc_date'])],
+        ['Expiry Challan No', $document['reference_no'] ?? ''], ['Remarks', $document['remarks'] ?? ''], ['Receipt Date', display_date($document['receipt_date'])], ['Received By', $document['received_by'] ?? ''],
+    ];
+}
 $deleted = (bool) $document['deleted_at'];
 $state = $deleted ? 'DELETED' : $document['status'];
 $id = (int) $document['id'];
@@ -120,7 +126,14 @@ $barTitle = $register['label'];
         <?php endif; ?>
       </div>
     </div>
-    <?php elseif ($section === 'auto'): continue; else: ?>
+    <?php elseif ($section === 'auto'): continue; elseif ($section === 'expiry'): ?>
+    <div class="expiry-fields" id="expiry-fields">
+      <div class="field"><label for="reference-no">Expiry Challan No</label><input id="reference-no" name="reference_no" class="input" maxlength="50" value="<?= e($document['reference_no']) ?>"></div>
+      <div class="field"><label for="receipt-date">Receipt Date</label><input id="receipt-date" name="receipt_date" class="input" data-date value="<?= e($document['receipt_date'] ? display_date($document['receipt_date']) : date('d/m/Y')) ?>"></div>
+      <div class="field"><label for="received-by">Received By</label><input id="received-by" name="received_by" class="input" maxlength="120" value="<?= e($document['received_by'] ?? $user['full_name']) ?>"></div>
+      <div class="field"><label for="expiry-remarks">Remarks</label><textarea id="expiry-remarks" name="remarks" class="input" rows="1" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
+    </div>
+    <?php else: ?>
     <div class="field form-wide"><label for="remarks">Remarks</label><textarea id="remarks" class="input" rows="1" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
     <?php endif; endforeach; ?>
     <div class="form-foot">
