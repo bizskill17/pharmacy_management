@@ -12,6 +12,7 @@ if ($hasField('receipt')) { $fields[] = ['Receipt', $document['receipt_ref'] ?? 
 if ($hasField('items')) { $fields[] = ['No of Item', $document['item_count'] ?? '-']; }
 if ($hasField('mr')) { array_push($fields, ['MR', $document['mr_name'] ?? '-'], ['Area', $document['area'] ?? '-'], ['Address', $document['address'] ?? '-']); }
 array_push($fields, ['Uploaded by', $document['uploader'] ?? '-'], ['Upload date', display_date($document['upload_date'])]);
+if ($register['type'] === 'PURCHASE') { $fields[] = ['Remarks', $document['remarks'] ?? '-']; }
 $missing = [];
 foreach ($register['groups'] as $group) {
     if ($group['required'] && empty($photos[$group['kind']])) {
@@ -21,53 +22,73 @@ foreach ($register['groups'] as $group) {
 $deleted = (bool) $document['deleted_at'];
 $state = $deleted ? 'DELETED' : $document['status'];
 $id = (int) $document['id'];
+$viewUrl = '/r/' . $register['slug'] . '/' . $id;
+$editing = isset($_GET['edit']) && !$deleted;
 ?>
 <main class="page" id="document" data-id="<?= $id ?>">
-  <div id="doc-head">
-    <a class="doc-link" href="/r/<?= e($register['slug']) ?>">Back to <?= e($register['label']) ?></a>
-    <div class="row" style="margin-top:8px;gap:12px">
-      <h1><?= e($document['doc_no']) ?></h1>
-      <span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span>
+  <div class="row between">
+    <div id="doc-head">
+      <?php if ($editing): ?>
+      <a class="doc-link" href="<?= e($viewUrl) ?>">Back to details</a>
+      <?php else: ?>
+      <a class="doc-link" href="/r/<?= e($register['slug']) ?>">Back to <?= e($register['label']) ?></a>
+      <?php endif; ?>
+      <div class="row" style="margin-top:8px;gap:12px">
+        <h1><?= e($document['doc_no']) ?></h1>
+        <span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span>
+      </div>
+      <p class="muted"><?= $missing ? e('Still needed: ' . implode(', ', $missing)) : 'All required files are attached.' ?></p>
     </div>
-    <p class="muted"><?= $missing ? e('Still needed: ' . implode(', ', $missing)) : 'All required files are attached.' ?></p>
+    <?php if (!$editing): ?>
+    <div class="row">
+      <?php if ($deleted && $manage): ?>
+      <form method="post" action="/documents/<?= $id ?>/restore"><?= csrf_field() ?><button class="btn primary">Restore document</button></form>
+      <?php elseif (!$deleted): ?>
+      <a class="btn primary" href="<?= e($viewUrl) ?>?edit=1">Update</a>
+      <?php if ($manage): ?>
+      <form method="post" action="/documents/<?= $id ?>/delete" class="row" id="delete-form">
+        <?= csrf_field() ?>
+        <button type="button" class="btn danger" data-confirm-delete>Delete</button>
+        <button type="button" class="btn" data-keep hidden>Keep</button>
+        <button class="btn danger" data-do-delete hidden>Confirm delete</button>
+      </form>
+      <?php endif; ?>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
   </div>
-  <?php if ($deleted && $manage): ?>
-  <form method="post" action="/documents/<?= $id ?>/restore"><?= csrf_field() ?><button class="btn primary">Restore document</button></form>
-  <?php endif; ?>
+
+  <?php if (!$editing): ?>
   <div class="split">
     <div class="side">
       <section class="card flush" id="doc-details">
         <h2>Details</h2>
         <?php foreach ($fields as [$label, $value]): ?><div class="kv"><span><?= e($label) ?></span><span><?= e($value) ?></span></div><?php endforeach; ?>
       </section>
-      <?php if ($manage && !$deleted): ?>
-      <details class="card">
-        <summary><strong>Correct details or delete</strong></summary>
-        <form method="post" action="/documents/<?= $id ?>/correct" class="stack">
-          <?= csrf_field() ?>
-          <div class="field"><label for="c-date">Date</label><input id="c-date" name="date" class="input" data-date value="<?= e(display_date($document['doc_date'])) ?>" required></div>
-          <div class="field"><label for="c-party"><?= e($register['party']) ?></label><input id="c-party" name="party" class="input" value="<?= e($document['party_name_raw'] ?? $document['party']) ?>" required maxlength="200"></div>
-          <div class="field"><label for="c-amount">Amount</label><input id="c-amount" name="amount" class="input" inputmode="decimal" value="<?= e((float) $document['amount']) ?>" required></div>
-          <?php if ($hasField('items')): ?><div class="field"><label for="c-items">No of Item</label><input id="c-items" name="items" class="input" inputmode="numeric" value="<?= e($document['item_count']) ?>"></div><?php endif; ?>
-          <?php if ($hasField('receipt')): ?><div class="field"><label for="c-receipt">Receipt</label><input id="c-receipt" name="receipt" class="input" maxlength="50" value="<?= e($document['receipt_ref']) ?>"></div><?php endif; ?>
-          <?php if ($hasField('mr')): ?>
-          <div class="field"><label for="c-mr">MR</label><input id="c-mr" name="mr" class="input" maxlength="120" value="<?= e($document['mr_name']) ?>"></div>
-          <div class="field"><label for="c-area">Area</label>
-            <select id="c-area" name="area" class="input"><option value="">None</option><?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === (int) $document['area_id'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?></select>
-          </div>
-          <div class="field"><label for="c-address">Address</label><input id="c-address" name="address" class="input" maxlength="255" value="<?= e($document['address']) ?>"></div>
-          <?php endif; ?>
-          <button class="btn primary">Save correction</button>
-        </form>
-        <form method="post" action="/documents/<?= $id ?>/delete" class="row" id="delete-form">
-          <?= csrf_field() ?>
-          <button type="button" class="btn danger" data-confirm-delete>Delete document</button>
-          <button type="button" class="btn" data-keep hidden>Keep</button>
-          <button class="btn danger" data-do-delete hidden>Confirm delete</button>
-        </form>
-      </details>
-      <?php endif; ?>
     </div>
+    <section class="card form" aria-label="Photos">
+      <h2>Photos</h2>
+      <?php foreach ($register['groups'] as $group): $items = $photos[$group['kind']] ?? []; ?>
+      <div class="field">
+        <h3><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
+        <?php if (!$items): ?>
+        <p class="muted">No photo added.</p>
+        <?php else: ?>
+        <div class="slots">
+          <?php foreach ($items as $index => $photoId): $name = slot_label($group['label'], $index + 1); ?>
+          <div class="slot">
+            <div class="slot-name"><?= e($name) ?></div>
+            <a href="/api/files/<?= (int) $photoId ?>" data-photo="<?= e($name) ?>" aria-label="Open <?= e($name) ?>"><img src="/api/files/<?= (int) $photoId ?>" alt="<?= e($name) ?> preview"></a>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+      </div>
+      <?php endforeach; ?>
+    </section>
+  </div>
+  <?php else: ?>
+  <div class="split">
     <section class="card form" aria-label="<?= e($register['label']) ?> update form">
       <div>
         <h2><?= e($register['label']) ?> update form</h2>
@@ -90,10 +111,10 @@ $id = (int) $document['id'];
           <div class="slot">
             <div class="slot-name"><?= e($name) ?></div>
             <img src="/api/files/<?= (int) $photoId ?>" alt="<?= e($name) ?> preview">
-            <?php if ($index === $count - 1 && !$deleted): ?><button type="button" class="btn" data-remove="<?= (int) $photoId ?>">Remove</button><?php endif; ?>
+            <?php if ($index === $count - 1): ?><button type="button" class="btn" data-remove="<?= (int) $photoId ?>">Remove</button><?php endif; ?>
           </div>
           <?php endforeach; ?>
-          <?php if ($count < $group['max'] && !$deleted): $name = slot_label($group['label'], $count + 1); ?>
+          <?php if ($count < $group['max']): $name = slot_label($group['label'], $count + 1); ?>
           <div class="slot">
             <div class="slot-name"><?= e($name) ?></div>
             <input class="sr-input" type="file" accept="image/jpeg,image/png,image/webp" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Upload <?= e($name) ?>">
@@ -110,9 +131,33 @@ $id = (int) $document['id'];
         <div class="field"><label for="uploaded-by">Uploaded By (Employee)</label><input id="uploaded-by" class="input" readonly value="<?= e($user['full_name']) ?>"></div>
       </div>
       <?php else: ?>
-      <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" class="input" maxlength="2000"<?= $deleted ? ' disabled' : '' ?>><?= e($document['remarks']) ?></textarea></div>
+      <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" class="input" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
       <?php endif; endforeach; ?>
-      <?php if (!$deleted): ?><div class="row"><button type="button" class="btn primary" id="save-update">Save update</button></div><?php endif; ?>
+      <div class="row"><button type="button" class="btn primary" id="save-update">Save update</button></div>
     </section>
+    <?php if ($manage): ?>
+    <div class="side">
+      <details class="card">
+        <summary><strong>Correct details</strong></summary>
+        <form method="post" action="/documents/<?= $id ?>/correct" class="stack">
+          <?= csrf_field() ?>
+          <div class="field"><label for="c-date">Date</label><input id="c-date" name="date" class="input" data-date value="<?= e(display_date($document['doc_date'])) ?>" required></div>
+          <div class="field"><label for="c-party"><?= e($register['party']) ?></label><input id="c-party" name="party" class="input" value="<?= e($document['party_name_raw'] ?? $document['party']) ?>" required maxlength="200"></div>
+          <div class="field"><label for="c-amount">Amount</label><input id="c-amount" name="amount" class="input" inputmode="decimal" value="<?= e((float) $document['amount']) ?>" required></div>
+          <?php if ($hasField('items')): ?><div class="field"><label for="c-items">No of Item</label><input id="c-items" name="items" class="input" inputmode="numeric" value="<?= e($document['item_count']) ?>"></div><?php endif; ?>
+          <?php if ($hasField('receipt')): ?><div class="field"><label for="c-receipt">Receipt</label><input id="c-receipt" name="receipt" class="input" maxlength="50" value="<?= e($document['receipt_ref']) ?>"></div><?php endif; ?>
+          <?php if ($hasField('mr')): ?>
+          <div class="field"><label for="c-mr">MR</label><input id="c-mr" name="mr" class="input" maxlength="120" value="<?= e($document['mr_name']) ?>"></div>
+          <div class="field"><label for="c-area">Area</label>
+            <select id="c-area" name="area" class="input"><option value="">None</option><?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === (int) $document['area_id'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?></select>
+          </div>
+          <div class="field"><label for="c-address">Address</label><input id="c-address" name="address" class="input" maxlength="255" value="<?= e($document['address']) ?>"></div>
+          <?php endif; ?>
+          <button class="btn primary">Save correction</button>
+        </form>
+      </details>
+    </div>
+    <?php endif; ?>
   </div>
+  <?php endif; ?>
 </main>

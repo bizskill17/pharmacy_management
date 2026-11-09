@@ -121,7 +121,8 @@
       return fetch(location.href, { headers: { 'X-Requested-With': 'fetch' } }).then(function (response) { return response.text(); }).then(function (html) {
         var next = new DOMParser().parseFromString(html, 'text/html');
         ['doc-head', 'doc-details'].forEach(function (name) {
-          document.getElementById(name).replaceWith(next.getElementById(name));
+          var current = document.getElementById(name);
+          if (current && next.getElementById(name)) { current.replaceWith(next.getElementById(name)); }
         });
         document.querySelectorAll('.photo-group').forEach(function (group) {
           group.replaceWith(next.getElementById(group.id));
