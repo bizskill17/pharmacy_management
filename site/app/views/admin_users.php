@@ -21,7 +21,7 @@
           <td><?= e($listed['email'] ?? '-') ?></td>
           <td><?= e($listed['address'] ?? '-') ?></td>
           <?php foreach (EMPLOYEE_FILES as $field => $column): ?>
-          <td><?php if (!empty($listed[$column])): ?><a href="/api/users/<?= $listedId ?>/<?= e($field) ?>" target="_blank" rel="noopener" aria-label="Open <?= e(EMPLOYEE_FILE_LABELS[$field]) ?>"><img class="thumb" src="/api/users/<?= $listedId ?>/<?= e($field) ?>" alt="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
+          <td><?php if (!empty($listed[$column])): ?><a href="/api/users/<?= $listedId ?>/<?= e($field) ?>" data-photo="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?>" aria-label="Open <?= e(EMPLOYEE_FILE_LABELS[$field]) ?>"><img class="thumb" src="/api/users/<?= $listedId ?>/<?= e($field) ?>" alt="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
           <?php endforeach; ?>
           <td><?= e($listed['designation'] ?? '-') ?></td>
           <td><?= e(employee_missing($listed)) ?></td>

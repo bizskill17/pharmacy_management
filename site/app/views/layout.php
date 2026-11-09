@@ -10,7 +10,7 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <title><?= e($title) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=8">
+<link rel="stylesheet" href="/assets/app.css?v=9">
 </head>
 <body>
 <?php if ($user): ?>
@@ -37,6 +37,6 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <div class="flash-wrap"><p class="<?= $flash['ok'] ? 'success' : 'error' ?>" role="status"><?= e($flash['message']) ?></p></div>
 <?php endif; ?>
 <?= $content ?>
-<script src="/assets/app.js?v=5"></script>
+<script src="/assets/app.js?v=6"></script>
 </body>
 </html>

@@ -65,6 +65,33 @@
     wrap.appendChild(button);
   });
 
+  /* Photos open in a popup on the same page. */
+  var lightbox = null;
+  var openPhoto = function (url, title) {
+    if (!lightbox) {
+      lightbox = document.createElement('dialog');
+      lightbox.className = 'lightbox';
+      lightbox.innerHTML = '<div class="lightbox-head"><strong></strong><button type="button" class="btn">Close</button></div><img alt="">';
+      lightbox.querySelector('button').addEventListener('click', function () { lightbox.close(); });
+      lightbox.addEventListener('click', function (event) {
+        if (event.target === lightbox) { lightbox.close(); }
+      });
+      lightbox.addEventListener('close', function () { lightbox.querySelector('img').removeAttribute('src'); });
+      document.body.appendChild(lightbox);
+    }
+    lightbox.querySelector('strong').textContent = title;
+    var image = lightbox.querySelector('img');
+    image.alt = title;
+    image.src = url;
+    lightbox.showModal();
+  };
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest('a[data-photo]');
+    if (!link || event.ctrlKey || event.metaKey || event.shiftKey) { return; }
+    event.preventDefault();
+    openPhoto(link.getAttribute('href'), link.dataset.photo);
+  });
+
   /* Employee documents */
   document.querySelectorAll('input[data-compress]').forEach(function (input) {
     input.addEventListener('change', function () {

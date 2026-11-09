@@ -81,7 +81,7 @@ $textValue = function (array $d, string $field) {
           <td><span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span></td>
           <?php else:
               $photo = $photos["{$d['id']}:{$column['kind']}:{$column['index']}"] ?? null; ?>
-          <td><?php if ($photo): ?><a href="/api/files/<?= $photo ?>" target="_blank" rel="noopener" aria-label="Open <?= e($column['label']) ?>"><img class="thumb" src="/api/files/<?= $photo ?>" alt="<?= e($column['label']) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
+          <td><?php if ($photo): ?><a href="/api/files/<?= $photo ?>" data-photo="<?= e($column['label']) ?>" aria-label="Open <?= e($column['label']) ?>"><img class="thumb" src="/api/files/<?= $photo ?>" alt="<?= e($column['label']) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
           <?php endif; ?>
         <?php endforeach; ?>
         </tr>
