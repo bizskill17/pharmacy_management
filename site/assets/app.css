@@ -167,3 +167,8 @@ label.btn { cursor: pointer; }
 .topbar { justify-content: space-between; }
 .home { min-height: calc(100vh - 110px); }
 @media (max-width: 760px) { .home { min-height: calc(100vh - 110px); } .sidebar-top { gap: 8px; } }
+
+table.data { font-size: 13px; line-height: 1.25; }
+table.data th, table.data td { padding: 3px 8px; height: auto; border: 1px solid #c9d3cf; }
+table.data th { font-size: 12px; padding: 5px 8px; }
+table.data .thumb { width: 26px; height: 30px; }
