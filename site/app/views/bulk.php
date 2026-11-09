@@ -34,6 +34,9 @@ $info = array_map(fn ($register) => ['slug' => $register['slug'], 'label' => $re
         <tbody id="bulk-rows"></tbody>
       </table>
     </div>
-    <p class="muted" id="bulk-more" hidden></p>
+    <div class="row between" id="bulk-pager" hidden>
+      <span class="muted" id="bulk-page"></span>
+      <span class="row"><button type="button" class="btn" id="bulk-prev">Previous</button><button type="button" class="btn" id="bulk-next">Next</button></span>
+    </div>
   </section>
 </main>

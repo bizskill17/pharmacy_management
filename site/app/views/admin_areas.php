@@ -18,4 +18,5 @@
     </form>
     <?php endforeach; ?>
   </section>
+  <?= pager($page, $total, fn ($number) => '/admin/areas?page=' . $number) ?>
 </main>

@@ -1,5 +1,4 @@
 <?php
-$lastPage = max(1, (int) ceil($total / PAGE_SIZE));
 $dateText = fn (string $iso) => $iso === '' ? '' : display_date($iso);
 $link = function (array $change) use ($register, $filter, $status, $dateText) {
     $values = array_merge(['q' => $filter['q'], 'from' => $dateText($filter['from']), 'to' => $dateText($filter['to']), 'area' => $filter['area'] ?: '', 'status' => $status === 'ALL' ? '' : $status], $change);
@@ -78,13 +77,5 @@ $textValue = function (array $d, string $field) {
   </div>
   <?php endif; ?>
 
-  <?php if ($lastPage > 1): ?>
-  <nav class="row between" aria-label="Pages">
-    <span class="muted">Page <?= $filter['page'] ?> of <?= $lastPage ?></span>
-    <span class="row">
-      <?php if ($filter['page'] > 1): ?><a class="btn" href="<?= e($link(['page' => $filter['page'] - 1])) ?>">Previous</a><?php endif; ?>
-      <?php if ($filter['page'] < $lastPage): ?><a class="btn" href="<?= e($link(['page' => $filter['page'] + 1])) ?>">Next</a><?php endif; ?>
-    </span>
-  </nav>
-  <?php endif; ?>
+  <?= pager($filter['page'], $total, fn ($number) => $link(['page' => $number])) ?>
 </main>

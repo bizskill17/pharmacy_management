@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 20;
 const MAX_IMAGE_BYTES = 10485760;
 const IMAGE_EXTENSIONS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 
@@ -48,9 +48,10 @@ function list_documents(array $filter): array
     }
     $clause = implode(' AND ', $where);
     $total = (int) value("SELECT COUNT(*) FROM documents d LEFT JOIN parties p ON p.id = d.party_id WHERE $clause", $params);
-    $offset = ($filter['page'] - 1) * PAGE_SIZE;
+    $page = clamp_page($filter['page'], $total);
+    $offset = page_offset($page);
     $rows = rows(document_select() . " WHERE $clause ORDER BY d.doc_date DESC, d.doc_seq DESC, d.id DESC LIMIT " . PAGE_SIZE . " OFFSET $offset", $params);
-    return [$rows, $total];
+    return [$rows, $total, $page];
 }
 
 function register_counts(string $type): array

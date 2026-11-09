@@ -356,3 +356,38 @@ function like_pattern(string $text): string
 {
     return '%' . addcslashes($text, '\\%_') . '%';
 }
+
+function requested_page(): int
+{
+    return max(1, (int) ($_GET['page'] ?? 1));
+}
+
+/** Keeps a requested page within the pages that exist. */
+function clamp_page(int $page, int $total): int
+{
+    return min($page, max(1, (int) ceil($total / PAGE_SIZE)));
+}
+
+function page_offset(int $page): int
+{
+    return ($page - 1) * PAGE_SIZE;
+}
+
+/** Previous and Next controls; $link receives a page number and returns its address. */
+function pager(int $page, int $total, callable $link): string
+{
+    if ($total <= PAGE_SIZE) {
+        return '';
+    }
+    $last = (int) ceil($total / PAGE_SIZE);
+    $from = page_offset($page) + 1;
+    $to = min($total, $page * PAGE_SIZE);
+    $html = '<nav class="row between pager" aria-label="Pages"><span class="muted">Showing ' . $from . '-' . $to . ' of ' . number_format($total) . ' &middot; Page ' . $page . ' of ' . $last . '</span><span class="row">';
+    if ($page > 1) {
+        $html .= '<a class="btn" href="' . e($link($page - 1)) . '">Previous</a>';
+    }
+    if ($page < $last) {
+        $html .= '<a class="btn" href="' . e($link($page + 1)) . '">Next</a>';
+    }
+    return $html . '</span></nav>';
+}

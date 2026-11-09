@@ -172,3 +172,4 @@ table.data { font-size: 13px; line-height: 1.25; }
 table.data th, table.data td { padding: 3px 8px; height: auto; border: 1px solid #c9d3cf; }
 table.data th { font-size: 12px; padding: 5px 8px; }
 table.data .thumb { width: 26px; height: 30px; }
+.btn[hidden], div[hidden] { display: none; }

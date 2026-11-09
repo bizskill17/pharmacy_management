@@ -35,4 +35,5 @@
       </tbody>
     </table>
   </div>
+  <?= pager($page, $total, fn ($number) => '/admin/users?page=' . $number) ?>
 </main>

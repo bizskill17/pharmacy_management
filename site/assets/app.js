@@ -203,6 +203,7 @@
     var chosen = null;
     var rows = null;
     var finished = false;
+    var pageNo = 1;
     var el = function (name) { return document.getElementById('bulk-' + name); };
     var current = function () { return registers.filter(function (item) { return item.slug === slug; })[0]; };
     var outcomeCount = function (outcome) { return rows.filter(function (row) { return row.outcome === outcome; }).length; };
@@ -224,7 +225,9 @@
       el('save').disabled = ready === 0;
       var body = el('rows');
       body.textContent = '';
-      rows.slice(0, 200).forEach(function (row) {
+      var last = Math.max(1, Math.ceil(rows.length / 20));
+      pageNo = Math.min(pageNo, last);
+      rows.slice((pageNo - 1) * 20, pageNo * 20).forEach(function (row) {
         var tr = document.createElement('tr');
         var values = [row.row, row.no, row.date || 'Blank', row.party, row.amount];
         values.forEach(function (value, index) {
@@ -240,8 +243,10 @@
         tr.appendChild(result);
         body.appendChild(tr);
       });
-      el('more').hidden = rows.length <= 200;
-      el('more').textContent = 'Showing the first 200 of ' + rows.length + ' rows.';
+      el('pager').hidden = rows.length <= 20;
+      el('page').textContent = 'Showing ' + ((pageNo - 1) * 20 + 1) + '-' + Math.min(rows.length, pageNo * 20) + ' of ' + rows.length + ' \u00B7 Page ' + pageNo + ' of ' + last;
+      el('prev').hidden = pageNo <= 1;
+      el('next').hidden = pageNo >= last;
     };
 
     var clearStatus = function () {
@@ -279,6 +284,7 @@
       clearStatus();
       post('/api/bulk/' + slug, form).then(function (data) {
         rows = data.rows;
+        pageNo = 1;
         finished = mode === 'confirm';
         if (finished) {
           var done = el('done');
@@ -307,6 +313,8 @@
         send('preview');
       }
     });
+    el('prev').addEventListener('click', function () { pageNo -= 1; drawResult(); });
+    el('next').addEventListener('click', function () { pageNo += 1; drawResult(); });
     el('save').addEventListener('click', function () { if (chosen) { send('confirm'); } });
     el('download').addEventListener('click', function () {
       var header = ['Row'].concat(current().columns, ['Reason']).map(csvCell).join(',');

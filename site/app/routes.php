@@ -61,7 +61,7 @@ function show_register(array $register): never
         'type' => $register['type'], 'status' => $status, 'q' => trim((string) ($_GET['q'] ?? '')), 'from' => $dateOnly('from'), 'to' => $dateOnly('to'),
         'area' => (int) ($_GET['area'] ?? 0), 'page' => max(1, (int) ($_GET['page'] ?? 1)), 'user_id' => $user['id'],
     ];
-    [$documents, $total] = list_documents($filter);
+    [$documents, $total, $filter['page']] = list_documents($filter);
     $photos = [];
     foreach (attachments_for(array_map(fn ($d) => (int) $d['id'], $documents)) as $item) {
         $photos["{$item['document_id']}:{$item['kind']}:{$item['sort_order']}"] = (int) $item['id'];
@@ -509,7 +509,9 @@ function handle_request(string $method, string $path): never
             handle_create_user();
         }
         require_user(ADMINS);
-        render('admin_users', ['users' => rows('SELECT * FROM users ORDER BY full_name')]);
+        $total = (int) value('SELECT COUNT(*) FROM users');
+        $page = clamp_page(requested_page(), $total);
+        render('admin_users', ['users' => rows('SELECT * FROM users ORDER BY full_name LIMIT ' . PAGE_SIZE . ' OFFSET ' . page_offset($page)), 'total' => $total, 'page' => $page]);
     }
     if (preg_match('#^/admin/users/(\d+)$#', $path, $m)) {
         if ($post) {
@@ -526,7 +528,9 @@ function handle_request(string $method, string $path): never
             handle_create_area();
         }
         require_user(ADMINS);
-        render('admin_areas', ['areas' => rows('SELECT id, name, is_active FROM areas ORDER BY name')]);
+        $total = (int) value('SELECT COUNT(*) FROM areas');
+        $page = clamp_page(requested_page(), $total);
+        render('admin_areas', ['areas' => rows('SELECT id, name, is_active FROM areas ORDER BY name LIMIT ' . PAGE_SIZE . ' OFFSET ' . page_offset($page)), 'total' => $total, 'page' => $page]);
     }
     if ($post && $path === '/admin/areas/toggle') {
         require_user(ADMINS);
@@ -538,9 +542,13 @@ function handle_request(string $method, string $path): never
         require_user(ADMINS);
         $query = trim((string) ($_GET['q'] ?? ''));
         $pattern = like_pattern($query);
+        $total = (int) value('SELECT COUNT(*) FROM parties WHERE name LIKE ? OR source_name LIKE ?', [$pattern, $pattern]);
+        $page = clamp_page(requested_page(), $total);
         render('admin_parties', [
             'query' => $query,
-            'parties' => rows('SELECT id, name, source_name, area_id, is_active FROM parties WHERE name LIKE ? OR source_name LIKE ? ORDER BY name LIMIT 50', [$pattern, $pattern]),
+            'total' => $total,
+            'page' => $page,
+            'parties' => rows('SELECT id, name, source_name, area_id, is_active FROM parties WHERE name LIKE ? OR source_name LIKE ? ORDER BY name LIMIT ' . PAGE_SIZE . ' OFFSET ' . page_offset($page), [$pattern, $pattern]),
             'areas' => rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name'),
         ]);
     }
