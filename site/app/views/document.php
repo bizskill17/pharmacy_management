@@ -104,7 +104,7 @@ $barTitle = $register['label'];
         <div class="slot slot-filled">
           <?php if ($showNames): ?><div class="slot-name"><?= e($name) ?></div><?php endif; ?>
           <a href="/api/files/<?= (int) $photoId ?>" data-photo="<?= e($name) ?>" aria-label="Open <?= e($name) ?>"><img src="/api/files/<?= (int) $photoId ?>" alt="<?= e($name) ?> preview"></a>
-          <?php if ($index === $count - 1): ?><button type="button" class="slot-remove" data-remove="<?= (int) $photoId ?>"><?= $trashIcon ?>Remove</button><?php endif; ?>
+          <?php if ($index === $count - 1): ?><button type="button" class="slot-remove" data-remove="<?= (int) $photoId ?>" aria-label="Remove <?= e($name) ?>" title="Remove"><?= $trashIcon ?></button><?php endif; ?>
         </div>
         <?php endforeach; ?>
         <?php if ($count < $group['max']): $name = slot_label($group['label'], $count + 1); ?>

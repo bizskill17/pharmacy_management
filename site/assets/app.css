@@ -374,3 +374,6 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 @media (max-width: 760px) {
   #doc-details .kv { padding: 5px 12px; font-size: 13px; }
 }
+
+.slot-remove { flex: 0 0 44px; width: 44px; padding: 0; }
+.slot-remove svg { width: 20px; height: 20px; }
