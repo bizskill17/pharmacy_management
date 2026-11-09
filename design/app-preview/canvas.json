@@ -1,0 +1,39 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-11-09T07:45:00Z" },
+  "title": "Sale, C&F and Purchase App Preview",
+  "launch": { "view": "focused", "file": "Main.dc.html" },
+  "pages": [
+    { "id": "home", "name": "Home options" },
+    { "id": "app", "name": "App preview" }
+  ],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1360,
+      "h": 900,
+      "title": "App preview",
+      "expand": "fill",
+      "is_interactive": true,
+      "page": "app"
+    },
+    "Home-Option-1.dc.html": { "x": 0, "y": 0, "w": 1280, "h": 720, "title": "Option 1: Clean tiles", "expand": "fill", "page": "home" },
+    "Home-Option-2.dc.html": { "x": 1360, "y": 0, "w": 1280, "h": 720, "title": "Option 2: Colour panels", "expand": "fill", "page": "home" },
+    "Home-Option-3.dc.html": { "x": 2720, "y": 0, "w": 1280, "h": 720, "title": "Option 3: Dark console", "expand": "fill", "page": "home" },
+    "Home-Option-4.dc.html": { "x": 0, "y": 840, "w": 1280, "h": 720, "title": "Option 4: Large rows", "expand": "fill", "page": "home" },
+    "Home-Option-5.dc.html": { "x": 1360, "y": 840, "w": 1280, "h": 720, "title": "Option 5: Medicine capsules", "expand": "fill", "page": "home" }
+  },
+  "order": [
+    "Main.dc.html",
+    "Home-Option-1.dc.html",
+    "Home-Option-2.dc.html",
+    "Home-Option-3.dc.html",
+    "Home-Option-4.dc.html",
+    "Home-Option-5.dc.html"
+  ],
+  "notes": {
+    "home-options-title": { "x": 0, "y": -300, "text": "Home screen options", "kind": "title1", "maxW": 4000, "page": "home" }
+  },
+  "designSystems": []
+}

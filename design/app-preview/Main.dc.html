@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sale, C&amp;F and Purchase App Preview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button,input{font:inherit}
+*:focus-visible{outline:2px solid #0B5C55;outline-offset:2px}
+a{color:#0B5C55}a:hover{color:#083F3B}
+</style>
+</helmet>
+
+<div style="min-height: 100vh; display: flex; flex-wrap: wrap; background: {{rootBg}}; color: #17211F; font-family: 'DM Sans', system-ui, sans-serif; font-size: 15px; line-height: 1.45">
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 24px">
+    <div style="max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+
+      <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px">
+          <sc-if value="{{showHome}}" hint-placeholder-val="{{false}}">
+            <button type="button" onClick="{{goHome}}" style="min-height: 44px; padding: 8px 16px; border: 1px solid #0B5C55; border-radius: 8px; background: #FFFFFF; color: #0B5C55; font-weight: 600; cursor: pointer">Home</button>
+          </sc-if>
+        </div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; color: #3F4B47">Signed in as Supervisor</div>
+      </header>
+
+      <sc-if value="{{isOverview}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 20px">
+          <div style="min-height: 560px; display: flex; align-items: center; justify-content: center">
+            <div style="width: 100%; max-width: 820px; display: flex; flex-direction: column; gap: 20px">
+              <button type="button" onClick="{{goSale}}" style="min-height: 150px; box-sizing: border-box; padding: 24px 34px; border: 0; border-radius: 26px; background: #D81B60; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; gap: 28px; text-align: left; box-shadow: 0 8px 22px rgba(18, 59, 54, 0.1)">
+                <span style="flex: 0 0 auto; width: 96px; height: 96px; border-radius: 26px; background: #FFFFFF; color: #D81B60; display: flex; align-items: center; justify-content: center">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"></path><path d="M9 8h6M9 12h6"></path></svg>
+                </span>
+                <span style="flex: 1 1 auto; font-size: 38px; font-weight: 700">Sale</span>
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+              </button>
+              <button type="button" onClick="{{goCF}}" style="min-height: 150px; box-sizing: border-box; padding: 24px 34px; border: 0; border-radius: 26px; background: #1565C0; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; gap: 28px; text-align: left; box-shadow: 0 8px 22px rgba(18, 59, 54, 0.1)">
+                <span style="flex: 0 0 auto; width: 96px; height: 96px; border-radius: 26px; background: #FFFFFF; color: #1565C0; display: flex; align-items: center; justify-content: center">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h12v11H2z"></path><path d="M14 10h4l4 4v3h-8z"></path><circle cx="7" cy="18.5" r="1.8"></circle><circle cx="18" cy="18.5" r="1.8"></circle></svg>
+                </span>
+                <span style="flex: 1 1 auto; font-size: 38px; font-weight: 700">C&amp;F Sales</span>
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+              </button>
+              <button type="button" onClick="{{goPurchase}}" style="min-height: 150px; box-sizing: border-box; padding: 24px 34px; border: 0; border-radius: 26px; background: #00796B; color: #FFFFFF; cursor: pointer; display: flex; align-items: center; gap: 28px; text-align: left; box-shadow: 0 8px 22px rgba(18, 59, 54, 0.1)">
+                <span style="flex: 0 0 auto; width: 96px; height: 96px; border-radius: 26px; background: #FFFFFF; color: #00796B; display: flex; align-items: center; justify-content: center">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"></path></svg>
+                </span>
+                <span style="flex: 1 1 auto; font-size: 38px; font-weight: 700">Purchase</span>
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isRegister}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px">
+            <div>
+              <h1 style="margin: 0; font-size: 28px; line-height: 1.2">{{regLabel}}</h1>
+              <p style="margin: 4px 0 0; color: #52605C">{{regLine}}</p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <button type="button" onClick="{{goReports}}" style="min-height: 44px; padding: 8px 16px; border: 1px solid #0B5C55; border-radius: 8px; background: #FFFFFF; color: #0B5C55; font-weight: 600; cursor: pointer">Reports</button>
+              <button type="button" onClick="{{goBulkForReg}}" style="min-height: 44px; padding: 8px 16px; border: 0; border-radius: 8px; background: #0B5C55; color: #FFFFFF; font-weight: 600; cursor: pointer">Bulk upload</button>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: end; gap: 12px">
+            <div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+              <label for="doc-search" style="font-size: 13px; font-weight: 600">Search number or party</label>
+              <input id="doc-search" type="search" value="{{q}}" onChange="{{onQ}}" placeholder="e.g. A042030 or Medicos" style="box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #89958F; border-radius: 8px; background: #FFFFFF; color: #17211F">
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+                <button type="button" onClick="{{f.go}}" style="min-height: 44px; padding: 8px 14px; border: 1px solid #0B5C55; border-radius: 8px; cursor: pointer; font-weight: 500; background: {{f.bg}}; color: {{f.fg}}">{{f.label}}</button>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{isSaleReg}}" hint-placeholder-val="{{true}}">
+            <div style="overflow-x: auto; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF">
+              <div role="table" aria-label="Sale documents" style="min-width: 1560px">
+                <div role="row" style="display: grid; grid-template-columns: 270px 110px 100px 110px 70px 90px 100px 150px 100px 100px 130px 90px; gap: 10px; padding: 10px 14px; background: #E8EFEC; font-size: 13px; font-weight: 600">
+                  <div role="columnheader">Customer</div>
+                  <div role="columnheader">Invoice No</div>
+                  <div role="columnheader">Invoice Date</div>
+                  <div role="columnheader" style="text-align: right">Invoice Amount</div>
+                  <div role="columnheader">Receipt</div>
+                  <div role="columnheader">MR</div>
+                  <div role="columnheader">Area</div>
+                  <div role="columnheader">Address</div>
+                  <div role="columnheader">Receipt Copy</div>
+                  <div role="columnheader">Upload Date</div>
+                  <div role="columnheader">Uploaded By (Employee)</div>
+                  <div role="columnheader">Status</div>
+                </div>
+                <sc-for list="{{rows}}" as="d" hint-placeholder-count="8">
+                  <div role="row" style="display: grid; grid-template-columns: 270px 110px 100px 110px 70px 90px 100px 150px 100px 100px 130px 90px; gap: 10px; align-items: center; padding: 2px 14px; border-top: 1px solid #E8EDEB">
+                    <div role="cell">{{d.partyText}}</div>
+                    <div role="cell"><button type="button" onClick="{{d.open}}" style="min-height: 44px; padding: 0; border: 0; background: none; color: #0B5C55; font-weight: 600; text-decoration: underline; cursor: pointer">{{d.no}}</button></div>
+                    <div role="cell">{{d.date}}</div>
+                    <div role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{d.amountText}}</div>
+                    <div role="cell">{{d.receiptText}}</div>
+                    <div role="cell">{{d.mrText}}</div>
+                    <div role="cell">{{d.areaText}}</div>
+                    <div role="cell">{{d.addressText}}</div>
+                    <div role="cell">
+                      <sc-if value="{{d.hasReceiptCopy}}" hint-placeholder-val="{{false}}">
+                        <svg width="38" height="46" viewBox="0 0 38 46" role="img" aria-label="Receipt Copy photo preview" style="display: block"><rect x="0.5" y="0.5" width="37" height="45" rx="3" fill="#FFFFFF" stroke="#89958F"></rect><rect x="6" y="7" width="26" height="4" fill="#0B5C55"></rect><rect x="6" y="16" width="26" height="2" fill="#B9C4BF"></rect><rect x="6" y="22" width="26" height="2" fill="#B9C4BF"></rect><rect x="6" y="28" width="18" height="2" fill="#B9C4BF"></rect><rect x="22" y="36" width="10" height="4" fill="#E0A63A"></rect></svg>
+                      </sc-if>
+                      <sc-if value="{{d.noReceiptCopy}}" hint-placeholder-val="{{true}}">
+                        <span>-</span>
+                      </sc-if>
+                    </div>
+                    <div role="cell">{{d.uploadDateText}}</div>
+                    <div role="cell">{{d.uploaderText}}</div>
+                    <div role="cell"><span style="display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{d.pillBg}}; color: {{d.pillFg}}">{{d.statusText}}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{isOtherReg}}" hint-placeholder-val="{{false}}">
+          <div style="overflow-x: auto; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF">
+            <div role="table" aria-label="{{regLabel}} documents" style="width: {{tableWidth}}px">
+              <div role="row" style="display: grid; grid-template-columns: {{gridCols}}; gap: 10px; padding: 10px 14px; background: #E8EFEC; font-size: 13px; font-weight: 600">
+                <sc-for list="{{columns}}" as="col" hint-placeholder-count="6">
+                  <div role="columnheader" style="text-align: {{col.align}}">{{col.h}}</div>
+                </sc-for>
+              </div>
+              <sc-for list="{{rows}}" as="d" hint-placeholder-count="8">
+                <div role="row" style="display: grid; grid-template-columns: {{gridCols}}; gap: 10px; align-items: center; padding: 2px 14px; border-top: 1px solid #E8EDEB">
+                  <sc-for list="{{d.cells}}" as="c" hint-placeholder-count="6">
+                    <div role="cell" style="text-align: {{c.align}}">
+                      <sc-if value="{{c.isText}}" hint-placeholder-val="{{true}}">
+                        <span>{{c.text}}</span>
+                      </sc-if>
+                      <sc-if value="{{c.isPhoto}}" hint-placeholder-val="{{false}}">
+                        <svg width="38" height="46" viewBox="0 0 38 46" role="img" aria-label="Photo preview" style="display: block"><rect x="0.5" y="0.5" width="37" height="45" rx="3" fill="#FFFFFF" stroke="#89958F"></rect><rect x="6" y="7" width="26" height="4" fill="#0B5C55"></rect><rect x="6" y="16" width="26" height="2" fill="#B9C4BF"></rect><rect x="6" y="22" width="26" height="2" fill="#B9C4BF"></rect><rect x="6" y="28" width="18" height="2" fill="#B9C4BF"></rect><rect x="22" y="36" width="10" height="4" fill="#E0A63A"></rect></svg>
+                      </sc-if>
+                      <sc-if value="{{c.isLink}}" hint-placeholder-val="{{false}}">
+                        <button type="button" onClick="{{c.open}}" style="min-height: 44px; padding: 0; border: 0; background: none; color: #0B5C55; font-weight: 600; text-decoration: underline; cursor: pointer">{{c.text}}</button>
+                      </sc-if>
+                      <sc-if value="{{c.isStatus}}" hint-placeholder-val="{{false}}">
+                        <span style="display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{c.pillBg}}; color: {{c.pillFg}}">{{c.text}}</span>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{noRows}}" hint-placeholder-val="{{false}}">
+            <p style="margin: 0; color: #52605C">No documents match this search.</p>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isDetail}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <div>
+            <button type="button" onClick="{{backToReg}}" style="min-height: 44px; padding: 0; border: 0; background: none; color: #0B5C55; font-weight: 600; cursor: pointer">Back to {{regLabel}}</button>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+              <h1 style="margin: 0; font-size: 28px; line-height: 1.2">{{detail.no}}</h1>
+              <span style="padding: 3px 11px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{detail.pillBg}}; color: {{detail.pillFg}}">{{detail.statusText}}</span>
+            </div>
+            <p style="margin: 6px 0 0; color: #52605C">{{detail.needText}}</p>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: start">
+            <section style="flex: 1 1 280px; box-sizing: border-box; padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF">
+              <h2 style="margin: 0 0 8px; font-size: 18px">Details</h2>
+              <sc-for list="{{detail.fields}}" as="field" hint-placeholder-count="6">
+                <div style="display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid #E8EDEB">
+                  <span style="color: #52605C">{{field.label}}</span>
+                  <span style="font-weight: 500; text-align: right">{{field.value}}</span>
+                </div>
+              </sc-for>
+            </section>
+            <section aria-label="{{detail.formTitle}}" style="flex: 2 1 420px; min-width: 0; box-sizing: border-box; padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF; display: flex; flex-direction: column; gap: 18px">
+              <div>
+                <h2 style="margin: 0; font-size: 20px">{{detail.formTitle}}</h2>
+                <p style="margin: 4px 0 0; font-size: 14px; color: #52605C">The next photo opens after the one before it is added.</p>
+              </div>
+              <sc-for list="{{detail.sections}}" as="sec" hint-placeholder-count="3">
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <sc-if value="{{sec.isPhotos}}" hint-placeholder-val="{{true}}">
+                    <div style="display: flex; flex-direction: column; gap: 8px">
+                      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px">
+                        <h3 style="margin: 0; font-size: 16px">{{sec.label}}</h3>
+                        <span style="font-size: 13px; color: #52605C">{{sec.note}}</span>
+                      </div>
+                      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px">
+                        <sc-for list="{{sec.slots}}" as="slot" hint-placeholder-count="2">
+                          <div style="box-sizing: border-box; padding: 10px; border: 1px solid #D9E0DD; border-radius: 8px; display: flex; flex-direction: column; gap: 8px">
+                            <div style="font-size: 14px; font-weight: 600">{{slot.label}}</div>
+                            <sc-if value="{{slot.filled}}" hint-placeholder-val="{{false}}">
+                              <div style="display: flex; flex-direction: column; gap: 8px">
+                                <div style="height: 72px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #D8EFE6; color: #0B5041; font-size: 13px; font-weight: 600">Photo added</div>
+                                <sc-if value="{{slot.canRemove}}" hint-placeholder-val="{{false}}">
+                                  <button type="button" onClick="{{slot.remove}}" style="min-height: 44px; border: 1px solid #89958F; border-radius: 8px; background: #FFFFFF; color: #17211F; cursor: pointer">Remove</button>
+                                </sc-if>
+                              </div>
+                            </sc-if>
+                            <sc-if value="{{slot.open}}" hint-placeholder-val="{{true}}">
+                              <div style="display: flex; flex-direction: column; gap: 8px">
+                                <button type="button" onClick="{{slot.add}}" style="min-height: 44px; border: 1px solid #0B5C55; border-radius: 8px; background: #FFFFFF; color: #0B5C55; font-weight: 600; cursor: pointer">Upload photo</button>
+                                <button type="button" onClick="{{slot.add}}" style="min-height: 44px; border: 0; border-radius: 8px; background: #0B5C55; color: #FFFFFF; font-weight: 600; cursor: pointer">Click photo</button>
+                              </div>
+                            </sc-if>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{sec.isAuto}}" hint-placeholder-val="{{false}}">
+                    <div style="display: flex; flex-direction: column; gap: 4px">
+                      <label for="{{sec.id}}" style="font-size: 16px; font-weight: 600">{{sec.label}}</label>
+                      <input id="{{sec.id}}" type="text" readOnly="{{true}}" value="{{sec.value}}" style="box-sizing: border-box; width: 100%; max-width: 360px; min-height: 44px; padding: 8px 12px; border: 1px solid #C4CDC9; border-radius: 8px; background: #EEF2F0; color: #17211F">
+                      <span style="font-size: 13px; color: #52605C">{{sec.note}}</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{sec.isRemarks}}" hint-placeholder-val="{{false}}">
+                    <div style="display: flex; flex-direction: column; gap: 4px">
+                      <label for="{{sec.id}}" style="font-size: 16px; font-weight: 600">{{sec.label}}</label>
+                      <textarea id="{{sec.id}}" rows="3" value="{{draftRemarks}}" onChange="{{onRemarks}}" style="box-sizing: border-box; width: 100%; padding: 10px 12px; border: 1px solid #89958F; border-radius: 8px; background: #FFFFFF; color: #17211F; font: inherit"></textarea>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+                <button type="button" onClick="{{saveForm}}" style="min-height: 44px; padding: 8px 20px; border: 0; border-radius: 8px; background: #0B5C55; color: #FFFFFF; font-weight: 600; cursor: pointer">Save update</button>
+                <sc-if value="{{showSaved}}" hint-placeholder-val="{{false}}">
+                  <span style="font-weight: 600; color: #0B5C55">Update saved in this preview.</span>
+                </sc-if>
+              </div>
+            </section>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isBulk}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <div>
+            <h1 style="margin: 0; font-size: 28px; line-height: 1.2">Bulk upload</h1>
+            <p style="margin: 4px 0 0; color: #52605C">Download a template, fill it in, then check the rows before saving.</p>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{bulkTabs}}" as="t" hint-placeholder-count="3">
+              <button type="button" onClick="{{t.go}}" style="min-height: 44px; padding: 8px 16px; border: 1px solid #0B5C55; border-radius: 8px; cursor: pointer; font-weight: 500; background: {{t.bg}}; color: {{t.fg}}">{{t.label}}</button>
+            </sc-for>
+          </div>
+          <section style="padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF; display: flex; flex-direction: column; gap: 12px">
+            <h2 style="margin: 0; font-size: 18px">{{bulkLabel}} template columns</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px">
+              <sc-for list="{{bulkCols}}" as="c" hint-placeholder-count="4">
+                <span style="padding: 5px 10px; border-radius: 6px; background: #E8EFEC; font-size: 14px">{{c.text}}</span>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <button type="button" onClick="{{downloadTpl}}" style="min-height: 44px; padding: 8px 16px; border: 1px solid #0B5C55; border-radius: 8px; background: #FFFFFF; color: #0B5C55; font-weight: 600; cursor: pointer">Download template</button>
+              <button type="button" onClick="{{useSample}}" style="min-height: 44px; padding: 8px 16px; border: 0; border-radius: 8px; background: #0B5C55; color: #FFFFFF; font-weight: 600; cursor: pointer">Upload sample file</button>
+            </div>
+            <sc-if value="{{showTplNote}}" hint-placeholder-val="{{false}}">
+              <p style="margin: 0; color: #52605C">In the real app, this downloads an Excel file with these columns.</p>
+            </sc-if>
+          </section>
+          <sc-if value="{{showBulkPreview}}" hint-placeholder-val="{{false}}">
+            <section style="padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+                <div>
+                  <h2 style="margin: 0; font-size: 18px">Check the file</h2>
+                  <div style="color: #52605C">{{bulkSummary}}</div>
+                </div>
+                <button type="button" onClick="{{confirmBulk}}" disabled="{{bulkConfirmOff}}" style="min-height: 44px; padding: 8px 16px; border: 0; border-radius: 8px; background: #0B5C55; color: #FFFFFF; font-weight: 600; cursor: pointer; opacity: {{bulkConfirmOpacity}}">Save valid rows</button>
+              </div>
+              <div style="overflow-x: auto">
+                <div role="table" aria-label="Rows found in the sample file" style="min-width: 760px">
+                  <div role="row" style="display: grid; grid-template-columns: 50px 150px 110px minmax(220px, 1fr) 90px 210px; gap: 10px; padding: 8px 10px; background: #E8EFEC; font-size: 13px; font-weight: 600">
+                    <div role="columnheader">Row</div>
+                    <div role="columnheader">Number</div>
+                    <div role="columnheader">Date</div>
+                    <div role="columnheader">Party</div>
+                    <div role="columnheader" style="text-align: right">Amount</div>
+                    <div role="columnheader">Result</div>
+                  </div>
+                  <sc-for list="{{bulkRows}}" as="r" hint-placeholder-count="5">
+                    <div role="row" style="display: grid; grid-template-columns: 50px 150px 110px minmax(220px, 1fr) 90px 210px; gap: 10px; padding: 10px; border-top: 1px solid #E8EDEB">
+                      <div role="cell">{{r.row}}</div>
+                      <div role="cell">{{r.no}}</div>
+                      <div role="cell">{{r.dateText}}</div>
+                      <div role="cell">{{r.party}}</div>
+                      <div role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{r.amount}}</div>
+                      <div role="cell" style="font-weight: 600; color: {{r.color}}">{{r.result}}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </section>
+          </sc-if>
+          <sc-if value="{{showBulkDone}}" hint-placeholder-val="{{false}}">
+            <section style="padding: 18px; border: 1px solid #A9D5C7; border-radius: 10px; background: #E4F4EE; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+              <div>
+                <h2 style="margin: 0; font-size: 18px; color: #0B4A44">Upload complete</h2>
+                <div style="color: #17382F">{{bulkDoneText}}</div>
+              </div>
+              <button type="button" onClick="{{viewBulkReg}}" style="min-height: 44px; padding: 8px 16px; border: 1px solid #0B5C55; border-radius: 8px; background: #FFFFFF; color: #0B5C55; font-weight: 600; cursor: pointer">View {{bulkLabel}}</button>
+            </section>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isReports}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px">
+            <div>
+              <h1 style="margin: 0; font-size: 28px; line-height: 1.2">Reports</h1>
+              <p style="margin: 4px 0 0; color: #52605C">Calculated from the rows in this preview.</p>
+            </div>
+            <button type="button" onClick="{{exportReport}}" style="min-height: 44px; padding: 8px 16px; border: 1px solid #0B5C55; border-radius: 8px; background: #FFFFFF; color: #0B5C55; font-weight: 600; cursor: pointer">Export to Excel</button>
+          </div>
+          <sc-if value="{{showExportNote}}" hint-placeholder-val="{{false}}">
+            <p style="margin: 0; color: #52605C">In the real app, this downloads the reports as an Excel file.</p>
+          </sc-if>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start">
+            <section style="padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF">
+              <h2 style="margin: 0 0 8px; font-size: 18px">Pending by date</h2>
+              <sc-for list="{{pendingRows}}" as="row" hint-placeholder-count="4">
+                <div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #E8EDEB">
+                  <span>{{row.date}} &#183; {{row.label}}</span>
+                  <strong style="font-variant-numeric: tabular-nums">{{row.count}}</strong>
+                </div>
+              </sc-for>
+            </section>
+            <section style="padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF">
+              <h2 style="margin: 0 0 8px; font-size: 18px">Uploaded today</h2>
+              <sc-for list="{{todayRows}}" as="row" hint-placeholder-count="3">
+                <div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #E8EDEB">
+                  <span>{{row.label}}</span>
+                  <strong style="font-variant-numeric: tabular-nums">{{row.count}}</strong>
+                </div>
+              </sc-for>
+            </section>
+            <section style="padding: 18px; border: 1px solid #D9E0DD; border-radius: 10px; background: #FFFFFF">
+              <h2 style="margin: 0 0 8px; font-size: 18px">Missing numbers</h2>
+              <sc-for list="{{missingRows}}" as="row" hint-placeholder-count="2">
+                <div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #E8EDEB">
+                  <span>{{row.label}}</span>
+                  <strong style="font-variant-numeric: tabular-nums">{{row.count}}</strong>
+                </div>
+              </sc-for>
+              <sc-if value="{{noMissing}}" hint-placeholder-val="{{false}}">
+                <p style="margin: 0; color: #52605C">No gaps found.</p>
+              </sc-if>
+            </section>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":900}}'>
+class Component extends DCLogic {
+  seedDocs() {
+    if (this._seed) return this._seed;
+    const base = { mr: '', area: '', address: '', receipt: '', items: '', uploader: '', uploadedAt: '', files: {} };
+    const sale = (no, date, party, amount, extra) => Object.assign({}, base, { type: 'SALE', no, date, party, amount }, extra || {});
+    const cf = (no, date, party, amount, extra) => Object.assign({}, base, { type: 'CF', no, date, party, amount }, extra || {});
+    const pur = (no, date, party, amount, extra) => Object.assign({}, base, { type: 'PURCHASE', no, date, party, amount }, extra || {});
+    this._seed = [
+      sale('A042016', '17/09/2024', 'SAMPLE CUSTOMER 1', 1500, { files: { RECEIPT: 1 } }),
+      sale('A042030', '17/09/2024', 'SAMPLE CUSTOMER 2', 2000),
+      sale('A042031', '17/09/2024', 'SAMPLE CUSTOMER 3', 2500, { files: { RECEIPT: 1 } }),
+      sale('A042032', '17/09/2024', 'SAMPLE CUSTOMER 4', 3000),
+      sale('A042033', '17/09/2024', 'SAMPLE CUSTOMER 5', 3500),
+      sale('A042034', '17/09/2024', 'SAMPLE CUSTOMER 6', 4000, { files: { RECEIPT: 1 }, uploader: 'Staff A', uploadedAt: '08/07/2025' }),
+      sale('A042035', '17/09/2024', 'SAMPLE CUSTOMER 7', 4500),
+      sale('A042036', '17/09/2024', 'SAMPLE CUSTOMER 8', 5000),
+      sale('A042037', '17/09/2024', 'SAMPLE CUSTOMER 9', 5500, { files: { RECEIPT: 1 }, uploader: 'Staff B', uploadedAt: '08/07/2025' }),
+      sale('RR000824', '11/05/2026', 'SAMPLE CUSTOMER 10', 6000, { receipt: '3', address: 'GUWAHATI' }),
+      sale('RR000825', '11/05/2026', 'SAMPLE CUSTOMER 10', 6500, { receipt: '9', address: 'GUWAHATI' }),
+      sale('RR000826', '11/05/2026', 'SAMPLE CUSTOMER 10', 7000, { receipt: '3', address: 'GUWAHATI' }),
+      sale('RR000827', '11/05/2026', 'SAMPLE CUSTOMER 11', 7500, { receipt: '6', address: 'SILCHAR' }),
+      sale('RR000828', '11/05/2026', 'SAMPLE CUSTOMER 12', 8000, { receipt: '16', address: 'SAMPLE ADDRESS' }),
+      cf('CS000083', '02/11/2024', 'SAMPLE CUSTOMER 13', 0, { files: { RECEIPT: 1, INVOICE: 1 }, uploader: 'Staff D', uploadedAt: '02/11/2024' }),
+      cf('CS000084', '02/11/2024', 'SAMPLE CUSTOMER 14', 0, { files: { RECEIPT: 1, INVOICE: 1 }, uploader: 'Staff D', uploadedAt: '02/11/2024' }),
+      cf('DEMO2001', '09/11/2026', 'DEMO C&F CUSTOMER, GUWAHATI', 8500),
+      cf('DEMO2002', '09/11/2026', 'DEMO C&F CUSTOMER, JORHAT', 9000, { files: { RECEIPT: 1 } }),
+      pur('CP003584', '18/09/2024', '', 9500, { files: { CHALLAN: 1 }, uploader: 'Staff C', uploadedAt: '07/07/2025' }),
+      pur('CP003585', '18/09/2024', 'SAMPLE SUPPLIER 1', 10000, { files: { CHALLAN: 1 } }),
+      pur('DEMO3001', '09/11/2026', 'SAMPLE SUPPLIER 2', 10500, { items: '6' }),
+      pur('DEMO3002', '09/11/2026', 'SAMPLE SUPPLIER 3', 11000, { items: '11' })
+    ];
+    return this._seed;
+  }
+  s() {
+    return Object.assign({ screen: 'overview', reg: 'SALE', q: '', filter: 'ALL', openId: '', bulkType: 'SALE', bulkFile: false, bulkResult: null, tplNote: false, exportNote: false, draft: {}, draftRemarks: '', saved: false, docs: this.seedDocs() }, this.state || {});
+  }
+  label(t) { return { SALE: 'Sale', CF: 'C&F Sales', PURCHASE: 'Purchase' }[t]; }
+  key(d) { return d.type + ':' + d.no; }
+  kinds(t) {
+    if (t === 'SALE') return [{ k: 'RECEIPT', label: 'Receipt Copy', max: 1, req: true }];
+    if (t === 'CF') return [
+      { k: 'RECEIPT', label: 'Receipt Copy', max: 1, req: true },
+      { k: 'INVOICE', label: 'Invoice Photo', max: 10, req: true }
+    ];
+    return [
+      { k: 'CHALLAN', label: 'Challan Photo', max: 40, req: true },
+      { k: 'GOODS', label: 'Goods Photo', max: 40, req: false }
+    ];
+  }
+  isDone(d) { return this.kinds(d.type).every((x) => !x.req || (d.files[x.k] || 0) > 0); }
+  money(n) { return '₹' + Number(n).toLocaleString('en-IN'); }
+  sortKey(date) { const p = String(date).split('/'); return p.length === 3 ? p[2] + p[1] + p[0] : ''; }
+  normDate(v) {
+    const m = String(v).match(/^(\d{2})-([A-Za-z]{3})-(\d{2})$/);
+    if (!m) return v;
+    const mon = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' }[m[2].toLowerCase()];
+    return m[1] + '/' + mon + '/20' + m[3];
+  }
+  go(patch) { this.setState(patch); }
+  changeDraft(kind, delta) {
+    const draft = Object.assign({}, this.s().draft);
+    draft[kind] = Math.max(0, (draft[kind] || 0) + delta);
+    this.setState({ draft, saved: false });
+  }
+  saveDraft() {
+    const st = this.s();
+    const docs = st.docs.map((d) => {
+      if (this.key(d) !== st.openId) return d;
+      const next = Object.assign({}, d, { files: Object.assign({}, st.draft), remarks: st.draftRemarks });
+      const changed = this.kinds(d.type).some((k) => (d.files[k.k] || 0) !== (st.draft[k.k] || 0));
+      const was = this.isDone(d);
+      const now = this.isDone(next);
+      if (now && (!was || changed)) { next.uploader = 'Supervisor'; next.uploadedAt = 'Today'; }
+      if (was && !now) { next.uploader = ''; next.uploadedAt = ''; }
+      return next;
+    });
+    this.setState({ docs, saved: true });
+  }
+  todayText() {
+    const n = new Date();
+    return String(n.getDate()).padStart(2, '0') + '/' + String(n.getMonth() + 1).padStart(2, '0') + '/' + n.getFullYear();
+  }
+  sampleFile(t) {
+    if (t === 'SALE') return [
+      { row: 2, no: 'DEMO1001', date: '09/11/2026', party: 'DEMO MEDICOS, PANBAZAR', amount: '12500', area: '' },
+      { row: 3, no: 'DEMO1002', date: '09-Nov-26', party: 'DEMO DRUG HOUSE, SILCHAR', amount: '8420', area: '' },
+      { row: 4, no: 'A042030', date: '17/09/2024', party: 'SAMPLE CUSTOMER 2', amount: '2500', area: '' },
+      { row: 5, no: 'DEMO1004', date: '', party: 'DEMO MEDICOS, JORHAT', amount: '3150', area: '' },
+      { row: 6, no: 'DEMO1005', date: '09/11/2026', party: 'DEMO PHARMA, NAGAON', amount: 'abc', area: '' }
+    ];
+    if (t === 'CF') return [
+      { row: 2, no: 'DEMO2101', date: '09/11/2026', party: 'DEMO C&F CUSTOMER, TEZPUR', amount: '9800', area: '' },
+      { row: 3, no: 'DEMO2102', date: '09-Nov-26', party: 'DEMO C&F CUSTOMER, DIBRUGARH', amount: '4300', area: '' },
+      { row: 4, no: 'CS000083', date: '02/11/2024', party: 'SAMPLE CUSTOMER 13', amount: '0', area: '' },
+      { row: 5, no: 'DEMO2104', date: '01/01/1970', party: 'DEMO C&F CUSTOMER, NAGAON', amount: '2100', area: '' }
+    ];
+    return [
+      { row: 2, no: 'DEMO3101    09/11', date: '09/11/2026', party: 'DEMO SUPPLIER, PANBAZAR', amount: '25100', area: '' },
+      { row: 3, no: 'DEMO3102', date: '09-Nov-26', party: 'DEMO SUPPLIER, FANCYBAZAR', amount: '7300', area: '' },
+      { row: 4, no: 'CP003585    18/09', date: '18/09/2024', party: 'SAMPLE SUPPLIER 1', amount: '3500', area: '' },
+      { row: 5, no: 'DEMO3104', date: '09/11/2026', party: 'DEMO SUPPLIER, GUWAHATI', amount: '6400', area: 'AREA UNKNOWN' }
+    ];
+  }
+  checkFile(t, docs) {
+    const seen = {};
+    return this.sampleFile(t).map((r) => {
+      const no = r.no.trim().split(/\s+/)[0];
+      const date = this.normDate(r.date);
+      let result = 'Ready';
+      let ok = true;
+      let color = '#0B5C55';
+      if (!date || date === '01/01/1970') { result = 'Failed: date is blank'; ok = false; color = '#A32A17'; }
+      else if (!/^\d+(\.\d+)?$/.test(r.amount)) { result = 'Failed: amount is not a number'; ok = false; color = '#A32A17'; }
+      else if (r.area) { result = 'Failed: area not found'; ok = false; color = '#A32A17'; }
+      else if (seen[no] || docs.some((d) => d.type === t && d.no === no)) { result = 'Skipped: already exists'; ok = false; color = '#7A4B00'; }
+      seen[no] = true;
+      return Object.assign({}, r, { no, date, dateText: date || 'Blank', result, ok, color, skipped: result.indexOf('Skipped') === 0 });
+    });
+  }
+  confirm() {
+    const st = this.s();
+    const rows = this.checkFile(st.bulkType, st.docs);
+    const valid = rows.filter((r) => r.ok);
+    const added = valid.map((r) => ({ type: st.bulkType, no: r.no, date: r.date, party: r.party, amount: Number(r.amount), mr: '', area: '', address: '', receipt: '', items: '', uploader: '', uploadedAt: '', files: {} }));
+    this.setState({
+      docs: st.docs.concat(added),
+      bulkFile: false,
+      bulkResult: { created: valid.length, skipped: rows.filter((r) => r.skipped).length, failed: rows.filter((r) => !r.ok && !r.skipped).length }
+    });
+  }
+  pendingRows(docs) {
+    const map = {};
+    docs.filter((d) => !this.isDone(d)).forEach((d) => {
+      const k = d.date + '|' + d.type;
+      map[k] = map[k] || { date: d.date, label: this.label(d.type), count: 0 };
+      map[k].count += 1;
+    });
+    return Object.values(map).sort((a, b) => this.sortKey(b.date).localeCompare(this.sortKey(a.date)));
+  }
+  missingRows(docs) {
+    const groups = {};
+    docs.forEach((d) => {
+      const m = d.no.match(/^([A-Za-z]+)(\d+)$/);
+      if (!m) return;
+      const k = d.type + '|' + m[1];
+      groups[k] = groups[k] || { type: d.type, prefix: m[1], width: m[2].length, list: [] };
+      groups[k].list.push(parseInt(m[2], 10));
+    });
+    const out = [];
+    Object.values(groups).forEach((g) => {
+      const list = g.list.slice().sort((a, b) => a - b);
+      for (let i = 1; i < list.length; i++) {
+        const gap = list[i] - list[i - 1] - 1;
+        if (gap > 0) {
+          const from = String(list[i - 1] + 1).padStart(g.width, '0');
+          const to = String(list[i] - 1).padStart(g.width, '0');
+          out.push({ label: this.label(g.type) + ': ' + g.prefix + from + ' to ' + g.prefix + to, count: gap });
+        }
+      }
+    });
+    return out;
+  }
+  columnsFor(t) {
+    const text = (h, w, fn, right) => ({ h, w, align: right ? 'right' : 'left', cell: (r) => ({ isText: true, isLink: false, isStatus: false, isPhoto: false, text: fn(r), align: right ? 'right' : 'left' }) });
+    const photoCol = (h, key, i) => ({
+      h, w: 110, align: 'left',
+      cell: (r) => {
+        const has = (r.files[key] || 0) >= i;
+        return { isText: !has, isLink: false, isStatus: false, isPhoto: has, text: has ? '' : '-', align: 'left' };
+      }
+    });
+    const link = (h, w) => ({ h, w, align: 'left', cell: (r) => ({ isText: false, isLink: true, isStatus: false, isPhoto: false, text: r.no, open: r.open, align: 'left' }) });
+    const status = (h, w) => ({ h, w, align: 'left', cell: (r) => ({ isText: false, isLink: false, isStatus: true, isPhoto: false, text: r.statusText, pillBg: r.pillBg, pillFg: r.pillFg, align: 'left' }) });
+    const photos = (key, label, count) => {
+      const out = [];
+      for (let i = 1; i <= count; i++) {
+        out.push(photoCol(i === 1 ? label : label + ' ' + i, key, i));
+      }
+      return out;
+    };
+    const uploadDate = text('Upload Date', 110, (r) => r.uploadDateText);
+    const uploadedBy = text('Uploaded By (Employee)', 150, (r) => r.uploaderText);
+    if (t === 'CF') {
+      return [
+        link('Invoice No', 120),
+        text('Invoice Date', 110, (r) => r.date),
+        text('Customer', 280, (r) => r.partyText),
+        text('Invoice Amount', 120, (r) => r.amountText, true),
+        photoCol('Receipt Copy', 'RECEIPT', 1)
+      ].concat(photos('INVOICE', 'Invoice Photo', 10), [uploadDate, uploadedBy, status('Status', 100)]);
+    }
+    return [
+      text('Supplier', 280, (r) => r.partyText),
+      link('Challan No', 120),
+      text('Challan Date', 110, (r) => r.date),
+      text('Amount', 110, (r) => r.amountText, true),
+      text('No of Item', 90, (r) => r.items || '-'),
+      text('MR', 100, (r) => r.mrText),
+      text('Area', 110, (r) => r.areaText),
+      text('Address', 160, (r) => r.addressText)
+    ].concat(
+      photos('CHALLAN', 'Challan Photo', 40),
+      photos('GOODS', 'Goods Photo', 40),
+      [uploadDate, uploadedBy, status('Upload Status', 110), text('Remarks', 220, (r) => r.remarks || '-')]
+    );
+  }
+  renderVals() {
+    const st = this.s();
+    const docs = st.docs;
+    const types = ['SALE', 'CF', 'PURCHASE'];
+    const pendingOf = (t) => docs.filter((d) => d.type === t && !this.isDone(d)).length;
+    const uploadedOf = (t) => docs.filter((d) => d.type === t && this.isDone(d)).length;
+    const openReg = (t) => () => this.go({ screen: 'register', reg: t, q: '', filter: 'ALL' });
+    const pill = (done) => ({ pillBg: done ? '#D8EFE6' : '#FCE9C8', pillFg: done ? '#0B5041' : '#6B4300', statusText: done ? 'Uploaded' : 'Pending' });
+    const toggle = (active) => ({ bg: active ? '#0B5C55' : '#FFFFFF', fg: active ? '#FFFFFF' : '#0B5C55' });
+
+    const q = st.q.trim().toLowerCase();
+    const rows = docs
+      .filter((d) => d.type === st.reg)
+      .filter((d) => st.filter === 'ALL' || (st.filter === 'PENDING' ? !this.isDone(d) : this.isDone(d)))
+      .filter((d) => !q || d.no.toLowerCase().indexOf(q) >= 0 || d.party.toLowerCase().indexOf(q) >= 0)
+      .map((d) => Object.assign({}, d, pill(this.isDone(d)), {
+        partyText: d.party || 'Supplier not set',
+        amountText: this.money(d.amount),
+        uploaderText: d.uploader || '-',
+        receiptText: d.receipt || '-',
+        mrText: d.mr || '-',
+        areaText: d.area || '-',
+        addressText: d.address || '-',
+        hasReceiptCopy: d.files.RECEIPT > 0,
+        noReceiptCopy: !(d.files.RECEIPT > 0),
+        uploadDateText: d.uploadedAt === 'Today' ? this.todayText() : (d.uploadedAt || '-'),
+        fileCount: Object.values(d.files).reduce((a, b) => a + b, 0),
+        open: () => this.go({ screen: 'detail', openId: this.key(d), draft: Object.assign({}, d.files), draftRemarks: d.remarks || '', saved: false })
+      }));
+
+    const columns = st.reg === 'SALE' ? [] : this.columnsFor(st.reg);
+    const tableRows = rows.map((r) => Object.assign({}, r, { cells: columns.map((c) => c.cell(r)) }));
+
+    let detail = { no: '', pillBg: '', pillFg: '', statusText: '', needText: '', fields: [], formTitle: '', sections: [] };
+    const current = docs.find((d) => this.key(d) === st.openId);
+    if (current) {
+      const v = (x) => (x === '' || x === undefined ? '-' : String(x));
+      const allKinds = this.kinds(current.type);
+      const missing = allKinds.filter((k) => k.req && !(st.draft[k.k] > 0)).map((k) => k.label);
+      const pty = current.type === 'PURCHASE' ? 'Supplier' : 'Customer';
+      const num = current.type === 'PURCHASE' ? 'Challan No' : 'Invoice No';
+      const dat = current.type === 'PURCHASE' ? 'Challan Date' : 'Invoice Date';
+      const amt = current.type === 'PURCHASE' ? 'Amount' : 'Invoice Amount';
+      const fields = [
+        { label: pty, value: current.party || 'Not set' },
+        { label: num, value: current.no },
+        { label: dat, value: current.date },
+        { label: amt, value: this.money(current.amount) }
+      ];
+      if (current.type === 'SALE') fields.push({ label: 'Receipt', value: v(current.receipt) });
+      if (current.type === 'PURCHASE') fields.push({ label: 'No of Item', value: v(current.items) });
+      if (current.type !== 'CF') {
+        fields.push({ label: 'MR', value: v(current.mr) }, { label: 'Area', value: v(current.area) }, { label: 'Address', value: v(current.address) });
+      }
+      fields.push({ label: 'Uploaded by', value: v(current.uploader) }, { label: 'Upload date', value: v(current.uploadedAt) });
+      const photos = (key) => {
+        const k = allKinds.find((x) => x.k === key);
+        const n = st.draft[key] || 0;
+        const slots = [];
+        for (let i = 1; i <= n; i++) {
+          slots.push({
+            label: i === 1 ? k.label : k.label + ' ' + i,
+            filled: true,
+            open: false,
+            canRemove: i === n,
+            remove: () => this.changeDraft(key, -1)
+          });
+        }
+        if (n < k.max) {
+          slots.push({
+            label: n === 0 ? k.label : k.label + ' ' + (n + 1),
+            filled: false,
+            open: true,
+            canRemove: false,
+            add: () => this.changeDraft(key, 1)
+          });
+        }
+        return {
+          isPhotos: true,
+          isAuto: false,
+          isRemarks: false,
+          label: k.max === 1 ? k.label : k.label + 's',
+          note: (k.req ? 'Required' : 'Optional') + ' · ' + n + ' of ' + k.max + ' added',
+          slots
+        };
+      };
+      const auto = [
+        { isPhotos: false, isAuto: true, isRemarks: false, id: 'upload-date', label: 'Upload Date', value: this.todayText(), note: 'Filled automatically.', slots: [] },
+        { isPhotos: false, isAuto: true, isRemarks: false, id: 'uploaded-by', label: 'Uploaded By (Employee)', value: 'Supervisor', note: 'Filled from the signed-in employee.', slots: [] }
+      ];
+      let sections;
+      if (current.type === 'SALE') sections = [photos('RECEIPT')].concat(auto);
+      else if (current.type === 'CF') sections = [photos('RECEIPT'), photos('INVOICE')].concat(auto);
+      else sections = [photos('CHALLAN'), photos('GOODS')].concat(auto, [{ isPhotos: false, isAuto: false, isRemarks: true, id: 'remarks', label: 'Remarks', slots: [] }]);
+      detail = Object.assign({ no: current.no }, pill(this.isDone(current)), {
+        needText: missing.length ? 'Still needed: ' + missing.join(', ') : 'All required files are attached.',
+        fields,
+        formTitle: this.label(current.type) + ' update form',
+        sections
+      });
+    }
+
+    const templates = {
+      SALE: ['Customer', 'Invoice No', 'Invoice Date', 'Invoice Amount', 'Receipt', 'MR', 'Area', 'Address'],
+      CF: ['Invoice No', 'Invoice Date', 'Customer', 'Invoice Amount'],
+      PURCHASE: ['Supplier', 'Challan No', 'Challan Date', 'Amount', 'No of Item', 'MR', 'Area', 'Address']
+    };
+    const bulkRows = st.bulkFile ? this.checkFile(st.bulkType, docs) : [];
+    const readyCount = bulkRows.filter((r) => r.ok).length;
+    const skippedCount = bulkRows.filter((r) => r.skipped).length;
+    const failedCount = bulkRows.length - readyCount - skippedCount;
+    const res = st.bulkResult;
+    const totalPending = types.reduce((a, t) => a + pendingOf(t), 0);
+    const totalUploaded = types.reduce((a, t) => a + uploadedOf(t), 0);
+    const today = docs.filter((d) => d.uploadedAt === 'Today');
+    const missingRows = this.missingRows(docs);
+
+    return {
+      isOverview: st.screen === 'overview',
+      isRegister: st.screen === 'register',
+      isDetail: st.screen === 'detail' && !!current,
+      isBulk: st.screen === 'bulk',
+      isReports: st.screen === 'reports',
+      rootBg: st.screen === 'overview'
+        ? 'radial-gradient(circle at 6% 18%, #FF5D73 0 190px, transparent 191px), radial-gradient(circle at 93% 14%, #FFC53D 0 230px, transparent 231px), radial-gradient(circle at 90% 88%, #12B5A6 0 260px, transparent 261px), radial-gradient(circle at 10% 92%, #2F80ED 0 240px, transparent 241px), radial-gradient(circle at 50% 106%, #FF8A3D 0 170px, transparent 171px), #6C4BE0'
+        : '#F4F6F5',
+      goSale: openReg('SALE'),
+      goCF: openReg('CF'),
+      goPurchase: openReg('PURCHASE'),
+      showHome: st.screen !== 'overview',
+      goHome: () => this.go({ screen: 'overview' }),
+      goReports: () => this.go({ screen: 'reports', exportNote: false }),
+      overviewLine: totalPending + ' pending and ' + totalUploaded + ' uploaded in this preview.',
+      cards: types.map((t) => ({ label: this.label(t), pending: pendingOf(t), uploaded: uploadedOf(t), go: openReg(t) })),
+      pendingRows: this.pendingRows(docs),
+      isSaleReg: st.reg === 'SALE',
+      isOtherReg: st.reg !== 'SALE',
+      regLabel: this.label(st.reg),
+      regLine: pendingOf(st.reg) + ' pending, ' + uploadedOf(st.reg) + ' uploaded',
+      numberLabel: st.reg === 'PURCHASE' ? 'Challan No' : 'Invoice No',
+      partyLabel: st.reg === 'PURCHASE' ? 'Supplier' : 'Customer',
+      goBulkForReg: () => this.go({ screen: 'bulk', bulkType: st.reg, bulkFile: false, bulkResult: null, tplNote: false }),
+      q: st.q,
+      onQ: (e) => this.setState({ q: e.target.value }),
+      filters: [['ALL', 'All'], ['PENDING', 'Pending'], ['UPLOADED', 'Uploaded']].map((f) => Object.assign({ label: f[1], go: () => this.setState({ filter: f[0] }) }, toggle(st.filter === f[0]))),
+      rows: tableRows,
+      columns: columns.map((c) => ({ h: c.h, align: c.align })),
+      gridCols: columns.map((c) => c.w + 'px').join(' '),
+      tableWidth: columns.reduce((a, c) => a + c.w + 10, 18),
+      noRows: rows.length === 0,
+      detail,
+      backToReg: () => this.go({ screen: 'register' }),
+      saveForm: () => this.saveDraft(),
+      showSaved: st.saved,
+      draftRemarks: st.draftRemarks,
+      onRemarks: (e) => this.setState({ draftRemarks: e.target.value, saved: false }),
+      bulkTabs: types.map((t) => Object.assign({ label: this.label(t), go: () => this.setState({ bulkType: t, bulkFile: false, bulkResult: null, tplNote: false }) }, toggle(st.bulkType === t))),
+      bulkLabel: this.label(st.bulkType),
+      bulkCols: templates[st.bulkType].map((c, i) => ({ text: (i + 1) + '. ' + c })),
+      downloadTpl: () => this.setState({ tplNote: true }),
+      showTplNote: st.tplNote,
+      useSample: () => this.setState({ bulkFile: true, bulkResult: null }),
+      showBulkPreview: st.bulkFile,
+      bulkRows,
+      bulkSummary: readyCount + ' ready, ' + skippedCount + ' skipped, ' + failedCount + ' failed',
+      confirmBulk: () => this.confirm(),
+      bulkConfirmOff: readyCount === 0,
+      bulkConfirmOpacity: readyCount === 0 ? 0.45 : 1,
+      showBulkDone: !!res,
+      bulkDoneText: res ? res.created + ' created, ' + res.skipped + ' skipped, ' + res.failed + ' failed. New rows are Pending.' : '',
+      viewBulkReg: openReg(st.bulkType),
+      exportReport: () => this.setState({ exportNote: true }),
+      showExportNote: st.exportNote,
+      todayRows: types.map((t) => ({ label: this.label(t), count: today.filter((d) => d.type === t).length })),
+      missingRows,
+      noMissing: missingRows.length === 0
+    };
+  }
+}
+</script>
+</body>
+</html>

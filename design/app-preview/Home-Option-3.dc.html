@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home option 3: Dark console</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<main style="min-height: 720px; box-sizing: border-box; padding: 48px; display: flex; align-items: center; justify-content: center; background: #10161C; color: #F4F7F9; font-family: 'IBM Plex Sans', system-ui, sans-serif">
+  <div style="width: 100%; max-width: 1140px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px">
+    <button type="button" style="min-height: 360px; box-sizing: border-box; padding: 34px; border: 1px solid #5EEAD4; border-radius: 18px; background: #1A232C; color: #F4F7F9; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 36px; text-align: left">
+      <svg width="82" height="82" viewBox="0 0 24 24" fill="none" stroke="#5EEAD4" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"></path><path d="M9 8h6M9 12h6"></path></svg>
+      <span style="width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px">
+        <span style="font-size: 36px; font-weight: 700">Sale</span>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5EEAD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </button>
+    <button type="button" style="min-height: 360px; box-sizing: border-box; padding: 34px; border: 1px solid #7DD3FC; border-radius: 18px; background: #1A232C; color: #F4F7F9; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 36px; text-align: left">
+      <svg width="82" height="82" viewBox="0 0 24 24" fill="none" stroke="#7DD3FC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h12v11H2z"></path><path d="M14 10h4l4 4v3h-8z"></path><circle cx="7" cy="18.5" r="1.8"></circle><circle cx="18" cy="18.5" r="1.8"></circle></svg>
+      <span style="width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px">
+        <span style="font-size: 36px; font-weight: 700">C&amp;F Sales</span>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7DD3FC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </button>
+    <button type="button" style="min-height: 360px; box-sizing: border-box; padding: 34px; border: 1px solid #FCD34D; border-radius: 18px; background: #1A232C; color: #F4F7F9; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 36px; text-align: left">
+      <svg width="82" height="82" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.5"></circle><circle cx="18" cy="20" r="1.5"></circle><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"></path></svg>
+      <span style="width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px">
+        <span style="font-size: 36px; font-weight: 700">Purchase</span>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </span>
+    </button>
+  </div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
