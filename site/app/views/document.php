@@ -57,7 +57,7 @@ $barTitle = $register['label'];
     <div class="side">
       <section class="card flush" id="doc-details">
         <h2>Details</h2>
-        <?php foreach ($fields as [$label, $value]): ?><div class="kv"><span><?= e($label) ?></span><span><?= e($value) ?></span></div><?php endforeach; ?>
+        <?php foreach ($fields as [$label, $value]): if (trim((string) $value) === '') { continue; } ?><div class="kv"><span><?= e($label) ?></span><span><?= e($value) ?></span></div><?php endforeach; ?>
       </section>
     </div>
     <section class="card form" id="doc-photos" aria-label="Photos">
