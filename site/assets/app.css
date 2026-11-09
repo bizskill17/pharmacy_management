@@ -504,6 +504,6 @@ table.data, table.data th, table.data td { font-size: 14px; }
 .home-icon { transition: transform 0.18s ease; }
 .home-row:hover .home-icon { transform: scale(1.07) rotate(-4deg); }
 @media (prefers-reduced-motion: reduce) {
-  .bubble, .home-row { animation: none; }
+  .home-bg .bubble, .home-row { animation: none; }
   .home-row, .home-row > svg, .home-icon { transition: none; }
 }
