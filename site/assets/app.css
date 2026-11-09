@@ -466,3 +466,13 @@ table.data, table.data th, table.data td { font-size: 14px; }
   .topbar .signed-in b { display: block; }
   .topbar form, .topbar .sidebar-logout { width: 100%; }
 }
+
+/* Home on phones: account in a bar at the bottom. */
+@media (max-width: 1099px) {
+  .topbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2; max-width: none; margin: 0; padding: 8px 12px; background: #fff; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.18); }
+  .topbar > span:first-child { display: none; }
+  .topbar-group { flex: 1 1 auto; flex-wrap: nowrap; justify-content: space-between; }
+  .topbar .signed-in { padding: 0; background: transparent; font-size: 14px; }
+  .topbar form { flex: 0 0 auto; }
+  .home { min-height: 100vh; padding-top: 16px; padding-bottom: 80px; }
+}
