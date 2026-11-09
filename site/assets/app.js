@@ -169,7 +169,7 @@
     var panel = filterForm.querySelector('[data-filter-panel]');
     var openButton = filterForm.querySelector('[data-filter-open]');
     var badge = filterForm.querySelector('[data-filter-count]');
-    var fields = ['from', 'to', 'area'].map(function (name) { return filterForm.elements[name]; });
+    var fields = ['from', 'to', 'area'].map(function (name) { return filterForm.elements[name]; }).filter(Boolean);
     var drawCount = function () {
       var active = fields.filter(function (field) { return field.value.trim() !== ''; }).length;
       badge.hidden = active === 0;

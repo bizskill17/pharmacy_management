@@ -177,7 +177,7 @@ function save_pick(int $id, array $user): void
         return true;
     });
     flash($done ? 'Moved to Matching.' : 'This challan has already been picked.', $done);
-    redirect('/sales-challan/packing');
+    redirect('/sales-challan/master');
 }
 
 function save_match(int $id, array $user): void
@@ -209,7 +209,7 @@ function save_match(int $id, array $user): void
         throw $error;
     }
     flash($result === $quantity ? 'Matching saved.' : "Matching saved. Match Quantity $quantity is different from No. of Items $result.", $result === $quantity);
-    redirect('/sales-challan/matching');
+    redirect('/sales-challan/master');
 }
 
 function update_sales_challan(array $current, array $user): void
@@ -464,7 +464,7 @@ function route_sales_challan(bool $get, bool $post, string $path): void
             try {
                 $number = create_sales_challan($user);
                 flash("Challan $number saved. It is now in Pending Packing.");
-                redirect('/sales-challan/add');
+                redirect('/sales-challan/master');
             } catch (UserError $failure) {
                 $error = $failure->getMessage();
             }
@@ -516,7 +516,7 @@ function route_sales_challan(bool $get, bool $post, string $path): void
             try {
                 update_sales_challan($challan, $user);
                 flash('Challan updated.');
-                redirect("/sales-challan/$id");
+                redirect('/sales-challan/master');
             } catch (UserError $failure) {
                 $error = $failure->getMessage();
             }

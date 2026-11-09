@@ -112,23 +112,54 @@ function create_purchase_in(array $user): array
     }
 }
 
-function list_purchase_in(bool $pendingOnly, string $query): array
+function purchase_in_filter(): array
+{
+    $dateOnly = function (string $name) {
+        $text = trim((string) ($_GET[$name] ?? ''));
+        return $text === '' ? '' : (parse_date($text) ?? '');
+    };
+    return [
+        'q' => trim((string) ($_GET['q'] ?? '')),
+        'from' => $dateOnly('from'),
+        'to' => $dateOnly('to'),
+        'group' => ($_GET['group'] ?? '') === 'supplier' ? 'supplier' : 'date',
+    ];
+}
+
+function list_purchase_in(bool $pendingOnly, array $filter): array
 {
     $where = [];
     $params = [];
     if ($pendingOnly) {
         $where[] = "e.status = 'PENDING'";
     }
-    if ($query !== '') {
-        $pattern = like_pattern($query);
+    if ($filter['q'] !== '') {
+        $pattern = like_pattern($filter['q']);
         $where[] = '(e.party_name LIKE ? OR e.party_no LIKE ? OR e.reference_no LIKE ? OR e.challan_no LIKE ? OR CAST(e.sl_no AS CHAR) LIKE ?)';
         array_push($params, $pattern, $pattern, $pattern, $pattern, $pattern);
     }
+    if ($filter['from'] !== '') {
+        $where[] = 'e.entry_date >= ?';
+        $params[] = $filter['from'];
+    }
+    if ($filter['to'] !== '') {
+        $where[] = 'e.entry_date <= ?';
+        $params[] = $filter['to'];
+    }
     $clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
-    $total = (int) value("SELECT COUNT(*) FROM purchase_in e $clause", $params);
+    $supplier = 'COALESCE(p.name, e.party_name)';
+    $bySupplier = $filter['group'] === 'supplier';
+    $key = $bySupplier ? $supplier : 'e.entry_date';
+    $order = $bySupplier ? "$supplier, e.sl_no DESC" : 'e.entry_date DESC, e.sl_no DESC';
+    $from = 'FROM purchase_in e LEFT JOIN parties p ON p.id = e.party_id';
+    $total = (int) value("SELECT COUNT(*) $from $clause", $params);
     $page = clamp_page(requested_page(), $total);
-    $rows = rows("SELECT e.*, u.full_name AS entry_name FROM purchase_in e JOIN users u ON u.id = e.entry_by $clause ORDER BY e.sl_no DESC LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params);
-    return [$rows, $total, $page];
+    $rows = rows("SELECT e.*, u.full_name AS entry_name, $supplier AS supplier_name $from JOIN users u ON u.id = e.entry_by $clause ORDER BY $order LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params);
+    $groups = [];
+    foreach (rows("SELECT $key AS group_key, COUNT(*) AS entries $from $clause GROUP BY group_key ORDER BY group_key" . ($bySupplier ? '' : ' DESC'), $params) as $group) {
+        $groups[(string) $group['group_key']] = (int) $group['entries'];
+    }
+    return [$rows, $total, $page, $groups];
 }
 
 function serve_purchase_in_photo(int $id, int $slot): never
@@ -186,7 +217,7 @@ function handle_challan(int $id, array $user): void
         return true;
     });
     flash($done ? 'Challan saved.' : 'This entry already has a challan.', $done);
-    redirect('/purchase-in/pending');
+    redirect('/purchase-in/master');
 }
 
 /** Handles every Purchase In address, and returns for any other address. */
@@ -210,7 +241,7 @@ function route_purchase_in(bool $get, bool $post, string $path): void
             try {
                 $saved = create_purchase_in($user);
                 flash("Saved. Sl. No. {$saved['sl_no']}, Party No {$saved['party_no']}.");
-                redirect('/purchase-in/add');
+                redirect('/purchase-in/master');
             } catch (UserError $failure) {
                 $error = $failure->getMessage();
             }
@@ -220,9 +251,9 @@ function route_purchase_in(bool $get, bool $post, string $path): void
     }
     if ($get && ($path === '/purchase-in/pending' || $path === '/purchase-in/master')) {
         $pending = $path === '/purchase-in/pending';
-        $query = trim((string) ($_GET['q'] ?? ''));
-        [$entries, $total, $page] = list_purchase_in($pending, $query);
-        render('purchase_in_list', compact('entries', 'total', 'page', 'query', 'path'));
+        $filter = purchase_in_filter();
+        [$entries, $total, $page, $groups] = list_purchase_in($pending, $filter);
+        render('purchase_in_list', compact('entries', 'total', 'page', 'filter', 'groups', 'path'));
     }
     if ($path === '/purchase-in/settings') {
         $user = require_user(MANAGERS);
