@@ -334,6 +334,8 @@
       var section = document.getElementById(button.dataset.toggleTarget);
       section.hidden = !section.hidden;
       button.setAttribute('aria-expanded', section.hidden ? 'false' : 'true');
+      var other = button.dataset.toggleHide && document.getElementById(button.dataset.toggleHide);
+      if (other) { other.hidden = !section.hidden; }
       if (!section.hidden) { var first = section.querySelector('input:not([type=hidden])'); if (first) { first.focus(); } }
     });
   });

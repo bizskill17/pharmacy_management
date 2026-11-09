@@ -1,6 +1,6 @@
 <main class="page">
   <?php require __DIR__ . '/admin_nav.php'; ?>
-  <div class="row"><button type="button" class="btn primary" data-toggle-target="add-employee" aria-expanded="false" aria-controls="add-employee">Add employee</button><a class="btn" href="/admin/users/bulk">Bulk upload</a></div>
+  <div class="row"><button type="button" class="btn primary" data-toggle-target="add-employee" data-toggle-hide="users-list" aria-expanded="false" aria-controls="add-employee">Add employee</button><a class="btn" href="/admin/users/bulk">Bulk upload</a></div>
   <section class="card" id="add-employee" hidden>
     <h2>Add employee</h2>
     <form method="post" action="/admin/users" enctype="multipart/form-data" class="stack">
@@ -9,6 +9,7 @@
       <div><button class="btn primary">Add user</button></div>
     </form>
   </section>
+  <div id="users-list">
   <div class="table-box">
     <table class="data">
       <thead><tr>
@@ -37,4 +38,5 @@
     </table>
   </div>
   <?= pager($page, $total, fn ($number) => '/admin/users?page=' . $number) ?>
+  </div>
 </main>
