@@ -189,10 +189,11 @@ function handle_bulk(array $register): never
 function export_reports(): never
 {
     api_user(MANAGERS);
-    send_xlsx('reports.xlsx', [
-        'Pending by date' => array_merge([['Date', 'Register', 'Count']], array_map(fn ($r) => [$r['date'], $r['label'], $r['count']], pending_by_date())),
-        'Uploaded today' => array_merge([['Register', 'Count']], array_map(fn ($r) => [$r['label'], $r['count']], uploaded_today())),
-        'Missing numbers' => array_merge([['Register and year', 'From', 'To', 'Count']], array_map(fn ($r) => [$r['label'], $r['from'], $r['to'], $r['count']], missing_numbers())),
+    $register = report_register();
+    send_xlsx($register['slug'] . '-reports.xlsx', [
+        'Pending by date' => array_merge([['Date', 'Count']], array_map(fn ($r) => [$r['date'], $r['count']], pending_by_date($register))),
+        'Uploaded today' => [['Section', 'Count'], [$register['label'], uploaded_today($register)]],
+        'Missing numbers' => array_merge([['Year', 'From', 'To', 'Count']], array_map(fn ($r) => [$r['label'], $r['from'], $r['to'], $r['count']], missing_numbers($register))),
     ]);
 }
 
@@ -503,7 +504,8 @@ function handle_request(string $method, string $path): never
     }
     if ($get && $path === '/reports') {
         require_user(MANAGERS);
-        render('reports', ['pending' => pending_by_date(), 'today' => uploaded_today(), 'missing' => missing_numbers()]);
+        $register = report_register();
+        render('reports', ['register' => $register, 'pending' => pending_by_date($register), 'today' => uploaded_today($register), 'missing' => missing_numbers($register)]);
     }
     if ($path === '/admin/users') {
         if ($post) {

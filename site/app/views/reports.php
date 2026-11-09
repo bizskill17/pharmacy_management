@@ -1,15 +1,15 @@
-<?php $barTitle = 'Reports'; ?>
+<?php $barTitle = $register['label'] . ' Reports'; ?>
 <main class="page">
-  <div class="row"><a class="btn" href="/api/reports/export">Export to Excel</a></div>
+  <div class="row"><a class="btn" href="/api/reports/export?type=<?= e($register['slug']) ?>">Export to Excel</a></div>
   <div class="grid-auto">
     <section class="card flush">
       <h2>Pending by date</h2>
       <?php if (!$pending): ?><p class="muted">Nothing pending.</p><?php endif; ?>
-      <?php foreach ($pending as $row): ?><div class="kv"><span><?= e($row['date']) ?> &middot; <?= e($row['label']) ?></span><span><?= (int) $row['count'] ?></span></div><?php endforeach; ?>
+      <?php foreach ($pending as $row): ?><div class="kv"><span><?= e($row['date']) ?></span><span><?= (int) $row['count'] ?></span></div><?php endforeach; ?>
     </section>
     <section class="card flush">
       <h2>Uploaded today</h2>
-      <?php foreach ($today as $row): ?><div class="kv"><span><?= e($row['label']) ?></span><span><?= (int) $row['count'] ?></span></div><?php endforeach; ?>
+      <div class="kv"><span><?= e($register['label']) ?></span><span><?= (int) $today ?></span></div>
     </section>
     <section class="card flush">
       <h2>Missing numbers</h2>
