@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Kolkata');
 ini_set('display_errors', '0');
 
 const MIN_PASSWORD_LENGTH = 8;
-const SCHEMA_VERSION = '1';
+const SCHEMA_VERSION = '2';
 
 final class UserError extends RuntimeException {}
 
@@ -50,6 +50,26 @@ function db(): PDO
     return $pdo;
 }
 
+function add_missing_user_columns(PDO $pdo): void
+{
+    $columns = [
+        'address' => 'VARCHAR(255) NULL',
+        'photo_key' => 'VARCHAR(500) NULL',
+        'pan_key' => 'VARCHAR(500) NULL',
+        'aadhaar_front_key' => 'VARCHAR(500) NULL',
+        'aadhaar_back_key' => 'VARCHAR(500) NULL',
+        'designation' => 'VARCHAR(100) NULL',
+        'salary' => 'DECIMAL(12,2) NULL',
+        'joining_date' => 'DATE NULL',
+    ];
+    $existing = $pdo->query('SHOW COLUMNS FROM users')->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($columns as $name => $definition) {
+        if (!in_array($name, $existing, true)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN $name $definition");
+        }
+    }
+}
+
 function ensure_schema(PDO $pdo): void
 {
     $marker = storage_dir() . '/.schema-' . SCHEMA_VERSION;
@@ -57,6 +77,7 @@ function ensure_schema(PDO $pdo): void
         foreach (require __DIR__ . '/schema.php' as $statement) {
             $pdo->exec($statement);
         }
+        add_missing_user_columns($pdo);
         if (!is_dir(storage_dir())) {
             mkdir(storage_dir(), 0755, true);
         }

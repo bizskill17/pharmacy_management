@@ -12,6 +12,34 @@
     });
   }
 
+    var compress = function (file) {
+      if (!window.createImageBitmap) { return Promise.resolve(file); }
+      return createImageBitmap(file).then(function (bitmap) {
+        var scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        return new Promise(function (resolve) {
+          canvas.toBlob(function (blob) { resolve(blob || file); }, 'image/jpeg', 0.82);
+        });
+      }).catch(function () { return file; });
+    };
+
+  /* Employee documents */
+  document.querySelectorAll('input[data-compress]').forEach(function (input) {
+    input.addEventListener('change', function () {
+      var file = input.files[0];
+      if (!file || !window.DataTransfer) { return; }
+      compress(file).then(function (blob) {
+        var transfer = new DataTransfer();
+        transfer.items.add(new File([blob], file.name || 'photo.jpg', { type: blob.type || file.type }));
+        input.files = transfer.files;
+      });
+    });
+  });
+
   /* Update form */
   var page = document.getElementById('document');
   if (page) {
@@ -34,21 +62,6 @@
           group.replaceWith(next.getElementById(group.id));
         });
       });
-    };
-
-    var compress = function (file) {
-      if (!window.createImageBitmap) { return Promise.resolve(file); }
-      return createImageBitmap(file).then(function (bitmap) {
-        var scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
-        var canvas = document.createElement('canvas');
-        canvas.width = Math.round(bitmap.width * scale);
-        canvas.height = Math.round(bitmap.height * scale);
-        canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        bitmap.close();
-        return new Promise(function (resolve) {
-          canvas.toBlob(function (blob) { resolve(blob || file); }, 'image/jpeg', 0.82);
-        });
-      }).catch(function () { return file; });
     };
 
     var setBusy = function (group, busy) {

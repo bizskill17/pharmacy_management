@@ -91,7 +91,7 @@ Customers and suppliers in one list, because some parties appear on both sides.
 
 ### users
 
-Login accounts only. HR data such as salary, PAN and Aadhaar stays out of this app.
+Employee records and login accounts, also holding address, designation, salary, joining date, and private files for Photo, PAN Card and Aadhar Card front and back. Only Admins can see these details, and Missing Document is calculated from the files.
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |

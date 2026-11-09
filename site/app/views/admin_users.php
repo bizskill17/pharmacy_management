@@ -1,30 +1,38 @@
-<?php $roleOptions = ['UPLOADER' => 'Uploader', 'SUPERVISOR' => 'Supervisor', 'ADMIN' => 'Admin']; ?>
 <main class="page">
   <?php require __DIR__ . '/admin_nav.php'; ?>
-  <form method="post" action="/admin/users" class="card">
-    <?= csrf_field() ?>
-    <h2>Add user</h2>
-    <div class="grid-auto">
-      <div class="field"><label for="u-name">Name</label><input id="u-name" name="name" class="input" required maxlength="120"></div>
-      <div class="field"><label for="u-phone">Phone number</label><input id="u-phone" name="phone" class="input" inputmode="tel" required maxlength="15"></div>
-      <div class="field"><label for="u-password">Password</label><input id="u-password" name="password" type="password" class="input" required minlength="8" autocomplete="new-password"></div>
-      <div class="field"><label for="u-role">Role</label><select id="u-role" name="role" class="input"><?php foreach ($roleOptions as $value => $label): ?><option value="<?= e($value) ?>"><?= e($label) ?></option><?php endforeach; ?></select></div>
-    </div>
-    <div><button class="btn primary">Add user</button></div>
-  </form>
-  <?php foreach ($users as $listed): $listedId = (int) $listed['id']; ?>
-  <form method="post" action="/admin/users/update" class="card">
-    <?= csrf_field() ?>
-    <input type="hidden" name="id" value="<?= $listedId ?>">
-    <div class="row between">
-      <div><strong><?= e($listed['full_name']) ?></strong><p class="muted"><?= e($listed['phone']) ?></p></div>
-      <label class="row"><input type="checkbox" name="active"<?= $listed['is_active'] ? ' checked' : '' ?>> Active</label>
-    </div>
-    <div class="grid-auto">
-      <div class="field"><label for="role-<?= $listedId ?>">Role</label><select id="role-<?= $listedId ?>" name="role" class="input"><?php foreach ($roleOptions as $value => $label): ?><option value="<?= e($value) ?>"<?= $listed['role'] === $value ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?></select></div>
-      <div class="field"><label for="password-<?= $listedId ?>">New password (optional)</label><input id="password-<?= $listedId ?>" name="password" type="password" class="input" minlength="8" autocomplete="new-password"></div>
-    </div>
-    <div><button class="btn">Save</button></div>
-  </form>
-  <?php endforeach; ?>
+  <details class="card">
+    <summary><strong>Add employee</strong></summary>
+    <form method="post" action="/admin/users" enctype="multipart/form-data" class="stack">
+      <?= csrf_field() ?>
+      <?php $employee = null; require __DIR__ . '/employee_form.php'; ?>
+      <div><button class="btn primary">Add user</button></div>
+    </form>
+  </details>
+  <div class="table-box">
+    <table class="data">
+      <thead><tr>
+        <th>Employee Name</th><th>Phone No</th><th>Email</th><th>Address</th><th>Photo</th><th>PAN Card</th><th>Aadhar Card Front</th><th>Aadhar Card Back</th><th>Designation</th><th>Missing Document</th><th>Passcode</th><th class="right">Salary</th><th>Joining Date</th><th>Status</th><th>Role</th>
+      </tr></thead>
+      <tbody>
+      <?php foreach ($users as $listed): $listedId = (int) $listed['id']; ?>
+        <tr>
+          <td><a class="doc-link" href="/admin/users/<?= $listedId ?>"><?= e($listed['full_name']) ?></a></td>
+          <td><?= e($listed['phone']) ?></td>
+          <td><?= e($listed['email'] ?? '-') ?></td>
+          <td><?= e($listed['address'] ?? '-') ?></td>
+          <?php foreach (EMPLOYEE_FILES as $field => $column): ?>
+          <td><?php if (!empty($listed[$column])): ?><a href="/api/users/<?= $listedId ?>/<?= e($field) ?>" target="_blank" rel="noopener" aria-label="Open <?= e(EMPLOYEE_FILE_LABELS[$field]) ?>"><img class="thumb" src="/api/users/<?= $listedId ?>/<?= e($field) ?>" alt="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
+          <?php endforeach; ?>
+          <td><?= e($listed['designation'] ?? '-') ?></td>
+          <td><?= e(employee_missing($listed)) ?></td>
+          <td>Hidden</td>
+          <td class="right"><?= $listed['salary'] === null ? '-' : e(money($listed['salary'])) ?></td>
+          <td><?= e(display_date($listed['joining_date'])) ?></td>
+          <td><span class="pill <?= $listed['is_active'] ? 'UPLOADED' : 'DELETED' ?>"><?= $listed['is_active'] ? 'Active' : 'Inactive' ?></span></td>
+          <td><?= e(ucfirst(strtolower($listed['role']))) ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
 </main>

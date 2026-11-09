@@ -201,55 +201,179 @@ function is_duplicate(PDOException $error): bool
     return ($error->errorInfo[1] ?? 0) === 1062;
 }
 
+const EMPLOYEE_FILES = ['photo' => 'photo_key', 'pan' => 'pan_key', 'aadhaar_front' => 'aadhaar_front_key', 'aadhaar_back' => 'aadhaar_back_key'];
+const EMPLOYEE_FILE_LABELS = ['photo' => 'Photo', 'pan' => 'PAN Card', 'aadhaar_front' => 'Aadhar Card Front', 'aadhaar_back' => 'Aadhar Card Back'];
+
+function employee_missing(array $employee): string
+{
+    $missing = [];
+    foreach (EMPLOYEE_FILES as $field => $column) {
+        if (empty($employee[$column])) {
+            $missing[] = EMPLOYEE_FILE_LABELS[$field];
+        }
+    }
+    return $missing ? implode(', ', $missing) : 'None';
+}
+
+/** Reads and validates the employee form. Throws UserError with a message to show. */
+function employee_from_post(): array
+{
+    $name = post_text('name', 120);
+    $phone = post_text('phone', 15);
+    $email = optional_text('email', 150);
+    $salaryText = post_text('salary', 20);
+    $salary = $salaryText === '' ? null : parse_amount($salaryText);
+    $joining = post_text('joining_date', 10);
+    $joiningDate = null;
+    if ($joining !== '') {
+        $joiningDate = preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $joining, $m) ? valid_date((int) $m[1], (int) $m[2], (int) $m[3]) : null;
+        if ($joiningDate === null) {
+            throw new UserError('Enter a valid joining date.');
+        }
+    }
+    $role = (string) ($_POST['role'] ?? '');
+    if ($name === '' || $phone === '') {
+        throw new UserError('Employee name and phone number are required.');
+    }
+    if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        throw new UserError('Enter a valid email address.');
+    }
+    if ($salaryText !== '' && $salary === null) {
+        throw new UserError('Enter a valid salary.');
+    }
+    if (!in_array($role, ROLES, true)) {
+        throw new UserError('Choose a role.');
+    }
+    return [
+        'full_name' => $name, 'phone' => $phone, 'email' => $email, 'address' => optional_text('address', 255),
+        'designation' => optional_text('designation', 100), 'salary' => $salary, 'joining_date' => $joiningDate, 'role' => $role,
+        'is_active' => ($_POST['status'] ?? 'Active') === 'Inactive' ? 0 : 1,
+    ];
+}
+
+function employee_passcode(bool $required): ?string
+{
+    $passcode = (string) ($_POST['password'] ?? '');
+    if ($passcode === '' && !$required) {
+        return null;
+    }
+    if (strlen($passcode) < MIN_PASSWORD_LENGTH) {
+        throw new UserError('Passcode must have at least ' . MIN_PASSWORD_LENGTH . ' characters.');
+    }
+    return password_hash($passcode, PASSWORD_DEFAULT);
+}
+
+/** Stores uploaded employee documents and returns [column => file key]. */
+function save_employee_files(): array
+{
+    $saved = [];
+    try {
+        foreach (EMPLOYEE_FILES as $field => $column) {
+            $file = $_FILES[$field] ?? null;
+            if (!is_array($file) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            if ($file['error'] !== UPLOAD_ERR_OK || $file['size'] > MAX_IMAGE_BYTES) {
+                throw new UserError(EMPLOYEE_FILE_LABELS[$field] . ' must be a photo under 10 MB.');
+            }
+            $data = (string) file_get_contents($file['tmp_name']);
+            $mime = detect_image($data);
+            if (!$mime) {
+                throw new UserError(EMPLOYEE_FILE_LABELS[$field] . ' must be a JPG, PNG or WebP photo.');
+            }
+            $saved[$column] = save_upload($data, $mime);
+        }
+    } catch (Throwable $error) {
+        remove_employee_files($saved);
+        throw $error;
+    }
+    return $saved;
+}
+
+function remove_employee_files(array $keys): void
+{
+    foreach ($keys as $key) {
+        if ($key) {
+            @unlink(storage_dir() . '/uploads/' . $key);
+        }
+    }
+}
+
 function handle_create_user(): never
 {
     $admin = require_user(ADMINS);
     require_csrf();
-    $name = post_text('name', 120);
-    $phone = post_text('phone', 15);
-    $password = (string) ($_POST['password'] ?? '');
-    $role = (string) ($_POST['role'] ?? '');
-    if ($name === '' || $phone === '') {
-        flash('Name and phone are required.', false);
-    } elseif (strlen($password) < MIN_PASSWORD_LENGTH) {
-        flash('Password must have at least ' . MIN_PASSWORD_LENGTH . ' characters.', false);
-    } elseif (!in_array($role, ROLES, true)) {
-        flash('Choose a role.', false);
-    } else {
-        try {
-            run('INSERT INTO users (full_name, phone, password_hash, role) VALUES (?, ?, ?, ?)', [$name, $phone, password_hash($password, PASSWORD_DEFAULT), $role]);
-            audit($admin['id'], 'USER_CREATE', 'user', (int) db()->lastInsertId(), null, compact('name', 'phone', 'role'));
-            flash('User created.');
-        } catch (PDOException $error) {
-            if (!is_duplicate($error)) {
-                throw $error;
-            }
-            flash('This phone number is already used.', false);
+    $files = [];
+    try {
+        $employee = employee_from_post();
+        $employee['password_hash'] = employee_passcode(true);
+        $files = save_employee_files();
+        $data = $employee + $files;
+        $marks = implode(', ', array_fill(0, count($data), '?'));
+        run('INSERT INTO users (' . implode(', ', array_keys($data)) . ") VALUES ($marks)", array_values($data));
+        audit($admin['id'], 'USER_CREATE', 'user', (int) db()->lastInsertId(), null, ['name' => $employee['full_name'], 'role' => $employee['role']]);
+        flash('User created.');
+    } catch (UserError $error) {
+        flash($error->getMessage(), false);
+    } catch (PDOException $error) {
+        remove_employee_files($files);
+        if (!is_duplicate($error)) {
+            throw $error;
         }
+        flash('This phone number is already used.', false);
     }
     redirect('/admin/users');
 }
 
-function handle_update_user(): never
+function handle_update_user(int $id): never
 {
     $admin = require_user(ADMINS);
     require_csrf();
-    $id = (int) ($_POST['id'] ?? 0);
-    $role = (string) ($_POST['role'] ?? '');
-    $active = isset($_POST['active']) ? 1 : 0;
-    $password = (string) ($_POST['password'] ?? '');
-    if (!in_array($role, ROLES, true)) {
-        flash('Choose a role.', false);
-    } elseif ($id === $admin['id'] && ($role !== 'ADMIN' || !$active)) {
-        flash('You cannot remove your own Admin access.', false);
-    } elseif ($password !== '' && strlen($password) < MIN_PASSWORD_LENGTH) {
-        flash('Password must have at least ' . MIN_PASSWORD_LENGTH . ' characters.', false);
-    } else {
-        run('UPDATE users SET role = ?, is_active = ?, password_hash = COALESCE(?, password_hash) WHERE id = ?', [$role, $active, $password === '' ? null : password_hash($password, PASSWORD_DEFAULT), $id]);
-        audit($admin['id'], 'USER_UPDATE', 'user', $id, null, ['role' => $role, 'active' => $active, 'passwordChanged' => $password !== '']);
+    $back = "/admin/users/$id";
+    $current = row('SELECT * FROM users WHERE id = ?', [$id]) ?? not_found();
+    $files = [];
+    try {
+        $employee = employee_from_post();
+        if ($id === $admin['id'] && ($employee['role'] !== 'ADMIN' || !$employee['is_active'])) {
+            throw new UserError('You cannot remove your own Admin access.');
+        }
+        $passcode = employee_passcode(false);
+        if ($passcode !== null) {
+            $employee['password_hash'] = $passcode;
+        }
+        $files = save_employee_files();
+        $data = $employee + $files;
+        $assignments = implode(', ', array_map(fn ($column) => "$column = ?", array_keys($data)));
+        run("UPDATE users SET $assignments WHERE id = ?", array_merge(array_values($data), [$id]));
+        remove_employee_files(array_map(fn ($column) => $current[$column], array_combine(array_keys($files), array_keys($files))));
+        audit($admin['id'], 'USER_UPDATE', 'user', $id, null, ['changed' => array_keys(array_diff_key($data, ['password_hash' => 1])), 'passcodeChanged' => $passcode !== null]);
         flash('Saved.');
+    } catch (UserError $error) {
+        flash($error->getMessage(), false);
+    } catch (PDOException $error) {
+        remove_employee_files($files);
+        if (!is_duplicate($error)) {
+            throw $error;
+        }
+        flash('This phone number is already used.', false);
     }
-    redirect('/admin/users');
+    redirect($back);
+}
+
+function serve_employee_file(int $id, string $field): never
+{
+    api_user(ADMINS);
+    $key = value('SELECT ' . EMPLOYEE_FILES[$field] . ' FROM users WHERE id = ?', [$id]);
+    $path = $key ? storage_dir() . '/uploads/' . $key : '';
+    if (!$key || !is_file($path)) {
+        http_response_code(404);
+        exit('Not found');
+    }
+    header('Content-Type: ' . (detect_image((string) file_get_contents($path, false, null, 0, 16)) ?? 'application/octet-stream'));
+    header('Content-Length: ' . filesize($path));
+    header('Cache-Control: private, no-store');
+    readfile($path);
+    exit;
 }
 
 function handle_create_area(): never
@@ -386,10 +510,17 @@ function handle_request(string $method, string $path): never
             handle_create_user();
         }
         require_user(ADMINS);
-        render('admin_users', ['users' => rows('SELECT id, full_name, phone, role, is_active FROM users ORDER BY full_name')]);
+        render('admin_users', ['users' => rows('SELECT * FROM users ORDER BY full_name')]);
     }
-    if ($post && $path === '/admin/users/update') {
-        handle_update_user();
+    if (preg_match('#^/admin/users/(\d+)$#', $path, $m)) {
+        if ($post) {
+            handle_update_user((int) $m[1]);
+        }
+        require_user(ADMINS);
+        render('admin_user_edit', ['employee' => row('SELECT * FROM users WHERE id = ?', [(int) $m[1]]) ?? not_found()]);
+    }
+    if ($get && preg_match('#^/api/users/(\d+)/(photo|pan|aadhaar_front|aadhaar_back)$#', $path, $m)) {
+        serve_employee_file((int) $m[1], $m[2]);
     }
     if ($path === '/admin/areas') {
         if ($post) {
