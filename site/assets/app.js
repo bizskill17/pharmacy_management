@@ -328,6 +328,16 @@
     });
   }
 
+  /* A button that shows or hides a section. */
+  document.querySelectorAll('[data-toggle-target]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var section = document.getElementById(button.dataset.toggleTarget);
+      section.hidden = !section.hidden;
+      button.setAttribute('aria-expanded', section.hidden ? 'false' : 'true');
+      if (!section.hidden) { var first = section.querySelector('input:not([type=hidden])'); if (first) { first.focus(); } }
+    });
+  });
+
   /* Two-step delete */
   document.querySelectorAll('form[data-two-step]').forEach(function (form) {
     var ask = form.querySelector('[data-step-ask]'), keep = form.querySelector('[data-step-keep]'), go = form.querySelector('[data-step-do]');
