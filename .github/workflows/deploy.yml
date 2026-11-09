@@ -53,6 +53,8 @@ jobs:
           php -l site/app/config.local.php
 
       - name: Upload by FTP
+        id: ftp1
+        continue-on-error: true
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -61,6 +63,48 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           protocol: ftps
           security: loose
+          timeout: 120000
+          local-dir: ./site/
+          # This FTP account opens directly inside the site's public_html folder.
+          server-dir: ./
+
+      - name: Wait before retrying
+        if: steps.ftp1.outcome == 'failure'
+        run: sleep 30
+
+      - name: Retry upload
+        id: ftp2
+        if: steps.ftp1.outcome == 'failure'
+        continue-on-error: true
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          security: loose
+          timeout: 120000
+          local-dir: ./site/
+          # This FTP account opens directly inside the site's public_html folder.
+          server-dir: ./
+
+      - name: Wait before final retry
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
+        run: sleep 60
+
+      - name: Final upload attempt
+        id: ftp3
+        if: steps.ftp1.outcome == 'failure' && steps.ftp2.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftps
+          security: loose
+          timeout: 120000
           local-dir: ./site/
           # This FTP account opens directly inside the site's public_html folder.
           server-dir: ./
