@@ -130,7 +130,7 @@ $barTitle = $register['label'];
         <span>Uploaded By <b><?= e($user['full_name']) ?></b></span>
       </div>
       <?php endif; ?>
-      <button type="button" class="btn primary" id="save-update">Save update</button>
+      <button type="button" class="btn primary" id="save-update" data-after="/r/<?= e($register['slug']) ?>?status=PENDING">Save update</button>
     </div>
   </section>
   <?php endif; ?>

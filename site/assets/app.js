@@ -289,15 +289,16 @@
     if (save) {
       save.addEventListener('click', function () {
         var remarks = document.getElementById('remarks');
-        if (!remarks) { show(true, 'Update saved.'); return; }
+        if (!remarks) { location.href = save.dataset.after; return; }
         save.disabled = true;
         var form = new FormData();
         form.append('remarks', remarks.value);
-        post('/documents/' + id + '/remarks', form).then(function (data) {
-          show(true, data.message);
+        post('/documents/' + id + '/remarks', form).then(function () {
+          location.href = save.dataset.after;
         }).catch(function (error) {
+          save.disabled = false;
           show(false, error.message);
-        }).finally(function () { save.disabled = false; });
+        });
       });
     }
   }
