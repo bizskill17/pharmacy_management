@@ -90,10 +90,6 @@ $editing = isset($_GET['edit']) && !$deleted;
   <?php else: ?>
   <div class="split">
     <section class="card form" aria-label="<?= e($register['label']) ?> update form">
-      <div>
-        <h2><?= e($register['label']) ?> update form</h2>
-        <p class="muted">The next photo opens after the one before it is added. Photos save as soon as they are added.</p>
-      </div>
       <p id="form-message" role="status" hidden></p>
       <?php foreach ($register['form'] as [$section, $kind]):
           if ($section === 'photos'):
@@ -104,7 +100,6 @@ $editing = isset($_GET['edit']) && !$deleted;
       <div class="field photo-group" id="group-<?= e($kind) ?>">
         <div class="row between">
           <h3<?= $group['required'] ? ' class="req"' : '' ?>><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
-          <span class="muted"><?= $group['required'] ? 'Required' : 'Optional' ?> &middot; <?= $count ?> of <?= (int) $group['max'] ?> added</span>
         </div>
         <div class="slots">
           <?php foreach ($items as $index => $photoId): $name = slot_label($group['label'], $index + 1); ?>
@@ -135,29 +130,6 @@ $editing = isset($_GET['edit']) && !$deleted;
       <?php endif; endforeach; ?>
       <div class="row"><button type="button" class="btn primary" id="save-update">Save update</button></div>
     </section>
-    <?php if ($manage): ?>
-    <div class="side">
-      <details class="card">
-        <summary><strong>Correct details</strong></summary>
-        <form method="post" action="/documents/<?= $id ?>/correct" class="stack">
-          <?= csrf_field() ?>
-          <div class="field"><label for="c-date">Date</label><input id="c-date" name="date" class="input" data-date value="<?= e(display_date($document['doc_date'])) ?>" required></div>
-          <div class="field"><label for="c-party"><?= e($register['party']) ?></label><input id="c-party" name="party" class="input" value="<?= e($document['party_name_raw'] ?? $document['party']) ?>" required maxlength="200"></div>
-          <div class="field"><label for="c-amount">Amount</label><input id="c-amount" name="amount" class="input" inputmode="decimal" value="<?= e((float) $document['amount']) ?>" required></div>
-          <?php if ($hasField('items')): ?><div class="field"><label for="c-items">No of Item</label><input id="c-items" name="items" class="input" inputmode="numeric" value="<?= e($document['item_count']) ?>"></div><?php endif; ?>
-          <?php if ($hasField('receipt')): ?><div class="field"><label for="c-receipt">Receipt</label><input id="c-receipt" name="receipt" class="input" maxlength="50" value="<?= e($document['receipt_ref']) ?>"></div><?php endif; ?>
-          <?php if ($hasField('mr')): ?>
-          <div class="field"><label for="c-mr">MR</label><input id="c-mr" name="mr" class="input" maxlength="120" value="<?= e($document['mr_name']) ?>"></div>
-          <div class="field"><label for="c-area">Area</label>
-            <select id="c-area" name="area" class="input"><option value="">None</option><?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === (int) $document['area_id'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?></select>
-          </div>
-          <div class="field"><label for="c-address">Address</label><input id="c-address" name="address" class="input" maxlength="255" value="<?= e($document['address']) ?>"></div>
-          <?php endif; ?>
-          <button class="btn primary">Save correction</button>
-        </form>
-      </details>
-    </div>
-    <?php endif; ?>
   </div>
   <?php endif; ?>
 </main>
