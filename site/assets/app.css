@@ -147,15 +147,6 @@ label.btn { cursor: pointer; }
 .app-main .page { max-width: 1400px; }
 .app-main .flash-wrap { max-width: 1400px; }
 .home { min-height: 100vh; }
-@media (max-width: 760px) {
-  .app-shell { flex-direction: column; }
-  .sidebar { flex: 0 0 auto; position: static; height: auto; }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
-  .sidebar .section-btn { width: auto; }
-  .sidebar-foot { flex-direction: row; justify-content: space-between; align-items: center; }
-  .sidebar-logout { width: auto; }
-  .home { min-height: 0; }
-}
 
 .sidebar-top { display: flex; flex-direction: column; gap: 12px; }
 .side-home { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); color: #fff; font-weight: 600; text-decoration: none; align-self: flex-start; }
@@ -166,10 +157,24 @@ label.btn { cursor: pointer; }
 .sidebar-nav { gap: 4px; }
 .topbar { justify-content: space-between; }
 .home { min-height: calc(100vh - 110px); }
-@media (max-width: 760px) { .home { min-height: calc(100vh - 110px); } .sidebar-top { gap: 8px; } }
 
 table.data { font-size: 13px; line-height: 1.25; }
 table.data th, table.data td { padding: 3px 8px; height: auto; border: 1px solid #c9d3cf; }
 table.data th { font-size: 12px; padding: 5px 8px; }
 table.data .thumb { width: 26px; height: 30px; }
 .btn[hidden], div[hidden] { display: none; }
+
+@media (max-width: 760px) {
+  .sidebar { flex: 0 0 92px; height: 100vh; height: 100dvh; padding: 10px 6px; gap: 10px; }
+  .sidebar-top { gap: 8px; }
+  .side-home { align-self: stretch; justify-content: center; font-size: 13px; padding: 6px 4px; }
+  .side-item { justify-content: center; text-align: center; font-size: 13px; line-height: 1.2; padding: 6px 4px; }
+  .sidebar-foot .signed-in { padding: 4px; border-radius: 8px; font-size: 11px; line-height: 1.25; overflow-wrap: anywhere; }
+  .sidebar-logout { min-height: 40px; padding: 6px 4px; font-size: 13px; }
+  .app-main .page { padding: 12px; gap: 12px; }
+  .app-main .flash-wrap { padding: 0 12px; }
+  .filters { grid-template-columns: 1fr; }
+  .grid-auto { grid-template-columns: minmax(0, 1fr); }
+  .filters .field:first-child { grid-column: auto; }
+  h1 { font-size: 24px; }
+}
