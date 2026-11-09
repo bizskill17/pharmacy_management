@@ -390,3 +390,6 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .master-table .btn { min-height: 30px; padding: 2px 12px; font-size: 13px; }
 .master-table input[type="checkbox"] { width: 17px; height: 17px; vertical-align: middle; }
 .master-table .cell-center { width: 1%; text-align: center; white-space: nowrap; }
+
+table.data, table.data th, table.data td { font-size: 14px; }
+.master-table .input, .master-table .btn { font-size: 14px; }
