@@ -21,20 +21,20 @@ $editing = isset($_GET['edit']) && !$deleted;
 $barTitle = $register['label'];
 ?>
 <main class="page" id="document" data-id="<?= $id ?>">
-  <div class="row between">
-    <div id="doc-head">
+  <div class="doc-bar">
+    <div id="doc-head" class="doc-head">
       <?php if ($editing): ?>
       <a class="icon-back" href="<?= e($viewUrl) ?>" aria-label="Back to details" title="Back to details"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
       <?php else: ?>
       <a class="icon-back" href="/r/<?= e($register['slug']) ?>" aria-label="Back to <?= e($register['label']) ?>" title="Back to <?= e($register['label']) ?>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
       <?php endif; ?>
-      <div class="row" style="margin-top:8px;gap:12px">
+      <div class="doc-name">
         <h1><?= e($document['doc_no']) ?></h1>
         <span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span>
       </div>
     </div>
     <?php if (!$editing): ?>
-    <div class="row">
+    <div class="doc-actions">
       <?php if ($deleted && $manage): ?>
       <form method="post" action="/documents/<?= $id ?>/restore"><?= csrf_field() ?><button class="btn primary">Restore document</button></form>
       <?php elseif (!$deleted): ?>

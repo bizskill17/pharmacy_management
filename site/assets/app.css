@@ -231,3 +231,28 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .icon-button.primary { background: var(--green); color: #fff; }
 .icon-button.danger { border-color: #a32a17; color: #a32a17; }
 .icon-button[hidden] { display: none; }
+
+.doc-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.doc-bar:has(.btn:not([hidden])) { flex-wrap: wrap; }
+.doc-head { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+.doc-head .icon-back { flex: 0 0 auto; }
+.doc-name { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+.doc-name h1 { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.doc-name .pill { flex: 0 0 auto; }
+.doc-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.doc-actions form { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 760px) {
+  .doc-bar { gap: 4px; margin-inline: -6px; }
+  .doc-head, .doc-name { gap: 4px; }
+  .doc-actions, .doc-actions form { gap: 3px; }
+  .doc-name h1 { font-size: 16px; }
+  .doc-name .pill { padding: 1px 4px; font-size: 10px; }
+  .doc-bar .icon-back, .doc-actions .icon-button { width: 30px; height: 30px; }
+  .doc-bar .icon-back svg, .doc-actions .icon-button svg { width: 16px; height: 16px; }
+}
+@media (max-width: 380px) {
+  .doc-bar .icon-back, .doc-actions .icon-button { width: 28px; height: 28px; }
+}
+@media (max-width: 350px) {
+  .doc-name .pill { display: none; }
+}
