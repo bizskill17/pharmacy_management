@@ -448,3 +448,8 @@ table.data, table.data th, table.data td { font-size: 14px; }
 @media (max-width: 760px) {
   .pin-fields .field:has(#sc-number), .pin-fields .field:has(#sc-date) { grid-column: 1 / -1; }
 }
+
+@media (max-width: 760px) {
+  .doc-bar-wide .doc-name { flex-wrap: wrap; row-gap: 2px; }
+  .doc-bar-wide .doc-name h1 { flex: 0 0 auto; min-width: auto; }
+}
