@@ -1,10 +1,11 @@
 <main class="page">
   <?php require __DIR__ . '/admin_nav.php'; ?>
-  <form method="get" class="row">
+  <form method="get" class="row" data-live-filter>
     <div class="field grow"><label for="party-search">Search party</label><input id="party-search" name="q" class="input" type="search" value="<?= e($query) ?>"></div>
-    <button class="btn primary end">Search</button>
   </form>
   <p class="muted">Parties are added automatically by bulk upload.</p>
+  <div id="live-results" class="stack">
+  <?php if (!$parties): ?><p class="muted">No parties found.</p><?php endif; ?>
   <?php foreach ($parties as $party): $partyId = (int) $party['id']; ?>
   <form method="post" action="/admin/parties/update" class="card">
     <?= csrf_field() ?>
@@ -20,4 +21,5 @@
   </form>
   <?php endforeach; ?>
   <?= pager($page, $total, fn ($number) => '/admin/parties?' . http_build_query(array_filter(['q' => $query, 'page' => $number]))) ?>
+  </div>
 </main>

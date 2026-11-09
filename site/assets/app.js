@@ -49,7 +49,10 @@
     picker.tabIndex = -1;
     picker.setAttribute('aria-hidden', 'true');
     picker.addEventListener('change', function () {
-      if (picker.value) { input.value = picker.value.split('-').reverse().join('/'); }
+      if (picker.value) {
+        input.value = picker.value.split('-').reverse().join('/');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
     });
     var button = document.createElement('button');
     button.type = 'button';
@@ -109,6 +112,46 @@
     });
     drawToggle();
   }
+
+  /* Filters apply on their own, without reloading the page. */
+  document.querySelectorAll('form[data-live-filter]').forEach(function (form) {
+    var results = document.getElementById('live-results');
+    var timer = null;
+    var latest = 0;
+    var apply = function () {
+      var params = new URLSearchParams();
+      new FormData(form).forEach(function (value, key) {
+        if (String(value).trim() !== '') { params.append(key, value); }
+      });
+      var url = location.pathname + (params.toString() ? '?' + params.toString() : '');
+      var request = ++latest;
+      fetch(url, { headers: { 'X-Requested-With': 'fetch' } }).then(function (response) { return response.text(); }).then(function (html) {
+        if (request !== latest) { return; }
+        var next = new DOMParser().parseFromString(html, 'text/html');
+        results.innerHTML = next.getElementById('live-results').innerHTML;
+        history.replaceState(null, '', url);
+      }).catch(function () { location.href = url; });
+    };
+    var schedule = function (delay) {
+      clearTimeout(timer);
+      timer = setTimeout(apply, delay);
+    };
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      schedule(0);
+    });
+    form.addEventListener('change', function (event) {
+      if (event.target.tagName === 'SELECT') { schedule(0); }
+    });
+    form.addEventListener('input', function (event) {
+      var target = event.target;
+      if (target.matches('input[data-date]')) {
+        if (target.value === '' || /^\d{2}\/\d{2}\/\d{4}$/.test(target.value)) { schedule(0); }
+      } else if (target.type === 'search') {
+        schedule(350);
+      }
+    });
+  });
 
   /* Employee documents */
   document.querySelectorAll('input[data-compress]').forEach(function (input) {

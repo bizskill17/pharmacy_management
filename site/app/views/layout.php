@@ -11,7 +11,7 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <script>try { if (localStorage.getItem('menuHidden') === '1') { document.documentElement.classList.add('menu-hidden'); } } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=17">
+<link rel="stylesheet" href="/assets/app.css?v=18">
 </head>
 <body>
 <?php
@@ -47,6 +47,6 @@ $account = function () use ($user) { ?>
   </div>
 </div>
 <?php endif; ?>
-<script src="/assets/app.js?v=11"></script>
+<script src="/assets/app.js?v=12"></script>
 </body>
 </html>

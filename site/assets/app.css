@@ -42,7 +42,7 @@ h3 { margin: 0; font-size: 16px; }
 .input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #89958f; border-radius: 8px; background: #fff; color: var(--ink); }
 textarea.input { min-height: 88px; }
 .input[readonly] { background: #eef2f0; border-color: #c4cdc9; }
-.filters { display: grid; grid-template-columns: 2fr repeat(3, minmax(130px, 1fr)) auto; gap: 10px; align-items: end; }
+.filters { display: grid; grid-template-columns: 2fr repeat(3, minmax(130px, 1fr)); gap: 10px; align-items: end; }
 @media (max-width: 760px) { .filters { grid-template-columns: 1fr 1fr; } .filters .field:first-child { grid-column: 1 / -1; } }
 
 .table-box { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; }

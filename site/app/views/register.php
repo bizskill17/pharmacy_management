@@ -30,7 +30,7 @@ $textValue = function (array $d, string $field) {
     </div>
   </div>
 
-  <form class="filters" method="get">
+  <form class="filters" method="get" data-live-filter>
     <?php if ($status !== 'ALL'): ?><input type="hidden" name="status" value="<?= e($status) ?>"><?php endif; ?>
     <div class="field"><label for="q">Search number or party</label><input id="q" name="q" class="input" type="search" value="<?= e($filter['q']) ?>"></div>
     <div class="field"><label for="from">From date</label><input id="from" name="from" class="input" data-date value="<?= e($dateText($filter['from'])) ?>"></div>
@@ -42,9 +42,9 @@ $textValue = function (array $d, string $field) {
         <?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === $filter['area'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?>
       </select>
     </div>
-    <button class="btn primary">Apply</button>
   </form>
 
+  <div id="live-results">
   <?php if (!$documents): ?>
   <p class="muted">No documents found.</p>
   <?php else: ?>
@@ -78,4 +78,5 @@ $textValue = function (array $d, string $field) {
   <?php endif; ?>
 
   <?= pager($filter['page'], $total, fn ($number) => $link(['page' => $number])) ?>
+  </div>
 </main>
