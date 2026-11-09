@@ -85,17 +85,18 @@ table.data .right { text-align: right; font-variant-numeric: tabular-nums; }
   radial-gradient(circle at 50% 106%, #ff8a3d 0 170px, transparent 171px),
   #6c4be0; }
 .home { min-height: calc(100vh - 110px); padding: 24px; display: flex; align-items: center; justify-content: center; }
-.home-rows { width: 100%; max-width: 820px; display: flex; flex-direction: column; gap: 20px; }
-.home-row { min-height: 150px; padding: 24px 34px; border-radius: 26px; color: #fff; display: flex; align-items: center; gap: 28px; text-decoration: none; box-shadow: 0 8px 22px rgba(18, 59, 54, 0.18); }
+.home-rows { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 12px; }
+.home-row { min-height: 76px; padding: 10px 18px; border-radius: 16px; color: #fff; display: flex; align-items: center; gap: 14px; text-decoration: none; box-shadow: 0 8px 22px rgba(18, 59, 54, 0.18); }
 .home-row.sale { background: #d81b60; }
 .home-row.cf-sales { background: #1565c0; }
 .home-row.purchase { background: #00796b; }
-.home-icon { flex: 0 0 auto; width: 96px; height: 96px; border-radius: 26px; background: #fff; display: flex; align-items: center; justify-content: center; }
+.home-icon { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 14px; background: #fff; display: flex; align-items: center; justify-content: center; }
 .home-row.sale .home-icon { color: #d81b60; }
 .home-row.cf-sales .home-icon { color: #1565c0; }
 .home-row.purchase .home-icon { color: #00796b; }
-.home-label { flex: 1 1 auto; font-size: 38px; font-weight: 700; }
-@media (max-width: 520px) { .home-row { min-height: 112px; padding: 16px 20px; gap: 16px; } .home-icon { width: 68px; height: 68px; } .home-label { font-size: 26px; } }
+.home-label { flex: 1 1 auto; font-size: 22px; font-weight: 700; }
+.home-icon svg { width: 30px; height: 30px; }
+.home-row > svg { width: 24px; height: 24px; }
 
 .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .login form { width: 100%; max-width: 380px; }
