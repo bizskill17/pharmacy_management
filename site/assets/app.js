@@ -121,7 +121,8 @@
     var apply = function () {
       var params = new URLSearchParams();
       new FormData(form).forEach(function (value, key) {
-        if (String(value).trim() !== '') { params.append(key, value); }
+        var field = form.elements[key];
+        if (String(value).trim() !== '' && !(field && field.dataset && field.dataset.default === value)) { params.append(key, value); }
       });
       var url = location.pathname + (params.toString() ? '?' + params.toString() : '');
       var request = ++latest;
@@ -179,6 +180,7 @@
     });
     filterForm.querySelector('[data-filter-clear]').addEventListener('click', function () {
       fields.forEach(function (field) { field.value = ''; });
+      filterForm.elements.group.value = filterForm.elements.group.dataset.default;
       drawCount();
       filterForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });

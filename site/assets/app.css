@@ -201,3 +201,6 @@ html.menu-hidden .sidebar { display: none; }
 .filter-panel[hidden] { display: none; }
 .row.center { align-items: center; }
 @media (max-width: 760px) { .bar-title { font-size: 21px; } }
+
+table.data .group-row td { background: #f0f5f3; font-weight: 500; }
+table.data .group-row span { position: sticky; left: 8px; display: inline-block; }

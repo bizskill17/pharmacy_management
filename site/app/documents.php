@@ -50,8 +50,17 @@ function list_documents(array $filter): array
     $total = (int) value("SELECT COUNT(*) FROM documents d LEFT JOIN parties p ON p.id = d.party_id WHERE $clause", $params);
     $page = clamp_page($filter['page'], $total);
     $offset = page_offset($page);
-    $rows = rows(document_select() . " WHERE $clause ORDER BY d.doc_date DESC, d.doc_seq DESC, d.id DESC LIMIT " . PAGE_SIZE . " OFFSET $offset", $params);
-    return [$rows, $total, $page];
+    $groupBy = [
+        'date' => ['key' => 'd.doc_date', 'order' => 'd.doc_date DESC, '],
+        'area' => ['key' => "COALESCE(a.name, '')", 'order' => "COALESCE(a.name, '') = '', a.name, d.doc_date DESC, "],
+        'mr' => ['key' => "COALESCE(d.mr_name, '')", 'order' => "COALESCE(d.mr_name, '') = '', d.mr_name, d.doc_date DESC, "],
+    ][$filter['group']];
+    $rows = rows(document_select() . " WHERE $clause ORDER BY {$groupBy['order']}d.doc_seq DESC, d.id DESC LIMIT " . PAGE_SIZE . " OFFSET $offset", $params);
+    $totals = [];
+    foreach (rows("SELECT {$groupBy['key']} AS group_key, COUNT(*) AS documents, SUM(d.amount) AS amount FROM documents d LEFT JOIN parties p ON p.id = d.party_id LEFT JOIN areas a ON a.id = d.area_id WHERE $clause GROUP BY group_key", $params) as $group) {
+        $totals[(string) $group['group_key']] = $group;
+    }
+    return [$rows, $total, $page, $totals];
 }
 
 function register_counts(string $type): array

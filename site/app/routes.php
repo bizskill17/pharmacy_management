@@ -60,13 +60,14 @@ function show_register(array $register): never
     $filter = [
         'type' => $register['type'], 'status' => $status, 'q' => trim((string) ($_GET['q'] ?? '')), 'from' => $dateOnly('from'), 'to' => $dateOnly('to'),
         'area' => (int) ($_GET['area'] ?? 0), 'page' => max(1, (int) ($_GET['page'] ?? 1)), 'user_id' => $user['id'],
+        'group' => in_array($_GET['group'] ?? '', ['date', 'area', 'mr'], true) ? $_GET['group'] : 'date',
     ];
-    [$documents, $total, $filter['page']] = list_documents($filter);
+    [$documents, $total, $filter['page'], $groupTotals] = list_documents($filter);
     $photos = [];
     foreach (attachments_for(array_map(fn ($d) => (int) $d['id'], $documents)) as $item) {
         $photos["{$item['document_id']}:{$item['kind']}:{$item['sort_order']}"] = (int) $item['id'];
     }
-    render('register', compact('register', 'manage', 'statuses', 'status', 'filter', 'documents', 'total', 'photos') + [
+    render('register', compact('register', 'manage', 'statuses', 'status', 'filter', 'documents', 'total', 'photos', 'groupTotals') + [
         'counts' => register_counts($register['type']),
         'areas' => rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name'),
     ]);

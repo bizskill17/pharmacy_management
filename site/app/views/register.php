@@ -2,7 +2,7 @@
 $barTitle = $register['label'];
 $dateText = fn (string $iso) => $iso === '' ? '' : display_date($iso);
 $link = function (array $change) use ($register, $filter, $status, $dateText) {
-    $values = array_merge(['q' => $filter['q'], 'from' => $dateText($filter['from']), 'to' => $dateText($filter['to']), 'area' => $filter['area'] ?: '', 'status' => $status === 'ALL' ? '' : $status], $change);
+    $values = array_merge(['q' => $filter['q'], 'from' => $dateText($filter['from']), 'to' => $dateText($filter['to']), 'area' => $filter['area'] ?: '', 'status' => $status === 'ALL' ? '' : $status, 'group' => $filter['group'] === 'date' ? '' : $filter['group']], $change);
     $query = http_build_query(array_filter($values, fn ($value) => $value !== ''));
     return '/r/' . $register['slug'] . ($query ? '?' . $query : '');
 };
@@ -48,6 +48,12 @@ $textValue = function (array $d, string $field) {
           <?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === $filter['area'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?>
         </select>
       </div>
+      <div class="field">
+        <label for="group">Group By</label>
+        <select id="group" name="group" class="input" data-default="date">
+          <?php foreach (['date' => 'Date', 'area' => 'Area', 'mr' => 'MR'] as $value => $label): ?><option value="<?= e($value) ?>"<?= $filter['group'] === $value ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
+        </select>
+      </div>
       <button type="button" class="btn" data-filter-clear>Clear filters</button>
     </aside>
   </form>
@@ -62,9 +68,18 @@ $textValue = function (array $d, string $field) {
         <?php foreach ($register['columns'] as $column): ?><th<?= !empty($column['right']) ? ' class="right"' : '' ?>><?= e($column['label']) ?></th><?php endforeach; ?>
       </tr></thead>
       <tbody>
-      <?php foreach ($documents as $d):
+      <?php
+      $groupLast = null;
+      foreach ($documents as $d):
           $state = $d['deleted_at'] ? 'DELETED' : $d['status'];
+          $groupKey = (string) ($filter['group'] === 'date' ? $d['doc_date'] : ($filter['group'] === 'area' ? ($d['area'] ?? '') : ($d['mr_name'] ?? '')));
+          if ($groupKey !== $groupLast):
+              $groupLast = $groupKey;
+              $groupLabel = $groupKey === '' ? ($filter['group'] === 'area' ? 'No Area' : 'No MR') : ($filter['group'] === 'date' ? display_date($groupKey) : $groupKey);
+              $groupInfo = $groupTotals[$groupKey] ?? ['documents' => 0, 'amount' => 0];
       ?>
+        <tr class="group-row"><td colspan="<?= count($register['columns']) ?>"><span><strong><?= e($groupLabel) ?></strong> &middot; <?= number_format((int) $groupInfo['documents']) ?> <?= (int) $groupInfo['documents'] === 1 ? 'document' : 'documents' ?> &middot; <?= e(money($groupInfo['amount'])) ?></span></td></tr>
+      <?php endif; ?>
         <tr>
         <?php foreach ($register['columns'] as $column):
             if ($column['type'] === 'text'): ?>
