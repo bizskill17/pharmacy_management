@@ -2,6 +2,7 @@
 $barTitle = 'Purchase In';
 $id = (int) $entry['id'];
 $done = $entry['status'] === 'DONE';
+$updating = isset($_GET['update']) && !$done;
 $fields = [
     ['Date', display_date($entry['entry_date'])], ['Timestamp', time_text($entry['entry_time'])], ['Sl. No.', $entry['sl_no']], ['Party Name', $entry['party_name']],
     ['No. of Packets', $entry['packets']], ['Number Of Bill', $entry['bill_count']], ['Reference No.', $entry['reference_no']], ['Bill Amount', money($entry['bill_amount'])],
@@ -13,17 +14,20 @@ $photos = array_filter(range(1, PURCHASE_IN_PHOTOS), fn ($slot) => !empty($entry
 <main class="page">
   <div class="doc-bar">
     <div class="doc-head">
-      <a class="icon-back" href="<?= $back ?>" aria-label="Back" title="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+      <a class="icon-back" href="<?= $updating ? "/purchase-in/$id" : $back ?>" aria-label="Back" title="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
       <div class="doc-name"><h1><?= (int) $entry['sl_no'] ?></h1><span class="pill <?= $done ? 'UPLOADED' : 'PENDING' ?>"><?= $done ? 'Done' : 'Pending' ?></span></div>
     </div>
+    <?php if (!$done && !$updating): ?>
+    <div class="doc-actions"><a class="icon-button primary" href="/purchase-in/<?= $id ?>?update=1" aria-label="Update" title="Update"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></a></div>
+    <?php endif; ?>
   </div>
-  <?php if (!$done): ?>
+  <?php if ($updating): ?>
   <form method="post" action="/purchase-in/<?= $id ?>/challan" class="pin-challan">
     <?= csrf_field() ?>
     <div class="field grow"><label for="challan-no">Challan No.</label><input id="challan-no" name="challan_no" class="input" required maxlength="50"></div>
     <button class="btn primary">Save challan</button>
   </form>
-  <?php endif; ?>
+  <?php else: ?>
   <div class="split">
     <div class="side">
       <section class="card flush" id="doc-details">
@@ -44,4 +48,5 @@ $photos = array_filter(range(1, PURCHASE_IN_PHOTOS), fn ($slot) => !empty($entry
       </div>
     </section>
   </div>
+  <?php endif; ?>
 </main>

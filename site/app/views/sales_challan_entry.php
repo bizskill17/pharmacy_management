@@ -4,6 +4,8 @@ $id = (int) $challan['id'];
 $status = $challan['status'];
 $label = ['PACKING' => 'Pending Packing', 'MATCHING' => 'Matching', 'DONE' => 'Done'][$status];
 $back = ['PACKING' => '/sales-challan/packing', 'MATCHING' => '/sales-challan/matching', 'DONE' => '/sales-challan/master'][$status];
+$updating = isset($_GET['update']) && $status !== 'DONE';
+$view = "/sales-challan/$id";
 $fields = [
     ['Challan No.', $challan['challan_no']], ['Challan Date', display_date($challan['challan_date'])], ['Party Name', $challan['party_name']], ['Amount', money($challan['amount'])],
     ['No. of Items', $challan['item_count']], ['Challan Made By', $challan['made_name']], ['Pick Challan Timestamp', time_text($challan['pick_time'])], ['Picked By', $challan['picked_name']],
@@ -23,28 +25,31 @@ $people = function (string $name) use ($users, $me) {
 <main class="page">
   <div class="doc-bar doc-bar-wide">
     <div class="doc-head">
-      <a class="icon-back" href="<?= $back ?>" aria-label="Back" title="Back"><?= $svg('<path d="M19 12H5M11 6l-6 6 6 6"/>') ?></a>
+      <a class="icon-back" href="<?= $updating ? $view : $back ?>" aria-label="Back" title="Back"><?= $svg('<path d="M19 12H5M11 6l-6 6 6 6"/>') ?></a>
       <div class="doc-name"><h1><?= e($challan['challan_no']) ?></h1><span class="pill <?= $status === 'DONE' ? 'UPLOADED' : 'PENDING' ?>"><?= e($label) ?></span></div>
     </div>
-    <?php if ($manager): ?>
+    <?php if (!$updating && ($manager || $status !== 'DONE')): ?>
     <div class="doc-actions">
-      <a class="icon-button primary" href="/sales-challan/<?= $id ?>/edit" aria-label="Edit" title="Edit"><?= $svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>') ?></a>
+      <?php if ($status !== 'DONE'): ?><a class="icon-button primary" href="<?= $view ?>?update=1" aria-label="Update" title="Update"><?= $svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>') ?></a><?php endif; ?>
+      <?php if ($manager): ?>
+      <a class="icon-button" href="/sales-challan/<?= $id ?>/edit" aria-label="Edit entry" title="Edit entry"><?= $svg('<path d="M6 3h8l4 4v5"/><path d="M6 3v18h6"/><path d="M14 21l1-3 5-5 2 2-5 5z"/>') ?></a>
       <form method="post" action="/sales-challan/<?= $id ?>/delete" data-two-step>
         <?= csrf_field() ?>
         <button type="button" class="icon-button danger" data-step-ask aria-label="Delete" title="Delete"><?= $svg('<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>') ?></button>
         <button type="button" class="btn" data-step-keep hidden>Keep</button>
         <button class="btn danger" data-step-do hidden>Confirm delete</button>
       </form>
+      <?php endif; ?>
     </div>
     <?php endif; ?>
   </div>
-  <?php if ($status === 'PACKING'): ?>
+  <?php if ($updating && $status === 'PACKING'): ?>
   <form method="post" action="/sales-challan/<?= $id ?>/pick" class="pin-challan">
     <?= csrf_field() ?>
     <div class="field"><label for="picked_by">Picked By</label><?= $people('picked_by') ?></div>
     <button class="btn primary">Save</button>
   </form>
-  <?php elseif ($status === 'MATCHING'): ?>
+  <?php elseif ($updating && $status === 'MATCHING'): ?>
   <form method="post" action="/sales-challan/<?= $id ?>/match" enctype="multipart/form-data" class="pin-form" data-pin-photos data-need-photo id="sc-match" data-items="<?= (int) $challan['item_count'] ?>">
     <?= csrf_field() ?>
     <div class="pin-fields">
@@ -57,6 +62,7 @@ $people = function (string $name) use ($users, $me) {
     <div class="form-foot"><button class="btn primary">Save</button></div>
   </form>
   <?php endif; ?>
+  <?php if (!$updating): ?>
   <div class="split">
     <div class="side">
       <section class="card flush" id="doc-details">
@@ -77,4 +83,5 @@ $people = function (string $name) use ($users, $me) {
       </div>
     </section>
   </div>
+  <?php endif; ?>
 </main>

@@ -488,7 +488,7 @@ function route_sales_challan(bool $get, bool $post, string $path): void
             save_pick($id, $user);
         } catch (UserError $failure) {
             flash($failure->getMessage(), false);
-            redirect("/sales-challan/$id");
+            redirect("/sales-challan/$id?update=1");
         }
     }
     if ($post && $action === 'match') {
@@ -497,7 +497,7 @@ function route_sales_challan(bool $get, bool $post, string $path): void
             save_match($id, $user);
         } catch (UserError $failure) {
             flash($failure->getMessage(), false);
-            redirect("/sales-challan/$id");
+            redirect("/sales-challan/$id?update=1");
         }
     }
     if ($post && $action === 'delete') {

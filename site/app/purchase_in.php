@@ -202,7 +202,7 @@ function handle_challan(int $id, array $user): void
     $challan = mb_substr(trim((string) ($_POST['challan_no'] ?? '')), 0, 50);
     if ($challan === '') {
         flash('Enter the Challan No.', false);
-        redirect("/purchase-in/$id");
+        redirect("/purchase-in/$id?update=1");
     }
     $done = tx(function () use ($id, $challan, $user) {
         $entry = row('SELECT id, status FROM purchase_in WHERE id = ? FOR UPDATE', [$id]);
