@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Kolkata');
 ini_set('display_errors', '0');
 
 const MIN_PASSWORD_LENGTH = 8;
-const SCHEMA_VERSION = '4';
+const SCHEMA_VERSION = '5';
 
 final class UserError extends RuntimeException {}
 

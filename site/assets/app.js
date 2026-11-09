@@ -211,6 +211,58 @@
     });
   });
 
+  /* Purchase In add form */
+  var pinForm = document.getElementById('pin-form');
+  if (pinForm) {
+    var pinSlots = Array.prototype.slice.call(pinForm.querySelectorAll('[data-pin-slot]'));
+    var pinFilled = function (slot) { return Array.prototype.some.call(slot.querySelectorAll('input[type=file]'), function (input) { return input.files.length > 0; }); };
+    var pinDraw = function () {
+      var lastFilled = -1;
+      pinSlots.forEach(function (slot, index) { if (pinFilled(slot)) { lastFilled = index; } });
+      pinSlots.forEach(function (slot, index) {
+        var filled = pinFilled(slot);
+        slot.hidden = index > lastFilled + 1;
+        slot.querySelector('[data-pin-actions]').hidden = filled;
+        slot.querySelector('.pin-preview').hidden = !filled;
+        slot.querySelector('[data-pin-remove]').hidden = index !== lastFilled;
+      });
+    };
+    var pinLetter = function (position) {
+      var letter = '';
+      while (position > 0) { position -= 1; letter = String.fromCharCode(65 + position % 26) + letter; position = Math.floor(position / 26); }
+      return letter;
+    };
+    var pinBills = document.getElementById('pin-bills');
+    var pinNumbers = function () {
+      var count = Number(pinBills.value), numbers = [];
+      if (Number.isInteger(count) && count >= 1 && count <= Number(pinBills.max)) {
+        for (var position = 1; position <= count; position += 1) { numbers.push(pinForm.dataset.sl + pinLetter(position)); }
+      }
+      document.getElementById('pin-party-no').value = numbers.join(',');
+    };
+    pinBills.addEventListener('input', pinNumbers);
+    pinNumbers();
+    pinForm.addEventListener('click', function (event) {
+      var pick = event.target.closest('[data-pin-pick]');
+      if (pick) { pick.closest('[data-pin-slot]').querySelectorAll('input[type=file]')[Number(pick.dataset.pinPick)].click(); return; }
+      var remove = event.target.closest('[data-pin-remove]');
+      if (remove) {
+        remove.closest('[data-pin-slot]').querySelectorAll('input[type=file]').forEach(function (input) { input.value = ''; });
+        pinDraw();
+      }
+    });
+    pinForm.addEventListener('change', function (event) {
+      var input = event.target;
+      if (input.type !== 'file' || !input.files[0]) { return; }
+      var slot = input.closest('[data-pin-slot]');
+      slot.querySelectorAll('input[type=file]').forEach(function (other) { if (other !== input) { other.value = ''; } });
+      slot.querySelector('.pin-preview').src = URL.createObjectURL(input.files[0]);
+      pinDraw();
+    });
+    pinForm.addEventListener('submit', function () { document.getElementById('pin-save').disabled = true; });
+    pinDraw();
+  }
+
   /* Update form */
   var page = document.getElementById('document');
   if (page) {

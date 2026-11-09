@@ -13,6 +13,7 @@ require __DIR__ . '/app/bulk.php';
 require __DIR__ . '/app/xlsx.php';
 require __DIR__ . '/app/reports.php';
 require __DIR__ . '/app/routes.php';
+require __DIR__ . '/app/purchase_in.php';
 
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');

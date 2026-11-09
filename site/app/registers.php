@@ -128,6 +128,7 @@ function section_icon(string $slug): string
         'cf-sales' => '<path d="M2 6h12v11H2z"/><path d="M14 10h4l4 4v3h-8z"/><circle cx="7" cy="18.5" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/>',
         'purchase' => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"/>',
         'expiry' => '<path d="M6 3h12M6 21h12"/><path d="M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/>',
+        'purchase-in' => '<path d="M12 3v11M7 10l5 5 5-5"/><path d="M3 15v5h18v-5"/>',
         'masters' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
     ][$slug];
 }
@@ -139,6 +140,7 @@ function section_links(array $user): array
     foreach (registers() as $register) {
         $links[] = ['slug' => $register['slug'], 'label' => $register['label'], 'href' => '/r/' . $register['slug'], 'match' => '/r/' . $register['slug']];
     }
+    $links[] = ['slug' => 'purchase-in', 'label' => 'Purchase In', 'href' => '/purchase-in/add', 'match' => '/purchase-in'];
     if ($user['role'] === 'ADMIN') {
         $links[] = ['slug' => 'masters', 'label' => 'Masters', 'href' => '/admin/users', 'match' => '/admin'];
     }
@@ -174,6 +176,9 @@ function menu_icon(string $label): string
         'Users' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
         'Parties' => '<path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M9 8h1M14 8h1M9 12h1M14 12h1"/>',
         'Areas' => '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+        'Add' => '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+        'Pending Challan' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        'Settings' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
         'Log out' => '<path d="M14 4h6v16h-6"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
     ];
     return '<svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$label] . '</svg>';
@@ -181,6 +186,17 @@ function menu_icon(string $label): string
 
 function sidebar_for(string $path, array $user): ?array
 {
+    if ($path === '/purchase-in' || str_starts_with($path, '/purchase-in/')) {
+        $items = [
+            ['label' => 'Add', 'href' => '/purchase-in/add', 'current' => $path === '/purchase-in/add'],
+            ['label' => 'Pending Challan', 'href' => '/purchase-in/pending', 'current' => $path === '/purchase-in/pending'],
+            ['label' => 'Master', 'href' => '/purchase-in/master', 'current' => $path === '/purchase-in/master'],
+        ];
+        if ($user['role'] !== 'UPLOADER') {
+            $items[] = ['label' => 'Settings', 'href' => '/purchase-in/settings', 'current' => $path === '/purchase-in/settings'];
+        }
+        return ['title' => 'Purchase In', 'section' => 'purchase-in', 'items' => $items];
+    }
     if (str_starts_with($path, '/admin')) {
         return ['title' => 'Masters', 'section' => 'masters', 'items' => [
             ['label' => 'Users', 'href' => '/admin/users', 'current' => str_starts_with($path, '/admin/users')],

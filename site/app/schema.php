@@ -146,4 +146,37 @@ return [
       KEY import_errors_batch (import_batch_id),
       CONSTRAINT fk_error_batch FOREIGN KEY (import_batch_id) REFERENCES import_batches(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS app_settings (
+      setting_key VARCHAR(60) PRIMARY KEY,
+      setting_value VARCHAR(100) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "INSERT IGNORE INTO app_settings (setting_key, setting_value) VALUES ('purchase_in_last_sl', '0')",
+
+    "CREATE TABLE IF NOT EXISTS purchase_in (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      entry_date DATE NOT NULL,
+      entry_time DATETIME NOT NULL,
+      sl_no INT NOT NULL UNIQUE,
+      party_id BIGINT NULL,
+      party_name VARCHAR(200) NOT NULL,
+      packets INT NOT NULL,
+      bill_count SMALLINT NOT NULL,
+      reference_no VARCHAR(100) NULL,
+      bill_amount DECIMAL(14,2) NOT NULL,
+      challan_time DATETIME NULL,
+      challan_no VARCHAR(50) NULL,
+      status ENUM('PENDING','DONE') NOT NULL DEFAULT 'PENDING',
+      entry_by BIGINT NOT NULL,
+      photo_1 VARCHAR(500) NULL,
+      photo_2 VARCHAR(500) NULL,
+      photo_3 VARCHAR(500) NULL,
+      photo_4 VARCHAR(500) NULL,
+      photo_5 VARCHAR(500) NULL,
+      party_no VARCHAR(500) NOT NULL,
+      KEY purchase_in_status (status, sl_no),
+      CONSTRAINT fk_pin_party FOREIGN KEY (party_id) REFERENCES parties(id),
+      CONSTRAINT fk_pin_user FOREIGN KEY (entry_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 ];
