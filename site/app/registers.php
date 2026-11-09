@@ -63,7 +63,7 @@ function registers(): array
             'party' => 'Supplier', 'amount' => 'Amount',
             'groups' => [
                 ['kind' => 'CHALLAN_PHOTO', 'label' => 'Challan Photo', 'max' => 40, 'required' => true],
-                ['kind' => 'GOODS_PHOTO', 'label' => 'Goods Photo', 'max' => 40, 'required' => false],
+                ['kind' => 'GOODS_PHOTO', 'label' => 'Goods Photo', 'max' => 40, 'required' => true],
             ],
             'template' => [['Supplier', 'party', true], ['Challan No', 'no', true], ['Challan Date', 'date', true], ['Amount', 'amount', true], ['No of Item', 'items', false], ['MR', 'mr', false], ['Area', 'area', false], ['Address', 'address', false]],
             'columns' => array_merge(
