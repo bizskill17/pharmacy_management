@@ -436,6 +436,8 @@ function handle_request(string $method, string $path): never
         render('home');
     }
     route_purchase_in($get, $post, $path);
+    route_sales_challan($get, $post, $path);
+    route_masters_additions($get, $post, $path);
     if ($get && preg_match('#^/r/([a-z-]+)(?:/(\d+))?$#', $path, $m)) {
         $register = register_by_slug($m[1]) ?? not_found();
         isset($m[2]) ? show_document($register, (int) $m[2]) : show_register($register);

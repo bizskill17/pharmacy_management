@@ -3,7 +3,7 @@
   <form method="get" class="row" data-live-filter>
     <div class="field grow"><label for="party-search">Search party</label><input id="party-search" name="q" class="input" type="search" value="<?= e($query) ?>"></div>
   </form>
-  <p class="muted">Parties are added automatically by bulk upload.</p>
+  <div class="row between"><p class="muted">Parties are added automatically by bulk upload.</p><a class="btn" href="/admin/parties/bulk">Bulk upload</a></div>
   <div id="live-results" class="stack">
   <?php if (!$parties): ?><p class="muted">No parties found.</p><?php else: ?>
   <div class="table-box">

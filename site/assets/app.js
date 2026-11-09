@@ -211,22 +211,61 @@
     });
   });
 
-  /* Purchase In add form */
-  var pinForm = document.getElementById('pin-form');
-  if (pinForm) {
-    var pinSlots = Array.prototype.slice.call(pinForm.querySelectorAll('[data-pin-slot]'));
-    var pinFilled = function (slot) { return Array.prototype.some.call(slot.querySelectorAll('input[type=file]'), function (input) { return input.files.length > 0; }); };
-    var pinDraw = function () {
-      var lastFilled = -1;
-      pinSlots.forEach(function (slot, index) { if (pinFilled(slot)) { lastFilled = index; } });
-      pinSlots.forEach(function (slot, index) {
-        var filled = pinFilled(slot);
-        slot.hidden = index > lastFilled + 1;
-        slot.querySelector('[data-pin-actions]').hidden = filled;
-        slot.querySelector('.pin-preview').hidden = !filled;
-        slot.querySelector('[data-pin-remove]').hidden = index !== lastFilled;
+  /* Photo slots: the next photo opens after the one before it. */
+  document.querySelectorAll('form[data-pin-photos]').forEach(function (form) {
+    var slots = Array.prototype.slice.call(form.querySelectorAll('[data-pin-slot]'));
+    var kept = function (slot) { var keep = slot.querySelector('[data-pin-keep]'); return !!keep && !keep.disabled; };
+    var filled = function (slot) { return kept(slot) || Array.prototype.some.call(slot.querySelectorAll('input[type=file]'), function (input) { return input.files.length > 0; }); };
+    var draw = function () {
+      var last = -1;
+      slots.forEach(function (slot, index) { if (filled(slot)) { last = index; } });
+      slots.forEach(function (slot, index) {
+        var has = filled(slot);
+        slot.hidden = index > last + 1;
+        slot.querySelector('[data-pin-actions]').hidden = has;
+        slot.querySelector('.pin-preview').hidden = !has;
+        slot.querySelector('[data-pin-remove]').hidden = index !== last;
       });
     };
+    form.addEventListener('click', function (event) {
+      var pick = event.target.closest('[data-pin-pick]');
+      if (pick) { pick.closest('[data-pin-slot]').querySelectorAll('input[type=file]')[Number(pick.dataset.pinPick)].click(); return; }
+      var remove = event.target.closest('[data-pin-remove]');
+      if (remove) {
+        var slot = remove.closest('[data-pin-slot]');
+        slot.querySelectorAll('input[type=file]').forEach(function (input) { input.value = ''; });
+        var keep = slot.querySelector('[data-pin-keep]');
+        if (keep) { keep.disabled = true; }
+        draw();
+      }
+    });
+    form.addEventListener('change', function (event) {
+      var input = event.target;
+      if (input.type !== 'file' || !input.files[0] || !input.closest('[data-pin-slot]')) { return; }
+      var slot = input.closest('[data-pin-slot]');
+      slot.querySelectorAll('input[type=file]').forEach(function (other) { if (other !== input) { other.value = ''; } });
+      slot.querySelector('.pin-preview').src = URL.createObjectURL(input.files[0]);
+      var needed = form.querySelector('[data-need-photo-msg]');
+      if (needed) { needed.hidden = true; }
+      draw();
+    });
+    form.addEventListener('submit', function (event) {
+      var message = form.querySelector('[data-need-photo-msg]');
+      if (form.hasAttribute('data-need-photo') && !slots.some(filled)) {
+        event.preventDefault();
+        if (message) { message.hidden = false; }
+        return;
+      }
+      if (message) { message.hidden = true; }
+      var save = form.querySelector('button.btn.primary');
+      if (save) { save.disabled = true; }
+    });
+    draw();
+  });
+
+  /* Purchase In: Party No follows Sl. No. and Number Of Bill. */
+  var pinForm = document.getElementById('pin-form');
+  if (pinForm) {
     var pinLetter = function (position) {
       var letter = '';
       while (position > 0) { position -= 1; letter = String.fromCharCode(65 + position % 26) + letter; position = Math.floor(position / 26); }
@@ -242,26 +281,60 @@
     };
     pinBills.addEventListener('input', pinNumbers);
     pinNumbers();
-    pinForm.addEventListener('click', function (event) {
-      var pick = event.target.closest('[data-pin-pick]');
-      if (pick) { pick.closest('[data-pin-slot]').querySelectorAll('input[type=file]')[Number(pick.dataset.pinPick)].click(); return; }
-      var remove = event.target.closest('[data-pin-remove]');
-      if (remove) {
-        remove.closest('[data-pin-slot]').querySelectorAll('input[type=file]').forEach(function (input) { input.value = ''; });
-        pinDraw();
-      }
-    });
-    pinForm.addEventListener('change', function (event) {
-      var input = event.target;
-      if (input.type !== 'file' || !input.files[0]) { return; }
-      var slot = input.closest('[data-pin-slot]');
-      slot.querySelectorAll('input[type=file]').forEach(function (other) { if (other !== input) { other.value = ''; } });
-      slot.querySelector('.pin-preview').src = URL.createObjectURL(input.files[0]);
-      pinDraw();
-    });
-    pinForm.addEventListener('submit', function () { document.getElementById('pin-save').disabled = true; });
-    pinDraw();
   }
+
+  /* Sales Challan: the Challan No. list follows the year of the Challan Date. */
+  var scForm = document.getElementById('sc-form');
+  if (scForm) {
+    var scNumber = document.getElementById('sc-number');
+    var scDate = document.getElementById('sc-date');
+    var scMessage = document.getElementById('sc-number-msg');
+    var scLatest = 0;
+    var scLoad = function () {
+      if (!/^\d{2}\/\d{2}\/\d{4}$/.test(scDate.value)) { return; }
+      var request = ++scLatest;
+      fetch('/api/sales-challan/numbers?date=' + encodeURIComponent(scDate.value), { headers: { 'X-Requested-With': 'fetch' } }).then(function (response) { return response.json(); }).then(function (data) {
+        if (request !== scLatest) { return; }
+        var missing = data.numbers === null || data.numbers === undefined;
+        scMessage.hidden = !missing;
+        scMessage.textContent = data.error || (missing ? 'Set the first Challan No. for FY ' + data.fy + ' in Masters > Challan No.' : '');
+        var chosen = scNumber.value;
+        var current = scNumber.dataset.current;
+        var list = (data.numbers || []).slice();
+        if (current && current.indexOf('FY' + data.fy) === 0 && list.indexOf(current) < 0) { list.unshift(current); }
+        scNumber.innerHTML = '<option value="">Choose</option>';
+        list.forEach(function (number) {
+          var option = document.createElement('option');
+          option.textContent = number;
+          option.selected = number === chosen;
+          scNumber.appendChild(option);
+        });
+      });
+    };
+    scDate.addEventListener('input', scLoad);
+    scDate.addEventListener('change', scLoad);
+    scForm.addEventListener('submit', function (event) {
+      if (event.defaultPrevented) { return; }
+      document.getElementById('sc-save').disabled = true;
+    });
+  }
+
+  /* Warn when the matched quantity differs from the items on the challan. */
+  var scMatch = document.getElementById('sc-match');
+  if (scMatch) {
+    var scQuantity = document.getElementById('sc-quantity');
+    scQuantity.addEventListener('input', function () {
+      document.getElementById('sc-quantity-warn').hidden = scQuantity.value === '' || Number(scQuantity.value) === Number(scMatch.dataset.items);
+    });
+  }
+
+  /* Two-step delete */
+  document.querySelectorAll('form[data-two-step]').forEach(function (form) {
+    var ask = form.querySelector('[data-step-ask]'), keep = form.querySelector('[data-step-keep]'), go = form.querySelector('[data-step-do]');
+    var show = function (confirming) { ask.hidden = confirming; keep.hidden = !confirming; go.hidden = !confirming; };
+    ask.addEventListener('click', function () { show(true); });
+    keep.addEventListener('click', function () { show(false); });
+  });
 
   /* Update form */
   var page = document.getElementById('document');

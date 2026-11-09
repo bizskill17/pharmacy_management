@@ -270,6 +270,7 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .app-shell.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; --page-tint: #e2f6f1; --photo-head: #7b1fa2; }
 .app-shell.menu-expiry { --menu: #6a1b9a; --menu-bg: #e7d9f5; --page-tint: #f3ebfb; --photo-head: #b45309; }
 .app-shell.menu-purchase-in { --menu: #a16207; --menu-bg: #fbeccb; --page-tint: #fdf6e3; --photo-head: #1d4ed8; }
+.app-shell.menu-sales-challan { --menu: #0e7490; --menu-bg: #cfeef5; --page-tint: #e8f7fb; --photo-head: #be185d; }
 .app-shell.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
 .sidebar { background: var(--menu-bg); padding: 12px 8px; }
 .sidebar-top { gap: 4px; }
@@ -426,4 +427,24 @@ table.data, table.data th, table.data td { font-size: 14px; }
 .pin-settings { max-width: 420px; }
 @media (max-width: 760px) {
   .pin-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 6px; }
+}
+
+/* Sales Challan */
+.home-row.sales-challan { background: #0e7490; }
+.home-row.sales-challan .home-icon { color: #0e7490; }
+.section-btn.sales-challan { background: #0e7490; } .section-btn.sales-challan .section-icon { color: #0e7490; }
+.pin-span { grid-column: 1 / -1; }
+.pin-filters { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; }
+.pin-file { width: auto; flex: 1 1 200px; }
+.doc-actions form[data-two-step] { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 760px) {
+  .pin-filters { grid-template-columns: minmax(0, 1fr); }
+}
+
+.doc-bar-wide { flex-wrap: wrap; }
+.doc-bar-wide .doc-head { flex: 0 1 auto; max-width: 100%; }
+.doc-bar-wide .doc-name, .doc-bar-wide .doc-name h1 { overflow: visible; }
+.doc-bar-wide .doc-actions { margin-left: auto; }
+@media (max-width: 760px) {
+  .pin-fields .field:has(#sc-number), .pin-fields .field:has(#sc-date) { grid-column: 1 / -1; }
 }

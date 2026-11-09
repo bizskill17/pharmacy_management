@@ -7,7 +7,7 @@ $trashIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
 ?>
 <main class="page">
   <?php if ($error): ?><p class="error" role="alert"><?= e($error) ?></p><?php endif; ?>
-  <form method="post" action="/purchase-in/add" enctype="multipart/form-data" id="pin-form" class="pin-form" data-sl="<?= (int) $nextSl ?>">
+  <form method="post" action="/purchase-in/add" enctype="multipart/form-data" id="pin-form" class="pin-form" data-pin-photos data-sl="<?= (int) $nextSl ?>">
     <?= csrf_field() ?>
     <div class="pin-fields">
       <div class="field"><label for="pin-date">Date</label><input id="pin-date" class="input" readonly value="<?= e(date('d/m/Y')) ?>"></div>

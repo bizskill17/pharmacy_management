@@ -128,6 +128,7 @@ function section_icon(string $slug): string
         'cf-sales' => '<path d="M2 6h12v11H2z"/><path d="M14 10h4l4 4v3h-8z"/><circle cx="7" cy="18.5" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/>',
         'purchase' => '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"/>',
         'expiry' => '<path d="M6 3h12M6 21h12"/><path d="M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/>',
+        'sales-challan' => '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
         'purchase-in' => '<path d="M12 3v11M7 10l5 5 5-5"/><path d="M3 15v5h18v-5"/>',
         'masters' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
     ][$slug];
@@ -140,6 +141,7 @@ function section_links(array $user): array
     foreach (registers() as $register) {
         $links[] = ['slug' => $register['slug'], 'label' => $register['label'], 'href' => '/r/' . $register['slug'], 'match' => '/r/' . $register['slug']];
     }
+    $links[] = ['slug' => 'sales-challan', 'label' => 'Sales Challan', 'href' => '/sales-challan/add', 'match' => '/sales-challan'];
     $links[] = ['slug' => 'purchase-in', 'label' => 'Purchase In', 'href' => '/purchase-in/add', 'match' => '/purchase-in'];
     if ($user['role'] === 'ADMIN') {
         $links[] = ['slug' => 'masters', 'label' => 'Masters', 'href' => '/admin/users', 'match' => '/admin'];
@@ -179,6 +181,9 @@ function menu_icon(string $label): string
         'Add' => '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
         'Pending Challan' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         'Settings' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+        'Pending Packing' => '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+        'Matching' => '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>',
+        'Challan No.' => '<path d="M5 9h15M4 15h15M10 4 8 20M16 4l-2 16"/>',
         'Log out' => '<path d="M14 4h6v16h-6"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
     ];
     return '<svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$label] . '</svg>';
@@ -186,6 +191,14 @@ function menu_icon(string $label): string
 
 function sidebar_for(string $path, array $user): ?array
 {
+    if ($path === '/sales-challan' || str_starts_with($path, '/sales-challan/')) {
+        return ['title' => 'Sales Challan', 'section' => 'sales-challan', 'items' => [
+            ['label' => 'Add', 'href' => '/sales-challan/add', 'current' => $path === '/sales-challan/add'],
+            ['label' => 'Pending Packing', 'href' => '/sales-challan/packing', 'current' => $path === '/sales-challan/packing'],
+            ['label' => 'Matching', 'href' => '/sales-challan/matching', 'current' => $path === '/sales-challan/matching'],
+            ['label' => 'Master', 'href' => '/sales-challan/master', 'current' => $path === '/sales-challan/master'],
+        ]];
+    }
     if ($path === '/purchase-in' || str_starts_with($path, '/purchase-in/')) {
         $items = [
             ['label' => 'Add', 'href' => '/purchase-in/add', 'current' => $path === '/purchase-in/add'],
@@ -200,8 +213,9 @@ function sidebar_for(string $path, array $user): ?array
     if (str_starts_with($path, '/admin')) {
         return ['title' => 'Masters', 'section' => 'masters', 'items' => [
             ['label' => 'Users', 'href' => '/admin/users', 'current' => str_starts_with($path, '/admin/users')],
-            ['label' => 'Parties', 'href' => '/admin/parties', 'current' => $path === '/admin/parties'],
+            ['label' => 'Parties', 'href' => '/admin/parties', 'current' => str_starts_with($path, '/admin/parties')],
             ['label' => 'Areas', 'href' => '/admin/areas', 'current' => $path === '/admin/areas'],
+            ['label' => 'Challan No.', 'href' => '/admin/challan-numbers', 'current' => $path === '/admin/challan-numbers'],
         ]];
     }
     $slug = null;

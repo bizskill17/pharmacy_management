@@ -179,4 +179,57 @@ return [
       CONSTRAINT fk_pin_party FOREIGN KEY (party_id) REFERENCES parties(id),
       CONSTRAINT fk_pin_user FOREIGN KEY (entry_by) REFERENCES users(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS challan_series (
+      fy CHAR(5) PRIMARY KEY,
+      prefix VARCHAR(20) NOT NULL,
+      width TINYINT NOT NULL,
+      next_seq INT NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "INSERT IGNORE INTO challan_series (fy, prefix, width, next_seq) VALUES ('26-27', 'FY26-27CA', 6, 50195)",
+
+    "CREATE TABLE IF NOT EXISTS sales_challans (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      challan_no VARCHAR(30) NOT NULL,
+      challan_date DATE NOT NULL,
+      financial_year CHAR(7) NOT NULL,
+      party_id BIGINT NOT NULL,
+      amount DECIMAL(14,2) NOT NULL,
+      item_count INT NOT NULL,
+      made_by BIGINT NOT NULL,
+      pick_time DATETIME NULL,
+      picked_by BIGINT NULL,
+      match_time DATETIME NULL,
+      matched_by BIGINT NULL,
+      match_quantity INT NULL,
+      photo_1 VARCHAR(500) NULL,
+      photo_2 VARCHAR(500) NULL,
+      photo_3 VARCHAR(500) NULL,
+      photo_4 VARCHAR(500) NULL,
+      photo_5 VARCHAR(500) NULL,
+      status ENUM('PACKING','MATCHING','DONE') NOT NULL DEFAULT 'PACKING',
+      created_by BIGINT NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      deleted_at DATETIME NULL,
+      deleted_by BIGINT NULL,
+      active_flag TINYINT GENERATED ALWAYS AS (IF(deleted_at IS NULL, 1, NULL)) STORED,
+      UNIQUE KEY sales_challan_unique_active (challan_no, active_flag),
+      KEY sales_challan_status (status, challan_date),
+      CONSTRAINT fk_sc_party FOREIGN KEY (party_id) REFERENCES parties(id),
+      CONSTRAINT fk_sc_made FOREIGN KEY (made_by) REFERENCES users(id),
+      CONSTRAINT fk_sc_picked FOREIGN KEY (picked_by) REFERENCES users(id),
+      CONSTRAINT fk_sc_matched FOREIGN KEY (matched_by) REFERENCES users(id),
+      CONSTRAINT fk_sc_creator FOREIGN KEY (created_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS challan_numbers (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      fy CHAR(5) NOT NULL,
+      challan_no VARCHAR(30) NOT NULL UNIQUE,
+      seq INT NOT NULL,
+      used_by BIGINT NULL,
+      KEY challan_numbers_pick (fy, used_by, seq),
+      CONSTRAINT fk_cn_challan FOREIGN KEY (used_by) REFERENCES sales_challans(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 ];
