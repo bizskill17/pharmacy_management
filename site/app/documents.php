@@ -51,13 +51,13 @@ function list_documents(array $filter): array
     $page = clamp_page($filter['page'], $total);
     $offset = page_offset($page);
     $groupBy = [
-        'date' => ['key' => 'd.doc_date', 'order' => 'd.doc_date DESC, '],
-        'area' => ['key' => "COALESCE(a.name, '')", 'order' => "COALESCE(a.name, '') = '', a.name, d.doc_date DESC, "],
-        'mr' => ['key' => "COALESCE(d.mr_name, '')", 'order' => "COALESCE(d.mr_name, '') = '', d.mr_name, d.doc_date DESC, "],
+        'date' => ['key' => 'd.doc_date', 'order' => 'd.doc_date DESC, ', 'groups' => 'group_key DESC'],
+        'area' => ['key' => "COALESCE(a.name, '')", 'order' => "COALESCE(a.name, '') = '', a.name, d.doc_date DESC, ", 'groups' => "group_key = '', group_key"],
+        'mr' => ['key' => "COALESCE(d.mr_name, '')", 'order' => "COALESCE(d.mr_name, '') = '', d.mr_name, d.doc_date DESC, ", 'groups' => "group_key = '', group_key"],
     ][$filter['group']];
     $rows = rows(document_select() . " WHERE $clause ORDER BY {$groupBy['order']}d.doc_seq DESC, d.id DESC LIMIT " . PAGE_SIZE . " OFFSET $offset", $params);
     $totals = [];
-    foreach (rows("SELECT {$groupBy['key']} AS group_key, COUNT(*) AS documents, SUM(d.amount) AS amount FROM documents d LEFT JOIN parties p ON p.id = d.party_id LEFT JOIN areas a ON a.id = d.area_id WHERE $clause GROUP BY group_key", $params) as $group) {
+    foreach (rows("SELECT {$groupBy['key']} AS group_key, COUNT(*) AS documents, SUM(d.amount) AS amount FROM documents d LEFT JOIN parties p ON p.id = d.party_id LEFT JOIN areas a ON a.id = d.area_id WHERE $clause GROUP BY group_key ORDER BY {$groupBy['groups']}", $params) as $group) {
         $totals[(string) $group['group_key']] = $group;
     }
     return [$rows, $total, $page, $totals];

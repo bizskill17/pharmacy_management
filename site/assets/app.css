@@ -215,4 +215,15 @@ table.data .group-row span { position: sticky; left: 8px; display: inline-block;
 .input::placeholder { color: #000; opacity: 1; }
 
 tr.row-link { cursor: pointer; }
-tr.row-link:hover td { background: #e6f2ef; }
+
+table.data tr.group-row.g0 td { background: #f8c9da; } table.data tr.g0 td { background: #fdeff4; }
+table.data tr.group-row.g1 td { background: #c5ddf8; } table.data tr.g1 td { background: #eef5fd; }
+table.data tr.group-row.g2 td { background: #c4ead6; } table.data tr.g2 td { background: #edf9f3; }
+table.data tr.group-row.g3 td { background: #fbdcae; } table.data tr.g3 td { background: #fef5e7; }
+table.data tr.group-row.g4 td { background: #dccdf5; } table.data tr.g4 td { background: #f5f0fc; }
+table.data tr.group-row.g5 td { background: #f6cdbf; } table.data tr.g5 td { background: #fdf0eb; }
+table.data tr.group-row.g6 td { background: #b9e6ea; } table.data tr.g6 td { background: #ebf9fa; }
+table.data tr.group-row.g7 td { background: #e9e3a4; } table.data tr.g7 td { background: #fbf9e6; }
+table.data tr.group-row.g8 td { background: #d9d3c8; } table.data tr.g8 td { background: #f6f4f0; }
+table.data tr.group-row.g9 td { background: #f3c8ee; } table.data tr.g9 td { background: #fdf0fb; }
+table.data tr.row-link:hover td { filter: brightness(0.93); }

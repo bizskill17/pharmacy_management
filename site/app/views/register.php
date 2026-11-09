@@ -8,18 +8,18 @@ $link = function (array $change) use ($register, $filter, $status, $dateText) {
 };
 $textValue = function (array $d, string $field) {
     return match ($field) {
-        'party' => $d['party'] ?? '-',
+        'party' => $d['party'] ?? '',
         'date' => display_date($d['doc_date']),
         'amount' => money($d['amount']),
-        'receipt' => $d['receipt_ref'] ?? '-',
-        'mr' => $d['mr_name'] ?? '-',
-        'area' => $d['area'] ?? '-',
-        'address' => $d['address'] ?? '-',
-        'items' => $d['item_count'] ?? '-',
+        'receipt' => $d['receipt_ref'] ?? '',
+        'mr' => $d['mr_name'] ?? '',
+        'area' => $d['area'] ?? '',
+        'address' => $d['address'] ?? '',
+        'items' => $d['item_count'] ?? '',
         'uploadDate' => display_date($d['upload_date']),
-        'uploader' => $d['uploader'] ?? '-',
-        'remarks' => $d['remarks'] ?? '-',
-        default => '-',
+        'uploader' => $d['uploader'] ?? '',
+        'remarks' => $d['remarks'] ?? '',
+        default => '',
     };
 };
 ?>
@@ -70,17 +70,19 @@ $textValue = function (array $d, string $field) {
       <tbody>
       <?php
       $groupLast = null;
+      $groupPosition = array_flip(array_keys($groupTotals));
       foreach ($documents as $d):
           $state = $d['deleted_at'] ? 'DELETED' : $d['status'];
           $groupKey = (string) ($filter['group'] === 'date' ? $d['doc_date'] : ($filter['group'] === 'area' ? ($d['area'] ?? '') : ($d['mr_name'] ?? '')));
           if ($groupKey !== $groupLast):
               $groupLast = $groupKey;
               $groupLabel = $groupKey === '' ? ($filter['group'] === 'area' ? 'No Area' : 'No MR') : ($filter['group'] === 'date' ? display_date($groupKey) : $groupKey);
-              $groupInfo = $groupTotals[$groupKey] ?? ['documents' => 0, 'amount' => 0];
+              $groupInfo = $groupTotals[$groupKey] ?? ['documents' => 0];
+              $groupColor = ($groupPosition[$groupKey] ?? 0) % 10;
       ?>
-        <tr class="group-row"><td colspan="<?= count($register['columns']) ?>"><span><strong><?= e($groupLabel) ?></strong> &middot; <?= number_format((int) $groupInfo['documents']) ?> <?= (int) $groupInfo['documents'] === 1 ? 'document' : 'documents' ?> &middot; <?= e(money($groupInfo['amount'])) ?></span></td></tr>
+        <tr class="group-row g<?= $groupColor ?>"><td colspan="<?= count($register['columns']) ?>"><span><strong><?= e($groupLabel) ?></strong> &middot; <?= number_format((int) $groupInfo['documents']) ?></span></td></tr>
       <?php endif; ?>
-        <tr class="row-link" data-href="/r/<?= e($register['slug']) ?>/<?= (int) $d['id'] ?>">
+        <tr class="row-link g<?= $groupColor ?>" data-href="/r/<?= e($register['slug']) ?>/<?= (int) $d['id'] ?>">
         <?php foreach ($register['columns'] as $column):
             if ($column['type'] === 'text'): ?>
           <td<?= $column['right'] ? ' class="right"' : '' ?>><?= e($textValue($d, $column['field'])) ?></td>
@@ -90,7 +92,7 @@ $textValue = function (array $d, string $field) {
           <td><span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span></td>
           <?php else:
               $photo = $photos["{$d['id']}:{$column['kind']}:{$column['index']}"] ?? null; ?>
-          <td><?php if ($photo): ?><a href="/api/files/<?= $photo ?>" data-photo="<?= e($column['label']) ?>" aria-label="Open <?= e($column['label']) ?>"><img class="thumb" src="/api/files/<?= $photo ?>" alt="<?= e($column['label']) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
+          <td><?php if ($photo): ?><a href="/api/files/<?= $photo ?>" data-photo="<?= e($column['label']) ?>" aria-label="Open <?= e($column['label']) ?>"><img class="thumb" src="/api/files/<?= $photo ?>" alt="<?= e($column['label']) ?> preview" loading="lazy"></a><?php endif; ?></td>
           <?php endif; ?>
         <?php endforeach; ?>
         </tr>

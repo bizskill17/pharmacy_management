@@ -18,15 +18,15 @@
         <tr class="row-link" data-href="/admin/users/<?= $listedId ?>">
           <td><a class="doc-link" href="/admin/users/<?= $listedId ?>"><?= e($listed['full_name']) ?></a></td>
           <td><?= e($listed['phone']) ?></td>
-          <td><?= e($listed['email'] ?? '-') ?></td>
-          <td><?= e($listed['address'] ?? '-') ?></td>
+          <td><?= e($listed['email'] ?? '') ?></td>
+          <td><?= e($listed['address'] ?? '') ?></td>
           <?php foreach (EMPLOYEE_FILES as $field => $column): ?>
-          <td><?php if (!empty($listed[$column])): ?><a href="/api/users/<?= $listedId ?>/<?= e($field) ?>" data-photo="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?>" aria-label="Open <?= e(EMPLOYEE_FILE_LABELS[$field]) ?>"><img class="thumb" src="/api/users/<?= $listedId ?>/<?= e($field) ?>" alt="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?> preview" loading="lazy"></a><?php else: ?>-<?php endif; ?></td>
+          <td><?php if (!empty($listed[$column])): ?><a href="/api/users/<?= $listedId ?>/<?= e($field) ?>" data-photo="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?>" aria-label="Open <?= e(EMPLOYEE_FILE_LABELS[$field]) ?>"><img class="thumb" src="/api/users/<?= $listedId ?>/<?= e($field) ?>" alt="<?= e(EMPLOYEE_FILE_LABELS[$field]) ?> preview" loading="lazy"></a><?php endif; ?></td>
           <?php endforeach; ?>
-          <td><?= e($listed['designation'] ?? '-') ?></td>
+          <td><?= e($listed['designation'] ?? '') ?></td>
           <td><?= e(employee_missing($listed)) ?></td>
           <td>Hidden</td>
-          <td class="right"><?= $listed['salary'] === null ? '-' : e(money($listed['salary'])) ?></td>
+          <td class="right"><?= $listed['salary'] === null ? '' : e(money($listed['salary'])) ?></td>
           <td><?= e(display_date($listed['joining_date'])) ?></td>
           <td><span class="pill <?= $listed['is_active'] ? 'UPLOADED' : 'DELETED' ?>"><?= $listed['is_active'] ? 'Active' : 'Inactive' ?></span></td>
           <td><?= e(ucfirst(strtolower($listed['role']))) ?></td>

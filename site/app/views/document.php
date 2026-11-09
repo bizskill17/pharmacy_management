@@ -7,12 +7,12 @@ $hasField = function (string $key) use ($register) {
     }
     return false;
 };
-$fields = [[$register['party'], $document['party'] ?? '-'], [$register['number'], $document['doc_no']], [$register['date'], display_date($document['doc_date'])], [$register['amount'], money($document['amount'])]];
-if ($hasField('receipt')) { $fields[] = ['Receipt', $document['receipt_ref'] ?? '-']; }
-if ($hasField('items')) { $fields[] = ['No of Item', $document['item_count'] ?? '-']; }
-if ($hasField('mr')) { array_push($fields, ['MR', $document['mr_name'] ?? '-'], ['Area', $document['area'] ?? '-'], ['Address', $document['address'] ?? '-']); }
-array_push($fields, ['Uploaded by', $document['uploader'] ?? '-'], ['Upload date', display_date($document['upload_date'])]);
-if ($register['type'] === 'PURCHASE') { $fields[] = ['Remarks', $document['remarks'] ?? '-']; }
+$fields = [[$register['party'], $document['party'] ?? ''], [$register['number'], $document['doc_no']], [$register['date'], display_date($document['doc_date'])], [$register['amount'], money($document['amount'])]];
+if ($hasField('receipt')) { $fields[] = ['Receipt', $document['receipt_ref'] ?? '']; }
+if ($hasField('items')) { $fields[] = ['No of Item', $document['item_count'] ?? '']; }
+if ($hasField('mr')) { array_push($fields, ['MR', $document['mr_name'] ?? ''], ['Area', $document['area'] ?? ''], ['Address', $document['address'] ?? '']); }
+array_push($fields, ['Uploaded by', $document['uploader'] ?? ''], ['Upload date', display_date($document['upload_date'])]);
+if ($register['type'] === 'PURCHASE') { $fields[] = ['Remarks', $document['remarks'] ?? '']; }
 $missing = [];
 foreach ($register['groups'] as $group) {
     if ($group['required'] && empty($photos[$group['kind']])) {

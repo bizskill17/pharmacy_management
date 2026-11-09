@@ -333,7 +333,7 @@ function not_found(): never
 function display_date(?string $iso): string
 {
     if (!$iso) {
-        return '-';
+        return '';
     }
     [$year, $month, $day] = explode('-', substr($iso, 0, 10));
     return "$day/$month/$year";
