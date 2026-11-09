@@ -60,7 +60,7 @@ function show_register(array $register): never
     $filter = [
         'type' => $register['type'], 'status' => $status, 'q' => trim((string) ($_GET['q'] ?? '')), 'from' => $dateOnly('from'), 'to' => $dateOnly('to'),
         'area' => (int) ($_GET['area'] ?? 0), 'page' => max(1, (int) ($_GET['page'] ?? 1)), 'user_id' => $user['id'],
-        'group' => in_array($_GET['group'] ?? '', ['date', 'area', 'mr'], true) ? $_GET['group'] : 'date',
+        'group' => in_array($_GET['group'] ?? '', group_options($register), true) ? $_GET['group'] : 'date',
     ];
     [$documents, $total, $filter['page'], $groupTotals] = list_documents($filter);
     $photos = [];

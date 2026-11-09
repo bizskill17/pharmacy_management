@@ -51,7 +51,7 @@ $textValue = function (array $d, string $field) {
       <div class="field" role="radiogroup" aria-labelledby="group-label">
         <span id="group-label" class="choice-title">Group By</span>
         <div class="choice-row">
-          <?php foreach (['date' => 'Date', 'area' => 'Area', 'mr' => 'MR'] as $value => $label): ?>
+          <?php foreach (group_labels($register) as $value => $label): ?>
           <label class="choice"><input class="sr-input" type="radio" name="group" value="<?= e($value) ?>" data-default="date"<?= $filter['group'] === $value ? ' checked' : '' ?>><span><?= e($label) ?></span></label>
           <?php endforeach; ?>
         </div>
@@ -75,10 +75,10 @@ $textValue = function (array $d, string $field) {
       $groupPosition = array_flip(array_keys($groupTotals));
       foreach ($documents as $d):
           $state = $d['deleted_at'] ? 'DELETED' : $d['status'];
-          $groupKey = (string) ($filter['group'] === 'date' ? $d['doc_date'] : ($filter['group'] === 'area' ? ($d['area'] ?? '') : ($d['mr_name'] ?? '')));
+          $groupKey = (string) match ($filter['group']) { 'date' => $d['doc_date'], 'area' => $d['area'] ?? '', 'supplier' => $d['party'] ?? '', default => $d['mr_name'] ?? '' };
           if ($groupKey !== $groupLast):
               $groupLast = $groupKey;
-              $groupLabel = $groupKey === '' ? ($filter['group'] === 'area' ? 'No Area' : 'No MR') : ($filter['group'] === 'date' ? display_date($groupKey) : $groupKey);
+              $groupLabel = $groupKey === '' ? ['area' => 'No Area', 'supplier' => 'No Supplier', 'mr' => 'No MR'][$filter['group']] : ($filter['group'] === 'date' ? display_date($groupKey) : $groupKey);
               $groupInfo = $groupTotals[$groupKey] ?? ['documents' => 0];
               $groupColor = ($groupPosition[$groupKey] ?? 0) % 10;
       ?>

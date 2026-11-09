@@ -53,6 +53,7 @@ function list_documents(array $filter): array
     $groupBy = [
         'date' => ['key' => 'd.doc_date', 'order' => 'd.doc_date DESC, ', 'groups' => 'group_key DESC'],
         'area' => ['key' => "COALESCE(a.name, '')", 'order' => "COALESCE(a.name, '') = '', a.name, d.doc_date DESC, ", 'groups' => "group_key = '', group_key"],
+        'supplier' => ['key' => "COALESCE(p.name, d.party_name_raw, '')", 'order' => "COALESCE(p.name, d.party_name_raw, '') = '', COALESCE(p.name, d.party_name_raw), d.doc_date DESC, ", 'groups' => "group_key = '', group_key"],
         'mr' => ['key' => "COALESCE(d.mr_name, '')", 'order' => "COALESCE(d.mr_name, '') = '', d.mr_name, d.doc_date DESC, ", 'groups' => "group_key = '', group_key"],
     ][$filter['group']];
     $rows = rows(document_select() . " WHERE $clause ORDER BY {$groupBy['order']}d.doc_seq DESC, d.id DESC LIMIT " . PAGE_SIZE . " OFFSET $offset", $params);

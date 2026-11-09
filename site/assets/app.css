@@ -377,3 +377,6 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 
 .slot-remove { flex: 0 0 44px; width: 44px; padding: 0; }
 .slot-remove svg { width: 20px; height: 20px; }
+
+.choice-row { grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 6px; }
+.choice span { padding: 8px 2px; font-size: 13px; }

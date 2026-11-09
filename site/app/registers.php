@@ -133,6 +133,21 @@ function section_links(array $user): array
 }
 
 /** Left menu for the section being viewed, or null where no section applies. */
+/** Group By choices for a section's table. */
+function group_labels(array $register): array
+{
+    $labels = ['date' => 'Date', 'area' => 'Area', 'mr' => 'MR'];
+    if ($register['type'] === 'PURCHASE') {
+        $labels['supplier'] = 'Supplier';
+    }
+    return $labels;
+}
+
+function group_options(array $register): array
+{
+    return array_keys(group_labels($register));
+}
+
 /** Line icons for the left menu, drawn in the section's colour. */
 function menu_icon(string $label): string
 {
