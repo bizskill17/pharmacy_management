@@ -75,16 +75,16 @@ $textValue = function (array $d, string $field) {
       $groupPosition = array_flip(array_keys($groupTotals));
       foreach ($documents as $d):
           $state = $d['deleted_at'] ? 'DELETED' : $d['status'];
-          $groupKey = (string) match ($filter['group']) { 'date' => $d['doc_date'], 'area' => $d['area'] ?? '', 'supplier' => $d['party'] ?? '', default => $d['mr_name'] ?? '' };
-          if ($groupKey !== $groupLast):
+          $groupKey = (string) match ($filter['group']) { 'date' => $d['doc_date'], 'area' => $d['area'] ?? '', 'supplier', 'customer' => $d['party'] ?? '', 'none' => '', default => $d['mr_name'] ?? '' };
+          if ($filter['group'] !== 'none' && $groupKey !== $groupLast):
               $groupLast = $groupKey;
-              $groupLabel = $groupKey === '' ? ['area' => 'No Area', 'supplier' => 'No Supplier', 'mr' => 'No MR'][$filter['group']] : ($filter['group'] === 'date' ? display_date($groupKey) : $groupKey);
+              $groupLabel = $groupKey === '' ? ['area' => 'No Area', 'supplier' => 'No Supplier', 'customer' => 'No Customer', 'mr' => 'No MR'][$filter['group']] : ($filter['group'] === 'date' ? display_date($groupKey) : $groupKey);
               $groupInfo = $groupTotals[$groupKey] ?? ['documents' => 0];
               $groupColor = ($groupPosition[$groupKey] ?? 0) % 10;
       ?>
         <tr class="group-row g<?= $groupColor ?>"><td colspan="<?= count($register['columns']) ?>"><span><strong><?= e($groupLabel) ?></strong> &middot; <?= number_format((int) $groupInfo['documents']) ?></span></td></tr>
       <?php endif; ?>
-        <tr class="row-link g<?= $groupColor ?>" data-href="/r/<?= e($register['slug']) ?>/<?= (int) $d['id'] ?>">
+        <tr class="row-link<?= $filter['group'] === 'none' ? '' : ' g' . $groupColor ?>" data-href="/r/<?= e($register['slug']) ?>/<?= (int) $d['id'] ?>">
         <?php foreach ($register['columns'] as $column):
             if ($column['type'] === 'text'): ?>
           <td<?= $column['right'] ? ' class="right"' : '' ?>><?= e($textValue($d, $column['field'])) ?></td>

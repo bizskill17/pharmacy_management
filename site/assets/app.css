@@ -380,3 +380,6 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 
 .choice-row { grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 6px; }
 .choice span { padding: 8px 2px; font-size: 13px; }
+
+.choice-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.choice { flex: 1 1 76px; }

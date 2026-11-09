@@ -136,11 +136,11 @@ function section_links(array $user): array
 /** Group By choices for a section's table. */
 function group_labels(array $register): array
 {
-    $labels = ['date' => 'Date', 'area' => 'Area', 'mr' => 'MR'];
-    if ($register['type'] === 'PURCHASE') {
-        $labels['supplier'] = 'Supplier';
-    }
-    return $labels;
+    return match ($register['type']) {
+        'CF_SALE' => ['date' => 'Date', 'customer' => 'Customer', 'none' => 'No Group'],
+        'PURCHASE' => ['date' => 'Date', 'area' => 'Area', 'mr' => 'MR', 'supplier' => 'Supplier', 'none' => 'No Group'],
+        default => ['date' => 'Date', 'area' => 'Area', 'mr' => 'MR', 'none' => 'No Group'],
+    };
 }
 
 function group_options(array $register): array
