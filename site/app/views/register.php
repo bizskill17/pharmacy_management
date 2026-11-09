@@ -80,7 +80,7 @@ $textValue = function (array $d, string $field) {
       ?>
         <tr class="group-row"><td colspan="<?= count($register['columns']) ?>"><span><strong><?= e($groupLabel) ?></strong> &middot; <?= number_format((int) $groupInfo['documents']) ?> <?= (int) $groupInfo['documents'] === 1 ? 'document' : 'documents' ?> &middot; <?= e(money($groupInfo['amount'])) ?></span></td></tr>
       <?php endif; ?>
-        <tr>
+        <tr class="row-link" data-href="/r/<?= e($register['slug']) ?>/<?= (int) $d['id'] ?>">
         <?php foreach ($register['columns'] as $column):
             if ($column['type'] === 'text'): ?>
           <td<?= $column['right'] ? ' class="right"' : '' ?>><?= e($textValue($d, $column['field'])) ?></td>

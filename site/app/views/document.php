@@ -38,7 +38,7 @@ $barTitle = $register['label'];
         <h1><?= e($document['doc_no']) ?></h1>
         <span class="pill <?= e($state) ?>"><?= e(ucfirst(strtolower($state))) ?></span>
       </div>
-      <p class="muted"><?= $missing ? e('Still needed: ' . implode(', ', $missing)) : 'All required files are attached.' ?></p>
+      <?php if ($missing): ?><p class="muted"><?= e('Still needed: ' . implode(', ', $missing)) ?></p><?php endif; ?>
     </div>
     <?php if (!$editing): ?>
     <div class="row">

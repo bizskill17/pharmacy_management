@@ -15,7 +15,7 @@
       </tr></thead>
       <tbody>
       <?php foreach ($users as $listed): $listedId = (int) $listed['id']; ?>
-        <tr>
+        <tr class="row-link" data-href="/admin/users/<?= $listedId ?>">
           <td><a class="doc-link" href="/admin/users/<?= $listedId ?>"><?= e($listed['full_name']) ?></a></td>
           <td><?= e($listed['phone']) ?></td>
           <td><?= e($listed['email'] ?? '-') ?></td>

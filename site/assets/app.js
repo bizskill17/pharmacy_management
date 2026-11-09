@@ -95,6 +95,15 @@
     openPhoto(link.getAttribute('href'), link.dataset.photo);
   });
 
+  /* Clicking anywhere on a table row opens it; links and photos inside keep their own action. */
+  document.addEventListener('click', function (event) {
+    var row = event.target.closest('tr[data-href]');
+    if (!row || event.target.closest('a, button, input, select, label')) { return; }
+    if (String(window.getSelection())) { return; }
+    if (event.ctrlKey || event.metaKey) { window.open(row.dataset.href, '_blank'); return; }
+    window.location.href = row.dataset.href;
+  });
+
   /* Show or hide the left menu; the choice is remembered on this device. */
   var menuToggle = document.getElementById('menu-toggle');
   if (menuToggle) {

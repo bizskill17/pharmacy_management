@@ -213,3 +213,6 @@ table.data .group-row span { position: sticky; left: 8px; display: inline-block;
 }
 
 .input::placeholder { color: #000; opacity: 1; }
+
+tr.row-link { cursor: pointer; }
+tr.row-link:hover td { background: #e6f2ef; }
