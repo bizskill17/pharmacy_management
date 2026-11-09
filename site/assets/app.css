@@ -383,3 +383,10 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 
 .choice-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .choice { flex: 1 1 76px; }
+
+/* Masters tables */
+.master-table td { background: #fff; }
+.master-table .input { width: 100%; min-width: 200px; min-height: 32px; padding: 3px 8px; font-size: 13px; border-radius: 6px; }
+.master-table .btn { min-height: 30px; padding: 2px 12px; font-size: 13px; }
+.master-table input[type="checkbox"] { width: 17px; height: 17px; vertical-align: middle; }
+.master-table .cell-center { width: 1%; text-align: center; white-space: nowrap; }
