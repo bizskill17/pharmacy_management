@@ -1,5 +1,5 @@
 <main class="home">
-  <div class="home-bg" aria-hidden="true"></div>
+  <div class="home-bg" aria-hidden="true"><span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span><span class="bubble b4"></span><span class="bubble b5"></span></div>
   <div class="home-rows">
     <?php foreach (registers() as $register): ?>
     <a href="/r/<?= e($register['slug']) ?>" class="home-row <?= e($register['slug']) ?>">
