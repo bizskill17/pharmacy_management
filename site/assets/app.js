@@ -340,6 +340,16 @@
     });
   });
 
+  document.querySelectorAll('[data-toggle-cancel]').forEach(function (cancel) {
+    cancel.addEventListener('click', function () {
+      var opener = document.querySelector('[data-toggle-target="' + cancel.dataset.toggleCancel + '"]');
+      cancel.closest('form').reset();
+      opener.click();
+      opener.focus();
+      window.scrollTo(0, 0);
+    });
+  });
+
   /* Two-step delete */
   document.querySelectorAll('form[data-two-step]').forEach(function (form) {
     var ask = form.querySelector('[data-step-ask]'), keep = form.querySelector('[data-step-keep]'), go = form.querySelector('[data-step-do]');

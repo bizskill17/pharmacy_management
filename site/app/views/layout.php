@@ -48,6 +48,6 @@ $account = function () use ($user) { ?>
   </div>
 </div>
 <?php endif; ?>
-<script src="/assets/app.js?v=26"></script>
+<script src="/assets/app.js?v=27"></script>
 </body>
 </html>

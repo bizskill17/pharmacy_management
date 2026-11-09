@@ -6,7 +6,7 @@
     <form method="post" action="/admin/users" enctype="multipart/form-data" class="stack">
       <?= csrf_field() ?>
       <?php $employee = null; require __DIR__ . '/employee_form.php'; ?>
-      <div><button class="btn primary">Add user</button></div>
+      <div class="row"><button class="btn primary">Add user</button><button type="button" class="btn" data-toggle-cancel="add-employee">Cancel</button></div>
     </form>
   </section>
   <div id="users-list">
