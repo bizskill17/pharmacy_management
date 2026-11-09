@@ -11,24 +11,25 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <script>try { if (localStorage.getItem('menuHidden') === '1') { document.documentElement.classList.add('menu-hidden'); } } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=29">
+<link rel="stylesheet" href="/assets/app.css?v=30">
 </head>
 <body>
 <?php
 $sidebar = $user ? sidebar_for($currentPath, $user) : null;
 $account = function () use ($user) { ?>
-      <span class="signed-in">Signed in as <?= e($user['full_name']) ?></span>
-      <form method="post" action="/logout"><?= csrf_field() ?><button class="btn sidebar-logout">Log out</button></form>
+      <span class="signed-in">Signed in as <b><?= e($user['full_name']) ?></b></span>
+      <form method="post" action="/logout"><?= csrf_field() ?><button class="btn sidebar-logout"><?= menu_icon('Log out') ?>Log out</button></form>
 <?php };
 ?>
 <?php if ($sidebar): ?>
 <div class="app-shell">
-  <aside class="sidebar">
+  <aside class="sidebar menu-<?= e($sidebar['section']) ?>">
     <div class="sidebar-top">
-      <a class="side-home" href="/">Home</a>
+      <a class="side-item" href="/"><?= menu_icon('Home') ?>Home</a>
+      <hr class="side-line">
       <nav class="sidebar-nav" aria-label="<?= e($sidebar['title']) ?>">
         <?php foreach ($sidebar['items'] as $item): ?>
-        <a class="side-item" href="<?= e($item['href']) ?>"<?= $item['current'] ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
+        <a class="side-item" href="<?= e($item['href']) ?>"<?= $item['current'] ? ' aria-current="page"' : '' ?>><?= menu_icon($item['label']) ?><?= e($item['label']) ?></a>
         <?php endforeach; ?>
       </nav>
     </div>

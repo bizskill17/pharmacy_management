@@ -133,10 +133,28 @@ function section_links(array $user): array
 }
 
 /** Left menu for the section being viewed, or null where no section applies. */
+/** Line icons for the left menu, drawn in the section's colour. */
+function menu_icon(string $label): string
+{
+    $paths = [
+        'Home' => '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+        'Master' => '<path d="M4 5h16v14H4z"/><path d="M4 10h16M10 10v9"/>',
+        'Pending' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        'Uploaded' => '<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',
+        'Reports' => '<path d="M5 20V10M12 20V4M19 20v-7"/>',
+        'Bulk upload' => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+        'Users' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
+        'Parties' => '<path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M9 8h1M14 8h1M9 12h1M14 12h1"/>',
+        'Areas' => '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+        'Log out' => '<path d="M14 4h6v16h-6"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
+    ];
+    return '<svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$label] . '</svg>';
+}
+
 function sidebar_for(string $path, array $user): ?array
 {
     if (str_starts_with($path, '/admin')) {
-        return ['title' => 'Masters', 'items' => [
+        return ['title' => 'Masters', 'section' => 'masters', 'items' => [
             ['label' => 'Users', 'href' => '/admin/users', 'current' => str_starts_with($path, '/admin/users')],
             ['label' => 'Parties', 'href' => '/admin/parties', 'current' => $path === '/admin/parties'],
             ['label' => 'Areas', 'href' => '/admin/areas', 'current' => $path === '/admin/areas'],
@@ -164,5 +182,5 @@ function sidebar_for(string $path, array $user): ?array
         $items[] = ['label' => 'Reports', 'href' => '/reports?type=' . $register['slug'], 'current' => $path === '/reports'];
         $items[] = ['label' => 'Bulk upload', 'href' => '/bulk?type=' . $register['slug'], 'current' => $path === '/bulk'];
     }
-    return ['title' => $register['label'], 'items' => $items];
+    return ['title' => $register['label'], 'section' => $register['slug'], 'items' => $items];
 }

@@ -263,3 +263,30 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .choice span { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px; border: 1px solid var(--green); border-radius: 8px; background: #fff; color: var(--green); font-weight: 500; }
 .choice input:checked + span { background: var(--green); color: #fff; }
 .choice input:focus-visible + span { outline: 2px solid var(--green); outline-offset: 2px; }
+
+/* Left menu: one light colour per section, black text. */
+.sidebar { --menu: #d81b60; --menu-bg: #fbd9e6; background: var(--menu-bg); padding: 12px 8px; }
+.sidebar.menu-cf-sales { --menu: #1565c0; --menu-bg: #d6e8fb; }
+.sidebar.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; }
+.sidebar.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
+.sidebar-top { gap: 4px; }
+.side-line { height: 1px; margin: 6px 4px; border: 0; background: var(--menu); opacity: 0.35; }
+.side-item { position: relative; gap: 9px; min-height: 46px; padding: 6px 9px 6px 12px; color: #000; font-size: 15px; font-weight: 500; }
+.side-item .menu-icon { flex: 0 0 auto; color: var(--menu); }
+.side-item:hover { background: rgba(255, 255, 255, 0.55); color: #000; }
+.side-item[aria-current="page"] { background: #fff; color: #000; font-weight: 700; }
+.side-item[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 4px; border-radius: 4px; background: var(--menu); }
+.sidebar-foot { padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--menu) 35%, transparent); }
+.sidebar .signed-in { display: block; padding: 0; background: transparent; color: #000; font-size: 12px; line-height: 1.25; text-align: center; }
+.sidebar .signed-in b { display: block; }
+.sidebar .sidebar-logout { gap: 6px; border-color: #a32a17; background: #fff; color: #a32a17; }
+.topbar .sidebar-logout .menu-icon { display: none; }
+@media (max-width: 760px) {
+  .sidebar { flex-basis: 132px; padding: 10px 6px; }
+  .side-item { justify-content: flex-start; gap: 7px; min-height: 46px; padding: 6px 4px 6px 10px; font-size: 14px; text-align: left; }
+  .side-item .menu-icon { width: 18px; height: 18px; }
+  .sidebar .signed-in { padding: 0; font-size: 12px; }
+}
+@media (max-width: 380px) {
+  .doc-name h1 { font-size: 15px; }
+}
