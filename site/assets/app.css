@@ -256,3 +256,10 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 @media (max-width: 350px) {
   .doc-name .pill { display: none; }
 }
+
+.choice-title { font-size: 13px; font-weight: 600; }
+.choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.choice { position: relative; display: block; cursor: pointer; }
+.choice span { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px; border: 1px solid var(--green); border-radius: 8px; background: #fff; color: var(--green); font-weight: 500; }
+.choice input:checked + span { background: var(--green); color: #fff; }
+.choice input:focus-visible + span { outline: 2px solid var(--green); outline-offset: 2px; }

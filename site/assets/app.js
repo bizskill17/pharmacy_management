@@ -130,7 +130,7 @@
     var apply = function () {
       var params = new URLSearchParams();
       new FormData(form).forEach(function (value, key) {
-        var field = form.elements[key];
+        var field = form.querySelector('[name="' + key + '"]');
         if (String(value).trim() !== '' && !(field && field.dataset && field.dataset.default === value)) { params.append(key, value); }
       });
       var url = location.pathname + (params.toString() ? '?' + params.toString() : '');
@@ -151,7 +151,7 @@
       schedule(0);
     });
     form.addEventListener('change', function (event) {
-      if (event.target.tagName === 'SELECT') { schedule(0); }
+      if (event.target.tagName === 'SELECT' || event.target.type === 'radio') { schedule(0); }
     });
     form.addEventListener('input', function (event) {
       var target = event.target;
@@ -189,7 +189,7 @@
     });
     filterForm.querySelector('[data-filter-clear]').addEventListener('click', function () {
       fields.forEach(function (field) { field.value = ''; });
-      filterForm.elements.group.value = filterForm.elements.group.dataset.default;
+      filterForm.elements.group.value = filterForm.querySelector('[name="group"]').dataset.default;
       drawCount();
       filterForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });

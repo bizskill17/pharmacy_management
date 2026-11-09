@@ -48,11 +48,13 @@ $textValue = function (array $d, string $field) {
           <?php foreach ($areas as $area): ?><option value="<?= (int) $area['id'] ?>"<?= (int) $area['id'] === $filter['area'] ? ' selected' : '' ?>><?= e($area['name']) ?></option><?php endforeach; ?>
         </select>
       </div>
-      <div class="field">
-        <label for="group">Group By</label>
-        <select id="group" name="group" class="input" data-default="date">
-          <?php foreach (['date' => 'Date', 'area' => 'Area', 'mr' => 'MR'] as $value => $label): ?><option value="<?= e($value) ?>"<?= $filter['group'] === $value ? ' selected' : '' ?>><?= e($label) ?></option><?php endforeach; ?>
-        </select>
+      <div class="field" role="radiogroup" aria-labelledby="group-label">
+        <span id="group-label" class="choice-title">Group By</span>
+        <div class="choice-row">
+          <?php foreach (['date' => 'Date', 'area' => 'Area', 'mr' => 'MR'] as $value => $label): ?>
+          <label class="choice"><input class="sr-input" type="radio" name="group" value="<?= e($value) ?>" data-default="date"<?= $filter['group'] === $value ? ' checked' : '' ?>><span><?= e($label) ?></span></label>
+          <?php endforeach; ?>
+        </div>
       </div>
       <button type="button" class="btn" data-filter-clear>Clear filters</button>
     </aside>
