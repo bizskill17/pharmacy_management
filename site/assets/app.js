@@ -243,7 +243,7 @@
     page.addEventListener('click', function (event) {
       var pick = event.target.closest('[data-pick]');
       if (pick) {
-        pick.parentElement.querySelectorAll('input[type=file]')[Number(pick.dataset.pick)].click();
+        pick.closest('.slot').querySelectorAll('input[type=file]')[Number(pick.dataset.pick)].click();
         return;
       }
       var remove = event.target.closest('[data-remove]');

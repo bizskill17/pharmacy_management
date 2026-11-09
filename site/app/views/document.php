@@ -81,49 +81,57 @@ $barTitle = $register['label'];
       <?php endforeach; ?>
     </section>
   </div>
-  <?php else: ?>
-  <div class="split">
-    <section class="card form" aria-label="<?= e($register['label']) ?> update form">
-      <p id="form-message" role="status" hidden></p>
-      <?php foreach ($register['form'] as [$section, $kind]):
-          if ($section === 'photos'):
-              $group = group_for($register, $kind);
-              $items = $photos[$kind] ?? [];
-              $count = count($items);
-      ?>
-      <div class="field photo-group" id="group-<?= e($kind) ?>">
-        <div class="row between">
-          <h3<?= $group['required'] ? ' class="req"' : '' ?>><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
+  <?php else:
+      $formIcon = fn (string $paths) => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths . '</svg>';
+      $uploadIcon = $formIcon('<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>');
+      $cameraIcon = $formIcon('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>');
+      $trashIcon = $formIcon('<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>');
+      $hasAuto = in_array('auto', array_column($register['form'], 0), true);
+  ?>
+  <section class="update-form" aria-label="<?= e($register['label']) ?> update form">
+    <p id="form-message" role="status" hidden></p>
+    <?php foreach ($register['form'] as [$section, $kind]):
+        if ($section === 'photos'):
+            $group = group_for($register, $kind);
+            $items = $photos[$kind] ?? [];
+            $count = count($items);
+            $showNames = $group['max'] > 1;
+    ?>
+    <div class="photo-group" id="group-<?= e($kind) ?>">
+      <h3 class="photo-head<?= $group['required'] ? ' req' : '' ?>"><?= e($group['max'] === 1 ? $group['label'] : $group['label'] . 's') ?></h3>
+      <div class="slots">
+        <?php foreach ($items as $index => $photoId): $name = slot_label($group['label'], $index + 1); ?>
+        <div class="slot">
+          <?php if ($showNames): ?><div class="slot-name"><?= e($name) ?></div><?php endif; ?>
+          <a href="/api/files/<?= (int) $photoId ?>" data-photo="<?= e($name) ?>" aria-label="Open <?= e($name) ?>"><img src="/api/files/<?= (int) $photoId ?>" alt="<?= e($name) ?> preview"></a>
+          <?php if ($index === $count - 1): ?><button type="button" class="slot-remove" data-remove="<?= (int) $photoId ?>"><?= $trashIcon ?>Remove</button><?php endif; ?>
         </div>
-        <div class="slots">
-          <?php foreach ($items as $index => $photoId): $name = slot_label($group['label'], $index + 1); ?>
-          <div class="slot">
-            <div class="slot-name"><?= e($name) ?></div>
-            <img src="/api/files/<?= (int) $photoId ?>" alt="<?= e($name) ?> preview">
-            <?php if ($index === $count - 1): ?><button type="button" class="btn" data-remove="<?= (int) $photoId ?>">Remove</button><?php endif; ?>
+        <?php endforeach; ?>
+        <?php if ($count < $group['max']): $name = slot_label($group['label'], $count + 1); ?>
+        <div class="slot">
+          <?php if ($showNames): ?><div class="slot-name"><?= e($name) ?></div><?php endif; ?>
+          <input class="sr-input" type="file" accept="image/jpeg,image/png,image/webp" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Upload <?= e($name) ?>">
+          <input class="sr-input" type="file" accept="image/*" capture="environment" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Click <?= e($name) ?>">
+          <div class="slot-actions">
+            <button type="button" class="slot-pick" data-pick="0"><?= $uploadIcon ?>Upload photo</button>
+            <button type="button" class="slot-pick main" data-pick="1"><?= $cameraIcon ?>Click photo</button>
           </div>
-          <?php endforeach; ?>
-          <?php if ($count < $group['max']): $name = slot_label($group['label'], $count + 1); ?>
-          <div class="slot">
-            <div class="slot-name"><?= e($name) ?></div>
-            <input class="sr-input" type="file" accept="image/jpeg,image/png,image/webp" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Upload <?= e($name) ?>">
-            <input class="sr-input" type="file" accept="image/*" capture="environment" data-kind="<?= e($kind) ?>" tabindex="-1" aria-label="Click <?= e($name) ?>">
-            <button type="button" class="btn" data-pick="0">Upload photo</button>
-            <button type="button" class="btn primary" data-pick="1">Click photo</button>
-          </div>
-          <?php endif; ?>
         </div>
+        <?php endif; ?>
       </div>
-      <?php elseif ($section === 'auto'): ?>
-      <div class="grid-auto">
-        <div class="field"><label for="upload-date">Upload Date</label><input id="upload-date" class="input" readonly value="<?= e(date('d/m/Y')) ?>"></div>
-        <div class="field"><label for="uploaded-by">Uploaded By (Employee)</label><input id="uploaded-by" class="input" readonly value="<?= e($user['full_name']) ?>"></div>
+    </div>
+    <?php elseif ($section === 'auto'): continue; else: ?>
+    <div class="field form-wide"><label for="remarks">Remarks</label><textarea id="remarks" class="input" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
+    <?php endif; endforeach; ?>
+    <div class="form-foot">
+      <?php if ($hasAuto): ?>
+      <div class="auto-info">
+        <span>Upload Date <b><?= e(date('d/m/Y')) ?></b></span>
+        <span>Uploaded By <b><?= e($user['full_name']) ?></b></span>
       </div>
-      <?php else: ?>
-      <div class="field"><label for="remarks">Remarks</label><textarea id="remarks" class="input" maxlength="2000"><?= e($document['remarks']) ?></textarea></div>
-      <?php endif; endforeach; ?>
-      <div class="row"><button type="button" class="btn primary" id="save-update">Save update</button></div>
-    </section>
-  </div>
+      <?php endif; ?>
+      <button type="button" class="btn primary" id="save-update">Save update</button>
+    </div>
+  </section>
   <?php endif; ?>
 </main>

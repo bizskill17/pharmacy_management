@@ -11,7 +11,7 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <script>try { if (localStorage.getItem('menuHidden') === '1') { document.documentElement.classList.add('menu-hidden'); } } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=31">
+<link rel="stylesheet" href="/assets/app.css?v=33">
 </head>
 <body>
 <?php
@@ -22,8 +22,8 @@ $account = function () use ($user) { ?>
 <?php };
 ?>
 <?php if ($sidebar): ?>
-<div class="app-shell">
-  <aside class="sidebar menu-<?= e($sidebar['section']) ?>">
+<div class="app-shell menu-<?= e($sidebar['section']) ?>">
+  <aside class="sidebar">
     <div class="sidebar-top">
       <a class="side-item" href="/"><?= menu_icon('Home') ?>Home</a>
       <hr class="side-line">
@@ -48,6 +48,6 @@ $account = function () use ($user) { ?>
   </div>
 </div>
 <?php endif; ?>
-<script src="/assets/app.js?v=17"></script>
+<script src="/assets/app.js?v=18"></script>
 </body>
 </html>

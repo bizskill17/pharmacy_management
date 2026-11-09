@@ -265,10 +265,11 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .choice input:focus-visible + span { outline: 2px solid var(--green); outline-offset: 2px; }
 
 /* Left menu: one light colour per section, black text. */
-.sidebar { --menu: #d81b60; --menu-bg: #fbd9e6; background: var(--menu-bg); padding: 12px 8px; }
-.sidebar.menu-cf-sales { --menu: #1565c0; --menu-bg: #d6e8fb; }
-.sidebar.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; }
-.sidebar.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
+.app-shell { --menu: #d81b60; --menu-bg: #fbd9e6; }
+.app-shell.menu-cf-sales { --menu: #1565c0; --menu-bg: #d6e8fb; }
+.app-shell.menu-purchase { --menu: #00796b; --menu-bg: #cfefe8; }
+.app-shell.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
+.sidebar { background: var(--menu-bg); padding: 12px 8px; }
 .sidebar-top { gap: 4px; }
 .side-line { height: 1px; margin: 6px 4px; border: 0; background: var(--menu); opacity: 0.35; }
 .side-item { position: relative; gap: 9px; min-height: 46px; padding: 6px 9px 6px 12px; color: #000; font-size: 15px; font-weight: 500; }
@@ -290,4 +291,32 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 }
 @media (max-width: 380px) {
   .doc-name h1 { font-size: 15px; }
+}
+
+/* Update form */
+.update-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.update-form #form-message, .form-wide, .form-foot { grid-column: 1 / -1; }
+.photo-group { overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.photo-head { padding: 10px 14px; background: var(--menu-bg); font-size: 16px; }
+.update-form .slots { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); padding: 12px; }
+.update-form .slot { padding: 0; border: 0; }
+.update-form .slot img { display: block; height: 140px; border: 1px solid var(--line); }
+.slot-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.slot-pick { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 84px; padding: 8px 4px; border: 1px dashed var(--menu); border-radius: 10px; background: #fff; color: #000; font-size: 13px; font-weight: 600; line-height: 1.15; cursor: pointer; }
+.slot-pick svg { color: var(--menu); }
+.slot-pick.main { border-style: solid; border-color: var(--menu); background: var(--menu); color: #fff; }
+.slot-pick.main svg { color: #fff; }
+.slot-pick:disabled, .slot-remove:disabled { opacity: 0.55; cursor: default; }
+.slot-remove { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 1px solid #a32a17; border-radius: 8px; background: #fff; color: #a32a17; font-weight: 600; cursor: pointer; }
+.slot-remove svg { width: 17px; height: 17px; }
+.form-foot { position: sticky; bottom: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.form-foot .btn { margin-left: auto; }
+.auto-info { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 14px; }
+@media (max-width: 760px) {
+  .update-form { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .update-form .slots { padding: 8px; }
+  .photo-head { padding: 8px 10px; font-size: 15px; }
+  .form-foot { position: static; padding: 8px; }
+  .form-foot .btn { width: 100%; }
+  .auto-info { font-size: 13px; }
 }
