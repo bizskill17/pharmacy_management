@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Kolkata');
 ini_set('display_errors', '0');
 
 const MIN_PASSWORD_LENGTH = 8;
-const SCHEMA_VERSION = '7';
+const SCHEMA_VERSION = '8';
 
 final class UserError extends RuntimeException {}
 
@@ -138,6 +138,27 @@ function add_sales_challan_party_text(PDO $pdo): void
     $pdo->exec('ALTER TABLE sales_challans MODIFY party_id BIGINT NULL');
 }
 
+/** Indexes that keep lists fast with lakhs of rows. Safe to run again. */
+function add_performance_indexes(PDO $pdo): void
+{
+    $wanted = [
+        'documents' => ['documents_list' => 'doc_type, deleted_at, doc_date, doc_seq', 'documents_counts' => 'doc_type, deleted_at, status', 'documents_area' => 'doc_type, area_id, doc_date', 'documents_mr' => 'doc_type, mr_name, doc_date', 'documents_party_name' => 'doc_type, party_name_raw'],
+        'purchase_in' => ['purchase_in_date' => 'entry_date, sl_no', 'purchase_in_party' => 'party_id'],
+        'sales_challans' => ['sales_challan_list' => 'deleted_at, challan_date'],
+    ];
+    foreach ($wanted as $table => $indexes) {
+        if (!$pdo->query("SHOW TABLES LIKE '$table'")->fetchColumn()) {
+            continue;
+        }
+        $existing = array_column($pdo->query("SHOW INDEX FROM $table")->fetchAll(), 'Key_name');
+        foreach ($indexes as $name => $columns) {
+            if (!in_array($name, $existing, true)) {
+                $pdo->exec("ALTER TABLE $table ADD KEY $name ($columns)");
+            }
+        }
+    }
+}
+
 function add_expiry_section(PDO $pdo): void
 {
     $pdo->exec("ALTER TABLE import_batches MODIFY doc_type ENUM('SALE','CF_SALE','PURCHASE','EXPIRY') NOT NULL");
@@ -162,6 +183,7 @@ function ensure_schema(PDO $pdo): void
         add_missing_user_columns($pdo);
         add_expiry_section($pdo);
         add_sales_challan_party_text($pdo);
+        add_performance_indexes($pdo);
         move_json_to_columns($pdo);
         merge_spaced_parties($pdo);
         if (!is_dir(storage_dir())) {

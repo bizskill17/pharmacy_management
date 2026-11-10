@@ -47,7 +47,7 @@ function list_documents(array $filter): array
         $params[] = $filter['area'];
     }
     $clause = implode(' AND ', $where);
-    $total = (int) value("SELECT COUNT(*) FROM documents d LEFT JOIN parties p ON p.id = d.party_id WHERE $clause", $params);
+    $total = (int) value('SELECT COUNT(*) FROM documents d' . (str_contains($clause, 'p.') ? ' LEFT JOIN parties p ON p.id = d.party_id' : '') . " WHERE $clause", $params);
     $page = clamp_page($filter['page'], $total);
     $offset = page_offset($page);
     $groupBy = [
@@ -58,9 +58,13 @@ function list_documents(array $filter): array
         'none' => ['key' => "''", 'order' => 'd.doc_date DESC, ', 'groups' => 'group_key'],
         'mr' => ['key' => "COALESCE(d.mr_name, '')", 'order' => "COALESCE(d.mr_name, '') = '', d.mr_name, d.doc_date DESC, ", 'groups' => "group_key = '', group_key"],
     ][$filter['group']];
-    $rows = rows(document_select() . " WHERE $clause ORDER BY {$groupBy['order']}d.doc_seq DESC, d.id DESC LIMIT " . PAGE_SIZE . " OFFSET $offset", $params);
+    /* Find the 20 ids first with a lean query, then load just those rows. */
+    $order = "{$groupBy['order']}d.doc_seq DESC, d.id DESC";
+    $joins = (str_contains($clause . $order, 'p.') ? ' LEFT JOIN parties p ON p.id = d.party_id' : '') . (str_contains($order, 'a.') ? ' LEFT JOIN areas a ON a.id = d.area_id' : '');
+    $ids = array_map('intval', array_column(rows("SELECT d.id FROM documents d$joins WHERE $clause ORDER BY $order LIMIT " . PAGE_SIZE . " OFFSET $offset", $params), 'id'));
+    $rows = $ids ? rows(document_select() . ' WHERE d.id IN (' . implode(',', $ids) . ") ORDER BY $order") : [];
     $totals = [];
-    foreach (rows("SELECT {$groupBy['key']} AS group_key, COUNT(*) AS documents, SUM(d.amount) AS amount FROM documents d LEFT JOIN parties p ON p.id = d.party_id LEFT JOIN areas a ON a.id = d.area_id WHERE $clause GROUP BY group_key ORDER BY {$groupBy['groups']}", $params) as $group) {
+    foreach (rows("SELECT {$groupBy['key']} AS group_key, COUNT(*) AS documents " . 'FROM documents d' . (str_contains($clause . $groupBy['key'], 'p.') ? ' LEFT JOIN parties p ON p.id = d.party_id' : '') . (str_contains($groupBy['key'], 'a.') ? ' LEFT JOIN areas a ON a.id = d.area_id' : '') . " WHERE $clause GROUP BY group_key ORDER BY {$groupBy['groups']}", $params) as $group) {
         $totals[(string) $group['group_key']] = $group;
     }
     return [$rows, $total, $page, $totals];
