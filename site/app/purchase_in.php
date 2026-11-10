@@ -95,7 +95,8 @@ function create_purchase_in(array $user): array
             $slNo = (int) value('SELECT setting_value FROM app_settings WHERE setting_key = ? FOR UPDATE', [PURCHASE_IN_LAST_SL]) + 1;
             $partyNo = party_numbers($slNo, $bills);
             $now = date('Y-m-d H:i:s');
-            $partyId = upsert_party($party, 'PURCHASE');
+            $known = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [$party]);
+            $partyId = $known ? (int) $known['id'] : null;
             run(
                 'INSERT INTO purchase_in (entry_date, entry_time, sl_no, party_id, party_name, packets, bill_count, reference_no, bill_amount, entry_by, photo_1, photo_2, photo_3, photo_4, photo_5, party_no)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -126,11 +127,13 @@ function purchase_in_filter(): array
     ];
 }
 
-function list_purchase_in(bool $pendingOnly, array $filter): array
+function list_purchase_in(bool|string $pendingOnly, array $filter): array
 {
     $where = [];
     $params = [];
-    if ($pendingOnly) {
+    if ($pendingOnly === 'NO_PARTY') {
+        $where[] = 'e.party_id IS NULL';
+    } elseif ($pendingOnly) {
         $where[] = "e.status = 'PENDING'";
     }
     if ($filter['q'] !== '') {
@@ -176,6 +179,23 @@ function serve_purchase_in_photo(int $id, int $slot): never
     header('Cache-Control: private, no-store');
     readfile($path);
     exit;
+}
+
+/** Matches a typed party name to Party Master. */
+function set_purchase_in_party(int $id, array $user): void
+{
+    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
+    if (!$party) {
+        throw new UserError('Select the Party Name from the list.');
+    }
+    tx(function () use ($id, $party, $user) {
+        $before = row('SELECT party_name FROM purchase_in WHERE id = ? AND party_id IS NULL FOR UPDATE', [$id]);
+        if (!$before) {
+            throw new UserError('This entry already has a party from Party Master.');
+        }
+        run('UPDATE purchase_in SET party_id = ?, party_name = ? WHERE id = ?', [$party['id'], mb_substr($party['name'], 0, 200), $id]);
+        audit($user['id'], 'PURCHASE_IN_PARTY', 'purchase_in', $id, ['party_name' => $before['party_name']], ['party' => $party['name']]);
+    });
 }
 
 function handle_purchase_in_settings(array $user): void
@@ -254,6 +274,30 @@ function route_purchase_in(bool $get, bool $post, string $path): void
         $filter = purchase_in_filter();
         [$entries, $total, $page, $groups] = list_purchase_in($pending, $filter);
         render('purchase_in_list', compact('entries', 'total', 'page', 'filter', 'groups', 'path'));
+    }
+    if ($get && $path === '/purchase-in/pending-party') {
+        $filter = purchase_in_filter();
+        [$entries, $total, $page] = list_purchase_in('NO_PARTY', $filter);
+        render('purchase_in_pending_party', compact('entries', 'total', 'page', 'filter'));
+    }
+    if (preg_match('#^/purchase-in/(\d+)/party$#', $path, $m)) {
+        $id = (int) $m[1];
+        $entry = row('SELECT * FROM purchase_in WHERE id = ?', [$id]) ?? not_found();
+        $error = null;
+        if ($post) {
+            require_csrf();
+            try {
+                set_purchase_in_party($id, $user);
+                flash("Party updated for Sl. No. {$entry['sl_no']}.");
+                redirect('/purchase-in/pending-party');
+            } catch (UserError $failure) {
+                $error = $failure->getMessage();
+            }
+        }
+        if ($entry['party_id']) {
+            redirect('/purchase-in/pending-party');
+        }
+        render('purchase_in_party', compact('entry', 'error'));
     }
     if ($path === '/purchase-in/settings') {
         $user = require_user(MANAGERS);

@@ -208,6 +208,7 @@ function sidebar_for(string $path, array $user): ?array
             ['label' => 'Add', 'href' => '/purchase-in/add', 'current' => $path === '/purchase-in/add'],
             ['label' => 'Pending Challan', 'href' => '/purchase-in/pending', 'current' => $path === '/purchase-in/pending'],
             ['label' => 'Master', 'href' => '/purchase-in/master', 'current' => $path === '/purchase-in/master'],
+            ['label' => 'Pending Update Party', 'href' => '/purchase-in/pending-party', 'current' => $path === '/purchase-in/pending-party' || (bool) preg_match('#^/purchase-in/\d+/party$#', $path)],
         ];
         if ($user['role'] !== 'UPLOADER') {
             $items[] = ['label' => 'Settings', 'href' => '/purchase-in/settings', 'current' => $path === '/purchase-in/settings'];
