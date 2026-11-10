@@ -302,7 +302,7 @@
         var current = scNumber.dataset.current;
         var list = (data.numbers || []).slice();
         if (current && current.indexOf('FY' + data.fy) === 0 && list.indexOf(current) < 0) { list.unshift(current); }
-        scNumber.innerHTML = '<option value="">Choose</option>';
+        scNumber.innerHTML = '<option value="">Select</option>';
         list.forEach(function (number) {
           var option = document.createElement('option');
           option.textContent = number;
