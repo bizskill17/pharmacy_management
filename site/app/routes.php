@@ -159,11 +159,7 @@ function serve_photo(int $id): never
         http_response_code(404);
         exit('Not found');
     }
-    header('Content-Type: ' . $file['mime_type']);
-    header('Content-Length: ' . filesize($path));
-    header('Cache-Control: private, max-age=86400');
-    readfile($path);
-    exit;
+    send_image($path, 'private, max-age=86400');
 }
 
 function handle_bulk(array $register): never
@@ -296,6 +292,7 @@ function remove_employee_files(array $keys): void
     foreach ($keys as $key) {
         if ($key) {
             @unlink(storage_dir() . '/uploads/' . $key);
+            @unlink(storage_dir() . '/uploads/' . $key . '.thumb.jpg');
         }
     }
 }
@@ -370,11 +367,7 @@ function serve_employee_file(int $id, string $field): never
         http_response_code(404);
         exit('Not found');
     }
-    header('Content-Type: ' . (detect_image((string) file_get_contents($path, false, null, 0, 16)) ?? 'application/octet-stream'));
-    header('Content-Length: ' . filesize($path));
-    header('Cache-Control: private, no-store');
-    readfile($path);
-    exit;
+    send_image($path, 'private, no-store');
 }
 
 function handle_create_area(): never

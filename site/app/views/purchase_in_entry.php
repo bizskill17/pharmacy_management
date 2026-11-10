@@ -41,7 +41,7 @@ $photos = array_filter(range(1, PURCHASE_IN_PHOTOS), fn ($slot) => !empty($entry
         <?php if (!$photos): ?><p class="muted">No photo added.</p><?php else: ?>
         <div class="slots">
           <?php foreach ($photos as $slot): ?>
-          <div class="slot"><div class="slot-name">Photo <?= $slot ?></div><a href="/api/purchase-in/<?= $id ?>/<?= $slot ?>" data-photo="Photo <?= $slot ?>" aria-label="Open Photo <?= $slot ?>"><img src="/api/purchase-in/<?= $id ?>/<?= $slot ?>" alt="Photo <?= $slot ?> preview"></a></div>
+          <div class="slot"><div class="slot-name">Photo <?= $slot ?></div><a href="/api/purchase-in/<?= $id ?>/<?= $slot ?>" data-photo="Photo <?= $slot ?>" aria-label="Open Photo <?= $slot ?>"><img src="/api/purchase-in/<?= $id ?>/<?= $slot ?>?thumb=1" alt="Photo <?= $slot ?> preview"></a></div>
           <?php endforeach; ?>
         </div>
         <?php endif; ?>

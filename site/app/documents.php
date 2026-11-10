@@ -132,8 +132,76 @@ function detect_image(string $data): ?string
     return null;
 }
 
+const PHOTO_MAX_SIDE = 1600;
+const THUMB_MAX_SIDE = 320;
+
+/** Turns a JPEG upright using its camera orientation, when the server can read it. */
+function upright_image(GdImage $image, string $data, string $mime): GdImage
+{
+    if ($mime !== 'image/jpeg' || !function_exists('exif_read_data')) {
+        return $image;
+    }
+    $exif = @exif_read_data('data://image/jpeg;base64,' . base64_encode($data));
+    $turn = [3 => 180, 6 => -90, 8 => 90][(int) ($exif['Orientation'] ?? 1)] ?? 0;
+    return $turn ? (imagerotate($image, $turn, 0) ?: $image) : $image;
+}
+
+/** Scales a photo down to fit $side and saves it as JPEG. Returns null when the server cannot. */
+function shrink_image(string $data, string $mime, int $side, int $quality): ?string
+{
+    if (!function_exists('imagecreatefromstring')) {
+        return null;
+    }
+    $size = @getimagesizefromstring($data);
+    if (!$size || $size[0] * $size[1] > 50000000) {
+        return null;
+    }
+    $image = @imagecreatefromstring($data);
+    if (!$image) {
+        return null;
+    }
+    $image = upright_image($image, $data, $mime);
+    $width = imagesx($image);
+    $height = imagesy($image);
+    $scale = min(1, $side / max($width, $height));
+    $canvas = imagecreatetruecolor(max(1, (int) round($width * $scale)), max(1, (int) round($height * $scale)));
+    imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+    imagecopyresampled($canvas, $image, 0, 0, 0, 0, imagesx($canvas), imagesy($canvas), $width, $height);
+    ob_start();
+    imagejpeg($canvas, null, $quality);
+    return (string) ob_get_clean();
+}
+
+/** Sends a stored photo, or a small copy of it for tables when ?thumb=1 is asked. */
+function send_image(string $path, string $cache): never
+{
+    if (isset($_GET['thumb'])) {
+        $thumb = $path . '.thumb.jpg';
+        if (!is_file($thumb)) {
+            $small = shrink_image((string) file_get_contents($path), detect_image((string) file_get_contents($path, false, null, 0, 16)) ?? '', THUMB_MAX_SIDE, 70);
+            if ($small !== null) {
+                @file_put_contents($thumb, $small);
+            }
+        }
+        if (is_file($thumb)) {
+            $path = $thumb;
+        }
+    }
+    header('Content-Type: ' . (detect_image((string) file_get_contents($path, false, null, 0, 16)) ?? 'application/octet-stream'));
+    header('Content-Length: ' . filesize($path));
+    header('Cache-Control: ' . $cache);
+    readfile($path);
+    exit;
+}
+
 function save_upload(string $data, string $mime): string
 {
+    if (strlen($data) > 400000 || max(@getimagesizefromstring($data) ?: [0, 0]) > PHOTO_MAX_SIDE) {
+        $smaller = shrink_image($data, $mime, PHOTO_MAX_SIDE, 78);
+        if ($smaller !== null && strlen($smaller) < strlen($data)) {
+            [$data, $mime] = [$smaller, 'image/jpeg'];
+        }
+    }
     $folder = date('Y/m');
     $directory = storage_dir() . '/uploads/' . $folder;
     if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {

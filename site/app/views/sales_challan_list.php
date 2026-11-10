@@ -27,7 +27,7 @@ $link = fn (int $number) => $path . '?' . http_build_query(array_filter(['q' => 
           <td><?= e($challan['matched_name']) ?></td>
           <td class="right"><?= $challan['match_quantity'] === null ? '' : (int) $challan['match_quantity'] ?></td>
           <?php for ($slot = 1; $slot <= PURCHASE_IN_PHOTOS; $slot++): ?>
-          <td><?php if ($challan["photo_$slot"]): ?><a href="/api/sales-challan/<?= $id ?>/<?= $slot ?>" data-photo="Photo <?= $slot ?>" aria-label="Open Photo <?= $slot ?>"><img class="thumb" src="/api/sales-challan/<?= $id ?>/<?= $slot ?>" alt="Photo <?= $slot ?> preview" loading="lazy"></a><?php endif; ?></td>
+          <td><?php if ($challan["photo_$slot"]): ?><a href="/api/sales-challan/<?= $id ?>/<?= $slot ?>" data-photo="Photo <?= $slot ?>" aria-label="Open Photo <?= $slot ?>"><img class="thumb" src="/api/sales-challan/<?= $id ?>/<?= $slot ?>?thumb=1" alt="Photo <?= $slot ?> preview" loading="lazy"></a><?php endif; ?></td>
           <?php endfor; ?>
         </tr>
       <?php endforeach; ?>

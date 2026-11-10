@@ -282,11 +282,7 @@ function serve_sales_challan_photo(int $id, int $slot): never
         http_response_code(404);
         exit('Not found');
     }
-    header('Content-Type: ' . (detect_image((string) file_get_contents($path, false, null, 0, 16)) ?? 'application/octet-stream'));
-    header('Content-Length: ' . filesize($path));
-    header('Cache-Control: private, no-store');
-    readfile($path);
-    exit;
+    send_image($path, 'private, no-store');
 }
 
 /** Matches a typed party name to Party Master. */

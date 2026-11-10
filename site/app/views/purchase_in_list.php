@@ -63,7 +63,7 @@ $color = 0;
           <td><span class="pill <?= $entry['status'] === 'DONE' ? 'UPLOADED' : 'PENDING' ?>"><?= $entry['status'] === 'DONE' ? 'Done' : 'Pending' ?></span></td>
           <td><?= e($entry['entry_name']) ?></td>
           <?php for ($slot = 1; $slot <= PURCHASE_IN_PHOTOS; $slot++): ?>
-          <td><?php if ($entry["photo_$slot"]): ?><a href="/api/purchase-in/<?= $id ?>/<?= $slot ?>" data-photo="Photo <?= $slot ?>" aria-label="Open Photo <?= $slot ?>"><img class="thumb" src="/api/purchase-in/<?= $id ?>/<?= $slot ?>" alt="Photo <?= $slot ?> preview" loading="lazy"></a><?php endif; ?></td>
+          <td><?php if ($entry["photo_$slot"]): ?><a href="/api/purchase-in/<?= $id ?>/<?= $slot ?>" data-photo="Photo <?= $slot ?>" aria-label="Open Photo <?= $slot ?>"><img class="thumb" src="/api/purchase-in/<?= $id ?>/<?= $slot ?>?thumb=1" alt="Photo <?= $slot ?> preview" loading="lazy"></a><?php endif; ?></td>
           <?php endfor; ?>
           <td><?= e($entry['party_no']) ?></td>
         </tr>

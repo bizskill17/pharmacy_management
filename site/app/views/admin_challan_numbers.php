@@ -5,7 +5,7 @@ $link = fn (int $number) => '/admin/challan-numbers?' . http_build_query(array_f
 <main class="page">
   <form method="post" action="/admin/challan-numbers" class="pin-challan">
     <?= csrf_field() ?>
-    <div class="field"><label for="first-no">First Challan No. of the FY</label><input id="first-no" name="first_no" class="input" required maxlength="30" placeholder="FY27-28CA000001"></div>
+    <div class="field"><label for="first-no">First Challan No. of the FY</label><input id="first-no" name="first_no" class="input" required maxlength="30"></div>
     <button class="btn primary">Set first number</button>
   </form>
   <?php if ($summary): ?>

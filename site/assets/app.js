@@ -15,14 +15,14 @@
     var compress = function (file) {
       if (!window.createImageBitmap) { return Promise.resolve(file); }
       return createImageBitmap(file).then(function (bitmap) {
-        var scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+        var scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
         var canvas = document.createElement('canvas');
         canvas.width = Math.round(bitmap.width * scale);
         canvas.height = Math.round(bitmap.height * scale);
         canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
         bitmap.close();
         return new Promise(function (resolve) {
-          canvas.toBlob(function (blob) { resolve(blob || file); }, 'image/jpeg', 0.82);
+          canvas.toBlob(function (blob) { resolve(blob && blob.size < file.size ? blob : file); }, 'image/jpeg', 0.72);
         });
       }).catch(function () { return file; });
     };
@@ -135,8 +135,10 @@
       });
       var url = location.pathname + (params.toString() ? '?' + params.toString() : '');
       var request = ++latest;
+      results.classList.add('is-loading');
       fetch(url, { headers: { 'X-Requested-With': 'fetch' } }).then(function (response) { return response.text(); }).then(function (html) {
         if (request !== latest) { return; }
+        results.classList.remove('is-loading');
         var next = new DOMParser().parseFromString(html, 'text/html');
         results.innerHTML = next.getElementById('live-results').innerHTML;
         history.replaceState(null, '', url);
@@ -203,10 +205,16 @@
     input.addEventListener('change', function () {
       var file = input.files[0];
       if (!file || !window.DataTransfer) { return; }
+      var form = input.form;
+      if (form) { form.dataset.compressing = String(Number(form.dataset.compressing || 0) + 1); }
       compress(file).then(function (blob) {
         var transfer = new DataTransfer();
-        transfer.items.add(new File([blob], file.name || 'photo.jpg', { type: blob.type || file.type }));
+        transfer.items.add(new File([blob], (file.name || 'photo').replace(/\.[^.]+$/, '') + (blob.type === 'image/jpeg' ? '.jpg' : ''), { type: blob.type || file.type }));
         input.files = transfer.files;
+      }).finally(function () {
+        if (!form) { return; }
+        form.dataset.compressing = String(Number(form.dataset.compressing) - 1);
+        if (form.dataset.compressing === '0' && form.dataset.submitAfter) { delete form.dataset.submitAfter; form.requestSubmit(); }
       });
     });
   });
@@ -293,8 +301,10 @@
     var scLoad = function () {
       if (!/^\d{2}\/\d{2}\/\d{4}$/.test(scDate.value)) { return; }
       var request = ++scLatest;
+      scNumber.closest('.ss') && scNumber.closest('.ss').classList.add('is-loading');
       fetch('/api/sales-challan/numbers?date=' + encodeURIComponent(scDate.value), { headers: { 'X-Requested-With': 'fetch' } }).then(function (response) { return response.json(); }).then(function (data) {
         if (request !== scLatest) { return; }
+        if (scNumber.closest('.ss')) { scNumber.closest('.ss').classList.remove('is-loading'); }
         var missing = data.numbers === null || data.numbers === undefined;
         scMessage.hidden = !missing;
         scMessage.textContent = data.error || (missing ? 'Set the first Challan No. for FY ' + data.fy + ' in Masters > Challan No.' : '');
@@ -526,6 +536,29 @@
     });
   }).observe(document.body, { childList: true, subtree: true });
 
+  /* Spinner on the button while a form is being sent. */
+  var busyButton = function (button, busy) {
+    if (!button) { return; }
+    button.classList.toggle('is-busy', busy);
+    button.setAttribute('aria-busy', busy ? 'true' : 'false');
+    if (busy) { setTimeout(function () { button.disabled = true; }, 0); } else { button.disabled = false; }
+  };
+  document.addEventListener('submit', function (event) {
+    var form = event.target;
+    if (event.defaultPrevented || (form.method || 'get').toLowerCase() !== 'post') { return; }
+    var button = event.submitter || form.querySelector('button:not([type=button])');
+    if (Number(form.dataset.compressing || 0) > 0) {
+      event.preventDefault();
+      form.dataset.submitAfter = '1';
+      busyButton(button, true);
+      return;
+    }
+    busyButton(button, true);
+  });
+  window.addEventListener('pageshow', function () {
+    document.querySelectorAll('.is-busy').forEach(function (button) { busyButton(button, false); });
+  });
+
   /* Two-step delete */
   document.querySelectorAll('form[data-two-step]').forEach(function (form) {
     var ask = form.querySelector('[data-step-ask]'), keep = form.querySelector('[data-step-keep]'), go = form.querySelector('[data-step-do]');
@@ -561,6 +594,7 @@
 
     var setBusy = function (group, busy) {
       group.querySelectorAll('button').forEach(function (button) { button.disabled = busy; });
+      group.classList.toggle('is-loading', busy);
     };
 
     page.addEventListener('click', function (event) {
@@ -614,17 +648,20 @@
         var expiry = document.getElementById('expiry-fields');
         if (expiry) {
           save.disabled = true;
+          save.classList.add('is-busy');
           var details = new FormData();
           expiry.querySelectorAll('[name]').forEach(function (field) { details.append(field.name, field.value); });
           post('/documents/' + id + '/expiry', details).then(function () {
             location.href = save.dataset.after;
           }).catch(function (error) {
             save.disabled = false;
+            save.classList.remove('is-busy');
             show(false, error.message);
           });
           return;
         }
         var remarks = document.getElementById('remarks');
+        save.classList.add('is-busy');
         if (!remarks) { location.href = save.dataset.after; return; }
         save.disabled = true;
         var form = new FormData();
@@ -633,6 +670,7 @@
           location.href = save.dataset.after;
         }).catch(function (error) {
           save.disabled = false;
+          save.classList.remove('is-busy');
           show(false, error.message);
         });
       });

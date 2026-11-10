@@ -497,3 +497,16 @@ table.data, table.data th, table.data td { font-size: 14px; }
 .ss-list li.ss-add { font-weight: 600; border-top: 1px solid var(--line); }
 .row-icon { width: 34px; height: 34px; }
 .pin-fields div.input[aria-readonly] { display: flex; align-items: center; background: #eef2f0; }
+
+/* Spinners */
+@keyframes spin { to { transform: rotate(360deg); } }
+.is-busy { position: relative; color: transparent !important; pointer-events: none; }
+.is-busy > * { visibility: hidden; }
+.is-busy::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border: 2.5px solid #fff; border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.btn:not(.primary):not(.danger).is-busy::after { border-color: var(--menu, #0b5c55); border-right-color: transparent; }
+.is-loading { position: relative; }
+#live-results.is-loading > * { opacity: 0.45; transition: opacity 0.15s; }
+.is-loading::after { content: ""; position: absolute; left: 50%; top: 40px; z-index: 5; width: 30px; height: 30px; margin-left: -15px; border: 3px solid var(--menu, #0b5c55); border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.photo-group.is-loading::after { top: 50%; margin-top: -15px; }
+.ss.is-loading::after { left: auto; right: 34px; top: 50%; width: 16px; height: 16px; margin: -8px 0 0; border-width: 2px; }
+@media (prefers-reduced-motion: reduce) { .is-busy::after, .is-loading::after { animation-duration: 2s; } }

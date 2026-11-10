@@ -24,7 +24,7 @@ $documents = ['photo' => ['Photo', 'photo_key'], 'pan' => ['PAN Card', 'pan_key'
   <div class="field">
     <label for="u-<?= e($field) ?>"><?= e($label) ?></label>
     <?php if ($isEdit && !empty($employee[$column])): ?>
-    <a href="/api/users/<?= (int) $employee['id'] ?>/<?= e($field) ?>" data-photo="<?= e($label) ?>" aria-label="Open <?= e($label) ?>"><img class="thumb" src="/api/users/<?= (int) $employee['id'] ?>/<?= e($field) ?>" alt="<?= e($label) ?> preview"></a>
+    <a href="/api/users/<?= (int) $employee['id'] ?>/<?= e($field) ?>" data-photo="<?= e($label) ?>" aria-label="Open <?= e($label) ?>"><img class="thumb" src="/api/users/<?= (int) $employee['id'] ?>/<?= e($field) ?>?thumb=1" alt="<?= e($label) ?> preview"></a>
     <?php endif; ?>
     <input id="u-<?= e($field) ?>" name="<?= e($field) ?>" type="file" class="input" accept="image/jpeg,image/png,image/webp" data-compress>
   </div>
