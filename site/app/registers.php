@@ -225,7 +225,6 @@ function sidebar_for(string $path, array $user): ?array
             ['label' => 'Purchase Parties', 'href' => '/admin/parties/purchase', 'current' => str_starts_with($path, '/admin/parties/purchase')],
             ['label' => 'Areas', 'href' => '/admin/areas', 'current' => $path === '/admin/areas'],
             ['label' => 'Challan No.', 'href' => '/admin/challan-numbers', 'current' => $path === '/admin/challan-numbers'],
-            ['label' => 'Clear data', 'href' => '/admin/clear-data', 'current' => $path === '/admin/clear-data'],
         ]];
     }
     $slug = null;
