@@ -1,6 +1,6 @@
 <?php
 $barTitle = 'Purchase In';
-$parties = array_values(array_unique(array_column(rows('SELECT name FROM parties WHERE is_active = 1 ORDER BY name LIMIT 5000'), 'name')));
+$parties = array_values(array_unique(array_column(rows('SELECT name FROM parties WHERE is_active = 1 AND is_supplier = 1 ORDER BY name LIMIT 5000'), 'name')));
 ?>
 <main class="page">
   <div class="doc-bar"><div class="doc-head">

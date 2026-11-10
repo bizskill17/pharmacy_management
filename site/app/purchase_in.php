@@ -95,7 +95,7 @@ function create_purchase_in(array $user): array
             $slNo = (int) value('SELECT setting_value FROM app_settings WHERE setting_key = ? FOR UPDATE', [PURCHASE_IN_LAST_SL]) + 1;
             $partyNo = party_numbers($slNo, $bills);
             $now = date('Y-m-d H:i:s');
-            $known = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [$party]);
+            $known = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 AND is_supplier = 1 LIMIT 1', [$party]);
             $partyId = $known ? (int) $known['id'] : null;
             run(
                 'INSERT INTO purchase_in (entry_date, entry_time, sl_no, party_id, party_name, packets, bill_count, reference_no, bill_amount, entry_by, photo_1, photo_2, photo_3, photo_4, photo_5, party_no)
@@ -184,7 +184,7 @@ function serve_purchase_in_photo(int $id, int $slot): never
 /** Matches a typed party name to Party Master. */
 function set_purchase_in_party(int $id, array $user): void
 {
-    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
+    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 AND is_supplier = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
     if (!$party) {
         throw new UserError('Select the Party Name from the list.');
     }
@@ -266,7 +266,7 @@ function route_purchase_in(bool $get, bool $post, string $path): void
                 $error = $failure->getMessage();
             }
         }
-        $parties = array_column(rows('SELECT name FROM parties WHERE is_active = 1 ORDER BY name LIMIT 5000'), 'name');
+        $parties = array_column(rows('SELECT name FROM parties WHERE is_active = 1 AND is_supplier = 1 ORDER BY name LIMIT 5000'), 'name');
         render('purchase_in_add', ['nextSl' => purchase_in_last_sl() + 1, 'parties' => $parties, 'error' => $error, 'old' => $post ? $_POST : []]);
     }
     if ($get && ($path === '/purchase-in/pending' || $path === '/purchase-in/master')) {

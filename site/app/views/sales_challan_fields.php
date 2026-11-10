@@ -1,6 +1,6 @@
 <?php
 /** Fields shared by Add and Edit. Expects $v (field reader), $users, $current (Challan No. being edited, or ''). */
-$parties = array_values(array_unique(array_column(rows('SELECT name FROM parties WHERE is_active = 1 ORDER BY name LIMIT 5000'), 'name')));
+$parties = array_values(array_unique(array_column(rows('SELECT name FROM parties WHERE is_active = 1 AND is_customer = 1 ORDER BY name LIMIT 5000'), 'name')));
 $date = $v('challan_date') ?: date('d/m/Y');
 $iso = parse_date($date);
 $choices = $iso ? challan_choices($iso) : null;

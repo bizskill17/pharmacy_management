@@ -177,6 +177,8 @@ function menu_icon(string $label): string
         'Bulk upload' => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
         'Users' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
         'Parties' => '<path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M9 8h1M14 8h1M9 12h1M14 12h1"/>',
+        'Sales Parties' => '<path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-5h6v5M9 8h1M14 8h1M9 12h1M14 12h1"/>',
+        'Purchase Parties' => '<path d="M3 4h2l2.4 11h11.2L21 7H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',
         'Areas' => '<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
         'Add' => '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
         'Pending Challan' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -218,7 +220,8 @@ function sidebar_for(string $path, array $user): ?array
     if (str_starts_with($path, '/admin')) {
         return ['title' => 'Masters', 'section' => 'masters', 'items' => [
             ['label' => 'Users', 'href' => '/admin/users', 'current' => str_starts_with($path, '/admin/users')],
-            ['label' => 'Parties', 'href' => '/admin/parties', 'current' => str_starts_with($path, '/admin/parties')],
+            ['label' => 'Sales Parties', 'href' => '/admin/parties/sales', 'current' => str_starts_with($path, '/admin/parties/sales')],
+            ['label' => 'Purchase Parties', 'href' => '/admin/parties/purchase', 'current' => str_starts_with($path, '/admin/parties/purchase')],
             ['label' => 'Areas', 'href' => '/admin/areas', 'current' => $path === '/admin/areas'],
             ['label' => 'Challan No.', 'href' => '/admin/challan-numbers', 'current' => $path === '/admin/challan-numbers'],
         ]];

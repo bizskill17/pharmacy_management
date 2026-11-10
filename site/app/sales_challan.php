@@ -67,7 +67,7 @@ function sales_challan_input(?array $current = null): array
     $number = trim((string) ($_POST['challan_no'] ?? ''));
     $date = parse_date(trim((string) ($_POST['challan_date'] ?? '')));
     $typed = mb_substr(clean_name((string) ($_POST['party_name'] ?? '')), 0, 200);
-    $party = $typed === '' ? null : row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [$typed]);
+    $party = $typed === '' ? null : row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 AND is_customer = 1 LIMIT 1', [$typed]);
     if (!$party && $current && $current['party_id'] && $typed === $current['party_name']) {
         $party = ['id' => $current['party_id'], 'name' => $current['party_name']];
     }
@@ -292,7 +292,7 @@ function serve_sales_challan_photo(int $id, int $slot): never
 /** Matches a typed party name to Party Master. */
 function set_sales_challan_party(int $id, array $user): void
 {
-    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
+    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 AND is_customer = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
     if (!$party) {
         throw new UserError('Select the Party Name from the list.');
     }
@@ -382,7 +382,9 @@ function show_challan_numbers(): never
 }
 
 /** Parties bulk upload: the checked rows wait in the session until they are saved. */
-function check_party_file(): void
+const PARTY_KINDS = ['sales' => ['label' => 'Sales Parties', 'flag' => 'is_customer', 'type' => 'SALE'], 'purchase' => ['label' => 'Purchase Parties', 'flag' => 'is_supplier', 'type' => 'PURCHASE']];
+
+function check_party_file(string $kind): void
 {
     $file = $_FILES['file'] ?? null;
     if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
@@ -393,10 +395,12 @@ function check_party_file(): void
     if ($headers !== ['party name', 'area']) {
         throw new UserError('Columns must be, in this order: Party Name, Area.');
     }
+    $flag = PARTY_KINDS[$kind]['flag'];
     $existing = [];
-    foreach (rows('SELECT name, source_name FROM parties') as $party) {
-        $existing[mb_strtolower(clean_name((string) $party['name']))] = true;
-        $existing[mb_strtolower(clean_name((string) $party['source_name']))] = true;
+    foreach (rows("SELECT name, source_name, $flag AS listed FROM parties") as $party) {
+        foreach ([$party['name'], $party['source_name']] as $known) {
+            $existing[mb_strtolower(clean_name((string) $known))] = (bool) $party['listed'] || !empty($existing[mb_strtolower(clean_name((string) $known))]);
+        }
     }
     $seen = [];
     $checked = [];
@@ -408,24 +412,34 @@ function check_party_file(): void
         $reason = '';
         if ($name === '') {
             [$outcome, $reason] = ['failed', 'Party Name is blank'];
-        } elseif (isset($existing[$key])) {
+        } elseif (!empty($existing[$key])) {
             [$outcome, $reason] = ['skipped', 'Already exists'];
+        } elseif (isset($existing[$key])) {
+            $reason = 'In the other party list, will be added here too';
         } elseif (isset($seen[$key])) {
             [$outcome, $reason] = ['skipped', 'Repeated in this file'];
         }
         $seen[$key] = true;
         $checked[] = ['row' => $row['number'], 'name' => $name, 'area' => $area, 'outcome' => $outcome, 'reason' => $reason];
     }
-    $_SESSION['party_bulk'] = $checked;
+    $_SESSION['party_bulk'] = ['kind' => $kind, 'rows' => $checked];
 }
 
-function save_party_file(array $admin): int
+function save_party_file(string $kind, array $admin): int
 {
-    $checked = $_SESSION['party_bulk'] ?? [];
+    $stored = $_SESSION['party_bulk'] ?? [];
+    $checked = ($stored['kind'] ?? '') === $kind ? $stored['rows'] : [];
     $ready = array_filter($checked, fn ($row) => $row['outcome'] === 'ready');
-    tx(function () use ($ready, $admin) {
+    $flag = PARTY_KINDS[$kind]['flag'];
+    tx(function () use ($ready, $admin, $kind, $flag) {
         foreach ($ready as $row) {
-            upsert_party($row['name'], 'SALE', $row['area'] === '' ? null : upsert_area($row['area']));
+            $area = $row['area'] === '' ? null : upsert_area($row['area']);
+            $found = value('SELECT id FROM parties WHERE name = ? OR source_name = ? LIMIT 1', [$row['name'], $row['name']]);
+            if ($found) {
+                run("UPDATE parties SET $flag = 1, area_id = COALESCE(area_id, ?) WHERE id = ?", [$area, $found]);
+            } else {
+                upsert_party($row['name'], PARTY_KINDS[$kind]['type'], $area);
+            }
         }
         audit($admin['id'], 'PARTY_BULK_UPLOAD', 'party', null, null, ['created' => count($ready)]);
     });
@@ -532,22 +546,40 @@ function route_masters_additions(bool $get, bool $post, string $path): void
         }
         render('admin_users_bulk', ['rows' => $_SESSION['user_bulk'] ?? null, 'error' => $error]);
     }
-    if ($get && $path === '/admin/parties/template') {
+    if ($get && $path === '/admin/parties') {
+        redirect('/admin/parties/sales');
+    }
+    if ($get && preg_match('#^/admin/parties/(sales|purchase)/template$#', $path)) {
         require_user(ADMINS);
         send_xlsx('parties-template.xlsx', ['Parties' => [['Party Name', 'Area']]]);
     }
-    if ($path === '/admin/parties/bulk') {
+    if ($get && preg_match('#^/admin/parties/(sales|purchase)$#', $path, $m)) {
+        require_user(ADMINS);
+        $kind = $m[1];
+        $flag = PARTY_KINDS[$kind]['flag'];
+        $query = trim((string) ($_GET['q'] ?? ''));
+        $pattern = like_pattern($query);
+        $total = (int) value("SELECT COUNT(*) FROM parties WHERE $flag = 1 AND (name LIKE ? OR source_name LIKE ?)", [$pattern, $pattern]);
+        $page = clamp_page(requested_page(), $total);
+        render('admin_parties', [
+            'kind' => $kind, 'query' => $query, 'total' => $total, 'page' => $page,
+            'parties' => rows("SELECT id, name, source_name, area_id, is_active FROM parties WHERE $flag = 1 AND (name LIKE ? OR source_name LIKE ?) ORDER BY name LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), [$pattern, $pattern]),
+            'areas' => rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name'),
+        ]);
+    }
+    if (preg_match('#^/admin/parties/(sales|purchase)/bulk$#', $path, $m)) {
         $admin = require_user(ADMINS);
+        $kind = $m[1];
         $error = null;
         if ($post) {
             require_csrf();
             try {
                 if (($_POST['action'] ?? '') === 'save') {
-                    $created = save_party_file($admin);
-                    flash(number_format($created) . ' parties added.');
-                    redirect('/admin/parties');
+                    $created = save_party_file($kind, $admin);
+                    flash(number_format($created) . ' parties added to ' . PARTY_KINDS[$kind]['label'] . '.');
+                    redirect("/admin/parties/$kind");
                 }
-                check_party_file();
+                check_party_file($kind);
             } catch (UserError $failure) {
                 unset($_SESSION['party_bulk']);
                 $error = $failure->getMessage();
@@ -555,7 +587,8 @@ function route_masters_additions(bool $get, bool $post, string $path): void
         } else {
             unset($_SESSION['party_bulk']);
         }
-        render('admin_parties_bulk', ['rows' => $_SESSION['party_bulk'] ?? null, 'error' => $error]);
+        $stored = $_SESSION['party_bulk'] ?? null;
+        render('admin_parties_bulk', ['kind' => $kind, 'rows' => $stored && $stored['kind'] === $kind ? $stored['rows'] : null, 'error' => $error]);
     }
     if ($path === '/admin/challan-numbers') {
         $admin = require_user(ADMINS);

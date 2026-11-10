@@ -414,7 +414,7 @@ function handle_update_party(): never
         audit($admin['id'], 'PARTY_UPDATE', 'party', $id, null, compact('name', 'area', 'active'));
         flash('Saved.');
     }
-    redirect('/admin/parties');
+    redirect('/admin/parties/' . (($_POST['kind'] ?? '') === 'purchase' ? 'purchase' : 'sales'));
 }
 
 function handle_request(string $method, string $path): never
@@ -552,20 +552,6 @@ function handle_request(string $method, string $path): never
         require_csrf();
         run('UPDATE areas SET is_active = 1 - is_active WHERE id = ?', [(int) ($_POST['id'] ?? 0)]);
         redirect('/admin/areas');
-    }
-    if ($get && $path === '/admin/parties') {
-        require_user(ADMINS);
-        $query = trim((string) ($_GET['q'] ?? ''));
-        $pattern = like_pattern($query);
-        $total = (int) value('SELECT COUNT(*) FROM parties WHERE name LIKE ? OR source_name LIKE ?', [$pattern, $pattern]);
-        $page = clamp_page(requested_page(), $total);
-        render('admin_parties', [
-            'query' => $query,
-            'total' => $total,
-            'page' => $page,
-            'parties' => rows('SELECT id, name, source_name, area_id, is_active FROM parties WHERE name LIKE ? OR source_name LIKE ? ORDER BY name LIMIT ' . PAGE_SIZE . ' OFFSET ' . page_offset($page), [$pattern, $pattern]),
-            'areas' => rows('SELECT id, name FROM areas WHERE is_active = 1 ORDER BY name'),
-        ]);
     }
     if ($post && $path === '/admin/parties/update') {
         handle_update_party();
