@@ -286,6 +286,21 @@ function serve_sales_challan_photo(int $id, int $slot): never
     exit;
 }
 
+/** Numbers skipped in each year: unused, but lower than the highest number already used. */
+function missing_challans(string $query): array
+{
+    $where = 'n.used_by IS NULL AND n.seq < (SELECT MAX(u.seq) FROM challan_numbers u WHERE u.fy = n.fy AND u.used_by IS NOT NULL)';
+    $params = [];
+    if ($query !== '') {
+        $where .= ' AND n.challan_no LIKE ?';
+        $params[] = like_pattern($query);
+    }
+    $total = (int) value("SELECT COUNT(*) FROM challan_numbers n WHERE $where", $params);
+    $page = clamp_page(requested_page(), $total);
+    $rows = rows("SELECT n.challan_no, n.fy FROM challan_numbers n WHERE $where ORDER BY n.fy DESC, n.seq LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params);
+    return [$rows, $total, $page];
+}
+
 /** Sets a year's first number. A year with used numbers cannot be changed. */
 function start_challan_series(array $admin): void
 {
@@ -567,6 +582,11 @@ function route_sales_challan(bool $get, bool $post, string $path): void
             }
         }
         render('sales_challan_add', ['old' => $post ? $_POST : [], 'error' => $error, 'users' => active_user_list()]);
+    }
+    if ($get && $path === '/sales-challan/missing') {
+        $query = trim((string) ($_GET['q'] ?? ''));
+        [$numbers, $total, $page] = missing_challans($query);
+        render('sales_challan_missing', compact('numbers', 'total', 'page', 'query'));
     }
     $views = ['/sales-challan/packing' => 'PACKING', '/sales-challan/matching' => 'MATCHING', '/sales-challan/master' => null];
     if ($get && array_key_exists($path, $views)) {
