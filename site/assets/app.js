@@ -350,6 +350,166 @@
     });
   });
 
+  /* Searchable dropdowns: every <select> gets a search box. The real select stays in the form. */
+  var openSearchable = null;
+  var enhanceSelect = function (select) {
+    if (select.multiple || select.dataset.searchable) { return; }
+    select.dataset.searchable = '1';
+    var wrap = document.createElement('div');
+    wrap.className = 'ss';
+    select.parentNode.insertBefore(wrap, select);
+    wrap.appendChild(select);
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = select.className + ' ss-button';
+    button.setAttribute('aria-haspopup', 'listbox');
+    button.setAttribute('aria-expanded', 'false');
+    var label = select.id ? document.querySelector('label[for="' + select.id + '"]') : null;
+    var name = select.getAttribute('aria-label') || (label ? label.textContent.trim() : '');
+    if (name) { button.setAttribute('aria-label', name); }
+    wrap.insertBefore(button, select);
+    select.classList.add('ss-native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+    var pop = document.createElement('div');
+    pop.className = 'ss-pop';
+    pop.hidden = true;
+    var search = document.createElement('input');
+    search.type = 'search';
+    search.className = 'ss-search';
+    search.setAttribute('aria-label', 'Search' + (name ? ' ' + name : ''));
+    search.autocomplete = 'off';
+    var list = document.createElement('ul');
+    list.className = 'ss-list';
+    list.setAttribute('role', 'listbox');
+    pop.appendChild(search);
+    pop.appendChild(list);
+    document.body.appendChild(pop);
+    var active = -1;
+    var shown = [];
+    var sync = function () {
+      var option = select.options[select.selectedIndex];
+      button.textContent = option ? option.textContent : '';
+      button.disabled = select.disabled;
+    };
+    var highlight = function (index) {
+      active = index;
+      shown.forEach(function (item, position) { item.classList.toggle('active', position === index); });
+      if (shown[index]) { shown[index].scrollIntoView({ block: 'nearest' }); }
+    };
+    var draw = function () {
+      var term = search.value.trim().toLowerCase();
+      list.innerHTML = '';
+      shown = [];
+      Array.prototype.forEach.call(select.options, function (option, index) {
+        if (term && option.textContent.toLowerCase().indexOf(term) < 0) { return; }
+        var item = document.createElement('li');
+        item.setAttribute('role', 'option');
+        item.textContent = option.textContent || ' ';
+        item.dataset.index = index;
+        if (option.disabled) { item.className = 'disabled'; }
+        if (index === select.selectedIndex) { item.setAttribute('aria-selected', 'true'); }
+        list.appendChild(item);
+        shown.push(item);
+      });
+      if (!shown.length) {
+        var empty = document.createElement('li');
+        empty.className = 'ss-empty';
+        empty.textContent = 'No match';
+        list.appendChild(empty);
+      }
+      var current = shown.findIndex(function (item) { return Number(item.dataset.index) === select.selectedIndex; });
+      highlight(current >= 0 ? current : 0);
+    };
+    var place = function () {
+      var box = button.getBoundingClientRect();
+      var below = window.innerHeight - box.bottom;
+      pop.style.left = box.left + 'px';
+      pop.style.width = Math.max(box.width, 200) + 'px';
+      if (below < 300 && box.top > below) {
+        pop.style.top = '';
+        pop.style.bottom = (window.innerHeight - box.top + 2) + 'px';
+      } else {
+        pop.style.bottom = '';
+        pop.style.top = (box.bottom + 2) + 'px';
+      }
+    };
+    var close = function (focus) {
+      if (pop.hidden) { return; }
+      pop.hidden = true;
+      button.setAttribute('aria-expanded', 'false');
+      openSearchable = null;
+      if (focus) { button.focus(); }
+    };
+    var open = function () {
+      if (select.disabled) { return; }
+      if (openSearchable) { openSearchable(false); }
+      search.value = '';
+      var colour = getComputedStyle(button).getPropertyValue('--menu').trim();
+      if (colour) { pop.style.setProperty('--menu', colour); }
+      draw();
+      pop.hidden = false;
+      place();
+      button.setAttribute('aria-expanded', 'true');
+      openSearchable = close;
+      search.focus();
+      if (shown[active]) { shown[active].scrollIntoView({ block: 'nearest' }); }
+    };
+    var choose = function (item) {
+      if (!item || item.classList.contains('disabled') || item.classList.contains('ss-empty')) { return; }
+      var index = Number(item.dataset.index);
+      var changed = index !== select.selectedIndex;
+      select.selectedIndex = index;
+      sync();
+      close(true);
+      if (changed) {
+        select.dispatchEvent(new Event('input', { bubbles: true }));
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    };
+    button.addEventListener('click', function () { if (pop.hidden) { open(); } else { close(true); } });
+    button.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+    });
+    if (label) { label.addEventListener('click', function (event) { event.preventDefault(); button.focus(); }); }
+    search.addEventListener('input', draw);
+    search.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown') { event.preventDefault(); highlight(Math.min(active + 1, shown.length - 1)); }
+      else if (event.key === 'ArrowUp') { event.preventDefault(); highlight(Math.max(active - 1, 0)); }
+      else if (event.key === 'Enter') { event.preventDefault(); choose(shown[active]); }
+      else if (event.key === 'Escape') { event.preventDefault(); close(true); }
+      else if (event.key === 'Tab') { close(false); }
+    });
+    list.addEventListener('mousedown', function (event) { event.preventDefault(); });
+    list.addEventListener('click', function (event) { choose(event.target.closest('li')); });
+    list.addEventListener('mousemove', function (event) {
+      var item = event.target.closest('li');
+      var position = shown.indexOf(item);
+      if (position >= 0 && position !== active) { highlight(position); }
+    });
+    document.addEventListener('mousedown', function (event) {
+      if (!pop.hidden && !pop.contains(event.target) && event.target !== button) { close(false); }
+    });
+    window.addEventListener('resize', function () { close(false); });
+    document.addEventListener('scroll', function (event) { if (!pop.hidden && !pop.contains(event.target)) { close(false); } }, true);
+    select.addEventListener('change', sync);
+    select.addEventListener('invalid', function () { button.classList.add('ss-invalid'); });
+    select.addEventListener('change', function () { button.classList.remove('ss-invalid'); });
+    new MutationObserver(sync).observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+    if (select.form) { select.form.addEventListener('reset', function () { setTimeout(sync, 0); }); }
+    sync();
+  };
+  var enhanceAll = function (root) { root.querySelectorAll('select').forEach(enhanceSelect); };
+  enhanceAll(document);
+  new MutationObserver(function (changes) {
+    changes.forEach(function (change) {
+      change.addedNodes.forEach(function (node) {
+        if (node.nodeType !== 1) { return; }
+        if (node.tagName === 'SELECT') { enhanceSelect(node); } else { enhanceAll(node); }
+      });
+    });
+  }).observe(document.body, { childList: true, subtree: true });
+
   /* Two-step delete */
   document.querySelectorAll('form[data-two-step]').forEach(function (form) {
     var ask = form.querySelector('[data-step-ask]'), keep = form.querySelector('[data-step-keep]'), go = form.querySelector('[data-step-do]');
