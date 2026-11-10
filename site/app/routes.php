@@ -517,9 +517,13 @@ function handle_request(string $method, string $path): never
             handle_create_user();
         }
         require_user(ADMINS);
-        $total = (int) value('SELECT COUNT(*) FROM users');
+        $query = trim((string) ($_GET['q'] ?? ''));
+        $pattern = like_pattern($query);
+        $where = 'full_name LIKE ? OR phone LIKE ? OR email LIKE ? OR designation LIKE ? OR address LIKE ?';
+        $params = [$pattern, $pattern, $pattern, $pattern, $pattern];
+        $total = (int) value("SELECT COUNT(*) FROM users WHERE $where", $params);
         $page = clamp_page(requested_page(), $total);
-        render('admin_users', ['users' => rows('SELECT * FROM users ORDER BY full_name LIMIT ' . PAGE_SIZE . ' OFFSET ' . page_offset($page)), 'total' => $total, 'page' => $page]);
+        render('admin_users', ['users' => rows("SELECT * FROM users WHERE $where ORDER BY full_name LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params), 'total' => $total, 'page' => $page, 'query' => $query]);
     }
     if (preg_match('#^/admin/users/(\d+)$#', $path, $m)) {
         if ($post) {

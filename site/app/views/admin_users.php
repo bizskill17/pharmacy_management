@@ -9,7 +9,13 @@
       <div class="row"><button class="btn primary">Add user</button><button type="button" class="btn" data-toggle-cancel="add-employee">Cancel</button></div>
     </form>
   </section>
-  <div id="users-list">
+  <div id="users-list" class="stack">
+  <form method="get" data-live-filter>
+    <label for="q" class="visually-hidden">Search</label>
+    <input id="q" name="q" class="input" type="search" placeholder="Search name, phone, email or designation" value="<?= e($query) ?>">
+  </form>
+  <div id="live-results">
+  <?php if (!$users): ?><p class="muted">No employees found.</p><?php else: ?>
   <div class="table-box">
     <table class="data">
       <thead><tr>
@@ -37,6 +43,8 @@
       </tbody>
     </table>
   </div>
-  <?= pager($page, $total, fn ($number) => '/admin/users?page=' . $number) ?>
+  <?php endif; ?>
+  <?= pager($page, $total, fn ($number) => '/admin/users?' . http_build_query(array_filter(['q' => $query, 'page' => $number]))) ?>
+  </div>
   </div>
 </main>
