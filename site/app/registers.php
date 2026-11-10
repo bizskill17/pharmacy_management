@@ -183,6 +183,7 @@ function menu_icon(string $label): string
         'Settings' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
         'Pending Packing' => '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
         'Matching' => '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/>',
+        'Pending Update Party' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7 1.4 0 2.6.3 3.6.9"/><path d="M15 20l1-3 4.5-4.5 2 2L18 19z"/>',
         'Missing Challan' => '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M12 11v4M12 18h.01"/>',
         'Challan No.' => '<path d="M5 9h15M4 15h15M10 4 8 20M16 4l-2 16"/>',
         'Log out' => '<path d="M14 4h6v16h-6"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
@@ -198,6 +199,7 @@ function sidebar_for(string $path, array $user): ?array
             ['label' => 'Pending Packing', 'href' => '/sales-challan/packing', 'current' => $path === '/sales-challan/packing'],
             ['label' => 'Matching', 'href' => '/sales-challan/matching', 'current' => $path === '/sales-challan/matching'],
             ['label' => 'Master', 'href' => '/sales-challan/master', 'current' => $path === '/sales-challan/master'],
+            ['label' => 'Pending Update Party', 'href' => '/sales-challan/pending-party', 'current' => $path === '/sales-challan/pending-party' || (bool) preg_match('#^/sales-challan/\d+/party$#', $path)],
             ['label' => 'Missing Challan', 'href' => '/sales-challan/missing', 'current' => $path === '/sales-challan/missing'],
         ]];
     }

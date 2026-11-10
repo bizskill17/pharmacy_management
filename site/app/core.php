@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Kolkata');
 ini_set('display_errors', '0');
 
 const MIN_PASSWORD_LENGTH = 8;
-const SCHEMA_VERSION = '6';
+const SCHEMA_VERSION = '7';
 
 final class UserError extends RuntimeException {}
 
@@ -125,6 +125,19 @@ function merge_spaced_parties(PDO $pdo): void
 }
 
 /** Adds the Expiry section to databases made before it existed. Safe to run again. */
+/** Lets a Sales Challan keep a typed party name until it is matched to Party Master. */
+function add_sales_challan_party_text(PDO $pdo): void
+{
+    if (!$pdo->query("SHOW TABLES LIKE 'sales_challans'")->fetchColumn()) {
+        return;
+    }
+    $existing = $pdo->query('SHOW COLUMNS FROM sales_challans')->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('party_text', $existing, true)) {
+        $pdo->exec('ALTER TABLE sales_challans ADD COLUMN party_text VARCHAR(200) NULL AFTER party_id');
+    }
+    $pdo->exec('ALTER TABLE sales_challans MODIFY party_id BIGINT NULL');
+}
+
 function add_expiry_section(PDO $pdo): void
 {
     $pdo->exec("ALTER TABLE import_batches MODIFY doc_type ENUM('SALE','CF_SALE','PURCHASE','EXPIRY') NOT NULL");
@@ -148,6 +161,7 @@ function ensure_schema(PDO $pdo): void
         }
         add_missing_user_columns($pdo);
         add_expiry_section($pdo);
+        add_sales_challan_party_text($pdo);
         move_json_to_columns($pdo);
         merge_spaced_parties($pdo);
         if (!is_dir(storage_dir())) {

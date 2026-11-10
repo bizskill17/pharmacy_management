@@ -66,8 +66,9 @@ function sales_challan_input(?array $current = null): array
 {
     $number = trim((string) ($_POST['challan_no'] ?? ''));
     $date = parse_date(trim((string) ($_POST['challan_date'] ?? '')));
-    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
-    if (!$party && $current && clean_name((string) ($_POST['party_name'] ?? '')) === $current['party_name']) {
+    $typed = mb_substr(clean_name((string) ($_POST['party_name'] ?? '')), 0, 200);
+    $party = $typed === '' ? null : row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [$typed]);
+    if (!$party && $current && $current['party_id'] && $typed === $current['party_name']) {
         $party = ['id' => $current['party_id'], 'name' => $current['party_name']];
     }
     $amount = parse_amount((string) ($_POST['amount'] ?? ''));
@@ -78,8 +79,8 @@ function sales_challan_input(?array $current = null): array
     if (!$date) {
         throw new UserError('Enter Challan Date as dd/mm/yyyy.');
     }
-    if (!$party) {
-        throw new UserError('Choose the Party Name from the list.');
+    if ($typed === '') {
+        throw new UserError('Select or type the Party Name.');
     }
     if ($amount === null) {
         throw new UserError('Amount must be a number.');
@@ -88,7 +89,7 @@ function sales_challan_input(?array $current = null): array
         throw new UserError('No. of Items must be a whole number.');
     }
     $madeBy = posted_user('made_by', 'Challan Made By', $current ? (int) $current['made_by'] : null);
-    return ['number' => $number, 'date' => $date, 'party' => (int) $party['id'], 'amount' => $amount, 'items' => $items, 'made_by' => $madeBy];
+    return ['number' => $number, 'date' => $date, 'party' => $party ? (int) $party['id'] : null, 'party_text' => $party ? null : $typed, 'amount' => $amount, 'items' => $items, 'made_by' => $madeBy];
 }
 
 /** Locks a number and checks it is free for this challan. Call inside a transaction. */
@@ -119,8 +120,8 @@ function create_sales_challan(array $user): string
     return tx(function () use ($input, $user) {
         $number = lock_challan_number($input['number'], $input['date'], 0);
         run(
-            "INSERT INTO sales_challans (challan_no, challan_date, financial_year, party_id, amount, item_count, made_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [$input['number'], $input['date'], financial_year($input['date']), $input['party'], $input['amount'], $input['items'], $input['made_by'], $user['id']]
+            "INSERT INTO sales_challans (challan_no, challan_date, financial_year, party_id, party_text, amount, item_count, made_by, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$input['number'], $input['date'], financial_year($input['date']), $input['party'], $input['party_text'], $input['amount'], $input['items'], $input['made_by'], $user['id']]
         );
         $id = (int) db()->lastInsertId();
         mark_challan_used($number, $id);
@@ -131,9 +132,9 @@ function create_sales_challan(array $user): string
 
 function sales_challan_select(): string
 {
-    return 'SELECT c.*, p.name AS party_name, mu.full_name AS made_name, pu.full_name AS picked_name, xu.full_name AS matched_name
+    return 'SELECT c.*, COALESCE(p.name, c.party_text) AS party_name, mu.full_name AS made_name, pu.full_name AS picked_name, xu.full_name AS matched_name
             FROM sales_challans c
-            JOIN parties p ON p.id = c.party_id
+            LEFT JOIN parties p ON p.id = c.party_id
             JOIN users mu ON mu.id = c.made_by
             LEFT JOIN users pu ON pu.id = c.picked_by
             LEFT JOIN users xu ON xu.id = c.matched_by';
@@ -148,17 +149,19 @@ function list_sales_challans(?string $status, string $query): array
 {
     $where = ['c.deleted_at IS NULL'];
     $params = [];
-    if ($status) {
+    if ($status === 'NO_PARTY') {
+        $where[] = 'c.party_id IS NULL';
+    } elseif ($status) {
         $where[] = 'c.status = ?';
         $params[] = $status;
     }
     if ($query !== '') {
         $pattern = like_pattern($query);
-        $where[] = '(c.challan_no LIKE ? OR p.name LIKE ?)';
+        $where[] = '(c.challan_no LIKE ? OR COALESCE(p.name, c.party_text) LIKE ?)';
         array_push($params, $pattern, $pattern);
     }
     $clause = 'WHERE ' . implode(' AND ', $where);
-    $total = (int) value("SELECT COUNT(*) FROM sales_challans c JOIN parties p ON p.id = c.party_id $clause", $params);
+    $total = (int) value("SELECT COUNT(*) FROM sales_challans c LEFT JOIN parties p ON p.id = c.party_id $clause", $params);
     $page = clamp_page(requested_page(), $total);
     $rows = rows(sales_challan_select() . " $clause ORDER BY c.challan_date DESC, c.id DESC LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params);
     return [$rows, $total, $page];
@@ -248,8 +251,8 @@ function update_sales_challan(array $current, array $user): void
             }
             mark_challan_used(lock_challan_number($input['number'], $input['date'], $id), $id);
             run(
-                'UPDATE sales_challans SET challan_no = ?, challan_date = ?, financial_year = ?, party_id = ?, amount = ?, item_count = ?, made_by = ?, picked_by = ?, matched_by = ?, match_quantity = ?, photo_1 = ?, photo_2 = ?, photo_3 = ?, photo_4 = ?, photo_5 = ? WHERE id = ?',
-                [$input['number'], $input['date'], financial_year($input['date']), $input['party'], $input['amount'], $input['items'], $input['made_by'], $picked, $matched, $quantity, $photos[0] ?? null, $photos[1] ?? null, $photos[2] ?? null, $photos[3] ?? null, $photos[4] ?? null, $id]
+                'UPDATE sales_challans SET challan_no = ?, challan_date = ?, financial_year = ?, party_id = ?, party_text = ?, amount = ?, item_count = ?, made_by = ?, picked_by = ?, matched_by = ?, match_quantity = ?, photo_1 = ?, photo_2 = ?, photo_3 = ?, photo_4 = ?, photo_5 = ? WHERE id = ?',
+                [$input['number'], $input['date'], financial_year($input['date']), $input['party'], $input['party_text'], $input['amount'], $input['items'], $input['made_by'], $picked, $matched, $quantity, $photos[0] ?? null, $photos[1] ?? null, $photos[2] ?? null, $photos[3] ?? null, $photos[4] ?? null, $id]
             );
             audit($user['id'], 'SALES_CHALLAN_EDIT', 'sales_challan', $id, ['challan_no' => $current['challan_no'], 'amount' => $current['amount']], ['challan_no' => $input['number'], 'amount' => $input['amount']]);
         });
@@ -284,6 +287,23 @@ function serve_sales_challan_photo(int $id, int $slot): never
     header('Cache-Control: private, no-store');
     readfile($path);
     exit;
+}
+
+/** Matches a typed party name to Party Master. */
+function set_sales_challan_party(int $id, array $user): void
+{
+    $party = row('SELECT id, name FROM parties WHERE name = ? AND is_active = 1 LIMIT 1', [clean_name((string) ($_POST['party_name'] ?? ''))]);
+    if (!$party) {
+        throw new UserError('Select the Party Name from the list.');
+    }
+    tx(function () use ($id, $party, $user) {
+        $before = row('SELECT party_text FROM sales_challans WHERE id = ? AND deleted_at IS NULL AND party_id IS NULL FOR UPDATE', [$id]);
+        if (!$before) {
+            throw new UserError('This challan already has a party from Party Master.');
+        }
+        run('UPDATE sales_challans SET party_id = ?, party_text = NULL WHERE id = ?', [$party['id'], $id]);
+        audit($user['id'], 'SALES_CHALLAN_PARTY', 'sales_challan', $id, ['party_text' => $before['party_text']], ['party' => $party['name']]);
+    });
 }
 
 /** Numbers skipped in each year: unused, but lower than the highest number already used. */
@@ -357,7 +377,7 @@ function show_challan_numbers(): never
     $clause = $where ? 'WHERE ' . implode(' AND ', $where) : '';
     $total = (int) value("SELECT COUNT(*) FROM challan_numbers n $clause", $params);
     $page = clamp_page(requested_page(), $total);
-    $numbers = rows("SELECT n.*, c.challan_date, p.name AS party_name FROM challan_numbers n LEFT JOIN sales_challans c ON c.id = n.used_by LEFT JOIN parties p ON p.id = c.party_id $clause ORDER BY n.fy DESC, n.seq LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params);
+    $numbers = rows("SELECT n.*, c.challan_date, COALESCE(p.name, c.party_text) AS party_name FROM challan_numbers n LEFT JOIN sales_challans c ON c.id = n.used_by LEFT JOIN parties p ON p.id = c.party_id $clause ORDER BY n.fy DESC, n.seq LIMIT " . PAGE_SIZE . ' OFFSET ' . page_offset($page), $params);
     render('admin_challan_numbers', compact('summary', 'numbers', 'total', 'page', 'fy', 'state', 'query'));
 }
 
@@ -582,6 +602,30 @@ function route_sales_challan(bool $get, bool $post, string $path): void
             }
         }
         render('sales_challan_add', ['old' => $post ? $_POST : [], 'error' => $error, 'users' => active_user_list()]);
+    }
+    if ($get && $path === '/sales-challan/pending-party') {
+        $query = trim((string) ($_GET['q'] ?? ''));
+        [$challans, $total, $page] = list_sales_challans('NO_PARTY', $query);
+        render('sales_challan_pending_party', compact('challans', 'total', 'page', 'query'));
+    }
+    if (preg_match('#^/sales-challan/(\d+)/party$#', $path, $m)) {
+        $id = (int) $m[1];
+        $challan = find_sales_challan($id);
+        $error = null;
+        if ($post) {
+            require_csrf();
+            try {
+                set_sales_challan_party($id, $user);
+                flash("Party updated for {$challan['challan_no']}.");
+                redirect('/sales-challan/pending-party');
+            } catch (UserError $failure) {
+                $error = $failure->getMessage();
+            }
+        }
+        if ($challan['party_id']) {
+            redirect('/sales-challan/pending-party');
+        }
+        render('sales_challan_party', compact('challan', 'error'));
     }
     if ($get && $path === '/sales-challan/missing') {
         $query = trim((string) ($_GET['q'] ?? ''));
