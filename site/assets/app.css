@@ -510,3 +510,4 @@ table.data, table.data th, table.data td { font-size: 14px; }
 .photo-group.is-loading::after { top: 50%; margin-top: -15px; }
 .ss.is-loading::after { left: auto; right: 34px; top: 50%; width: 16px; height: 16px; margin: -8px 0 0; border-width: 2px; }
 @media (prefers-reduced-motion: reduce) { .is-busy::after, .is-loading::after { animation-duration: 2s; } }
+.pin-challan[hidden], .card[hidden], form[hidden] { display: none; }
