@@ -412,6 +412,16 @@
         list.appendChild(item);
         shown.push(item);
       });
+      var typed = search.value.trim();
+      if (select.hasAttribute('data-allow-new') && typed && !Array.prototype.some.call(select.options, function (option) { return option.textContent.trim().toLowerCase() === typed.toLowerCase(); })) {
+        var add = document.createElement('li');
+        add.setAttribute('role', 'option');
+        add.className = 'ss-add';
+        add.textContent = 'Add new: ' + typed;
+        add.dataset.newValue = typed;
+        list.appendChild(add);
+        shown.push(add);
+      }
       if (!shown.length) {
         var empty = document.createElement('li');
         empty.className = 'ss-empty';
@@ -457,6 +467,12 @@
     };
     var choose = function (item) {
       if (!item || item.classList.contains('disabled') || item.classList.contains('ss-empty')) { return; }
+      if (item.dataset.newValue) {
+        var created = document.createElement('option');
+        created.textContent = item.dataset.newValue;
+        select.appendChild(created);
+        item.dataset.index = created.index;
+      }
       var index = Number(item.dataset.index);
       var changed = index !== select.selectedIndex;
       select.selectedIndex = index;

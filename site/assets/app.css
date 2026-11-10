@@ -494,3 +494,4 @@ table.data, table.data th, table.data td { font-size: 14px; }
 .ss-list li.disabled { color: #6b7570; cursor: default; }
 .ss-list li.ss-empty { color: #000; cursor: default; }
 .master-table .ss-button { min-width: 200px; min-height: 32px; padding-top: 3px; padding-bottom: 3px; font-size: 14px; }
+.ss-list li.ss-add { font-weight: 600; border-top: 1px solid var(--line); }
