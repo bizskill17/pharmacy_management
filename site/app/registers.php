@@ -29,7 +29,7 @@ function registers(): array
     $upload = [text_column('Upload Date', 'uploadDate'), text_column('Uploaded By (Employee)', 'uploader')];
     $registers = [
         'SALE' => [
-            'type' => 'SALE', 'slug' => 'sale', 'label' => 'Sale', 'number' => 'Invoice No', 'date' => 'Invoice Date',
+            'type' => 'SALE', 'slug' => 'sale', 'label' => 'Invoices', 'number' => 'Invoice No', 'date' => 'Invoice Date',
             'party' => 'Customer', 'amount' => 'Invoice Amount',
             'groups' => [['kind' => 'RECEIPT_COPY', 'label' => 'Receipt Copy', 'max' => 1, 'required' => true]],
             'template' => [['Customer', 'party', true], ['Invoice No', 'no', true], ['Invoice Date', 'date', true], ['Invoice Amount', 'amount', true], ['Receipt', 'receipt', false], ['MR', 'mr', false], ['Area', 'area', false], ['Address', 'address', false]],
@@ -42,7 +42,7 @@ function registers(): array
             'form' => [['photos', 'RECEIPT_COPY'], ['auto', ''],],
         ],
         'CF_SALE' => [
-            'type' => 'CF_SALE', 'slug' => 'cf-sales', 'label' => 'C&F Sales', 'number' => 'Invoice No', 'date' => 'Invoice Date',
+            'type' => 'CF_SALE', 'slug' => 'cf-sales', 'label' => 'PROHUB C&F', 'number' => 'Invoice No', 'date' => 'Invoice Date',
             'party' => 'Customer', 'amount' => 'Invoice Amount',
             'groups' => [
                 ['kind' => 'RECEIPT_COPY', 'label' => 'Receipt Copy', 'max' => 1, 'required' => true],
@@ -59,7 +59,7 @@ function registers(): array
             'form' => [['photos', 'RECEIPT_COPY'], ['photos', 'INVOICE_PHOTO'], ['auto', '']],
         ],
         'PURCHASE' => [
-            'type' => 'PURCHASE', 'slug' => 'purchase', 'label' => 'Purchase', 'number' => 'Challan No', 'date' => 'Challan Date',
+            'type' => 'PURCHASE', 'slug' => 'purchase', 'label' => 'Purchase Challan', 'number' => 'Challan No', 'date' => 'Challan Date',
             'party' => 'Supplier', 'amount' => 'Amount',
             'groups' => [
                 ['kind' => 'CHALLAN_PHOTO', 'label' => 'Challan Photo', 'max' => 40, 'required' => true],
@@ -188,6 +188,7 @@ function menu_icon(string $label): string
         'Pending Update Party' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7 1.4 0 2.6.3 3.6.9"/><path d="M15 20l1-3 4.5-4.5 2 2L18 19z"/>',
         'Missing Challan' => '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M12 11v4M12 18h.01"/>',
         'Challan No.' => '<path d="M5 9h15M4 15h15M10 4 8 20M16 4l-2 16"/>',
+        'Clear data' => '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>',
         'Log out' => '<path d="M14 4h6v16h-6"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
     ];
     return '<svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$label] . '</svg>';
@@ -224,6 +225,7 @@ function sidebar_for(string $path, array $user): ?array
             ['label' => 'Purchase Parties', 'href' => '/admin/parties/purchase', 'current' => str_starts_with($path, '/admin/parties/purchase')],
             ['label' => 'Areas', 'href' => '/admin/areas', 'current' => $path === '/admin/areas'],
             ['label' => 'Challan No.', 'href' => '/admin/challan-numbers', 'current' => $path === '/admin/challan-numbers'],
+            ['label' => 'Clear data', 'href' => '/admin/clear-data', 'current' => $path === '/admin/clear-data'],
         ]];
     }
     $slug = null;

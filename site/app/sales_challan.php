@@ -519,8 +519,60 @@ function save_user_file(array $admin): int
     return $created;
 }
 
+const CLEAR_TABLES = [
+    'audit_changes' => 'History of changes', 'audit_log' => 'Activity log', 'import_errors' => 'Upload errors', 'attachments' => 'Photos on records',
+    'documents' => 'Invoices, PROHUB C&F, Purchase Challan and Expiry records', 'import_batches' => 'Bulk upload history', 'challan_numbers' => 'Challan No. list',
+    'sales_challans' => 'Sales Challan records', 'challan_series' => 'First Challan No. of each FY', 'purchase_in' => 'Purchase In records',
+    'parties' => 'Sales Parties and Purchase Parties', 'areas' => 'Areas',
+];
+
+function clear_counts(): array
+{
+    $counts = [];
+    foreach (CLEAR_TABLES as $table => $label) {
+        $counts[$label] = (int) value("SELECT COUNT(*) FROM $table");
+    }
+    return $counts;
+}
+
+/** Removes every record except users, then the photo files those records used. */
+function clear_all_data(array $admin): void
+{
+    $files = array_column(rows('SELECT file_key FROM attachments'), 'file_key');
+    foreach (['purchase_in', 'sales_challans'] as $table) {
+        foreach (rows("SELECT photo_1, photo_2, photo_3, photo_4, photo_5 FROM $table") as $row) {
+            array_push($files, ...array_values(array_filter($row)));
+        }
+    }
+    $counts = clear_counts();
+    tx(function () {
+        run('UPDATE challan_numbers SET used_by = NULL');
+        foreach (array_keys(CLEAR_TABLES) as $table) {
+            run("DELETE FROM $table");
+        }
+        run("UPDATE app_settings SET setting_value = '0' WHERE setting_key = ?", [PURCHASE_IN_LAST_SL]);
+    });
+    remove_employee_files($files);
+    audit($admin['id'], 'CLEAR_ALL_DATA', 'system', null, $counts, null);
+}
+
 function route_masters_additions(bool $get, bool $post, string $path): void
 {
+    if ($path === '/admin/clear-data') {
+        $admin = require_user(['ADMIN']);
+        $error = null;
+        if ($post) {
+            require_csrf();
+            if (trim((string) ($_POST['confirm'] ?? '')) !== 'CLEAR') {
+                $error = 'Type CLEAR in capitals to confirm.';
+            } else {
+                clear_all_data($admin);
+                flash('All data cleared. Users are kept.');
+                redirect('/admin/clear-data');
+            }
+        }
+        render('admin_clear_data', ['counts' => clear_counts(), 'users' => (int) value('SELECT COUNT(*) FROM users'), 'error' => $error]);
+    }
     if ($get && $path === '/admin/users/template') {
         require_user(ADMINS);
         send_xlsx('users-template.xlsx', ['Users' => [['Employee Name', 'Phone No', 'Email', 'Address', 'Passcode', 'Salary', 'Status']]]);

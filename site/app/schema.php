@@ -187,8 +187,6 @@ return [
       next_seq INT NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
-    "INSERT IGNORE INTO challan_series (fy, prefix, width, next_seq) VALUES ('26-27', 'FY26-27CA', 6, 50195)",
-
     "CREATE TABLE IF NOT EXISTS sales_challans (
       id BIGINT AUTO_INCREMENT PRIMARY KEY,
       challan_no VARCHAR(30) NOT NULL,
