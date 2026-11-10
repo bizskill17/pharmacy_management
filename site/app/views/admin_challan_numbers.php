@@ -3,11 +3,13 @@ require __DIR__ . '/admin_nav.php';
 $link = fn (int $number) => '/admin/challan-numbers?' . http_build_query(array_filter(['fy' => $fy, 'state' => $state, 'q' => $query, 'page' => $number]));
 ?>
 <main class="page">
-  <form method="post" action="/admin/challan-numbers" class="pin-challan">
+  <div class="row"><button type="button" class="btn primary" data-toggle-target="first-number" data-toggle-hide="challan-list" aria-expanded="false" aria-controls="first-number">Add</button></div>
+  <form method="post" action="/admin/challan-numbers" class="pin-challan" id="first-number" hidden>
     <?= csrf_field() ?>
     <div class="field"><label for="first-no">First Challan No. of the FY</label><input id="first-no" name="first_no" class="input" required maxlength="30"></div>
-    <button class="btn primary">Set first number</button>
+    <div class="row"><button class="btn primary">Set first number</button><button type="button" class="btn" data-toggle-cancel="first-number">Cancel</button></div>
   </form>
+  <div id="challan-list" class="stack">
   <?php if ($summary): ?>
   <div class="table-box"><table class="data fill master-table">
     <thead><tr><th>FY</th><th>Series</th><th>Unused</th><th>Used</th></tr></thead>
@@ -31,5 +33,6 @@ $link = fn (int $number) => '/admin/challan-numbers?' . http_build_query(array_f
   </table></div>
   <?php endif; ?>
   <?= pager($page, $total, $link) ?>
+  </div>
   </div>
 </main>
