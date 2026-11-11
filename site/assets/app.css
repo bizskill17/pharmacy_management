@@ -531,3 +531,11 @@ table.data, table.data th, table.data td { font-size: 14px; }
   .side-item { flex-wrap: wrap; row-gap: 2px; }
   .side-count { min-width: 20px; padding: 0 5px; font-size: 11px; }
 }
+
+/* Phones: wider menu, count on the same line as the name. */
+@media (max-width: 760px) {
+  .sidebar { flex-basis: 168px; padding: 10px 6px; }
+  .side-item { flex-wrap: nowrap; gap: 6px; padding: 6px 6px 6px 10px; line-height: 1.2; }
+  .side-label { overflow: visible; white-space: normal; text-overflow: clip; overflow-wrap: anywhere; }
+  .side-count { margin-left: auto; }
+}
