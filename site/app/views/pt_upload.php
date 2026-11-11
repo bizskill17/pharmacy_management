@@ -23,7 +23,7 @@
     </div>
     <div class="table-box"><table class="data">
       <thead><tr><th>Party Name</th><th>Invoice No</th><th>Invoice Date</th><th class="right">Invoice Amount</th><th class="right">Balance</th><th>MR</th><th>Area</th><th>Phone</th><th class="right">Closing Balance</th></tr></thead>
-      <tbody><?php foreach ($summary['preview'] as $row): ?><tr><td><?= e($row[0]) ?></td><td><?= e($row[3]) ?></td><td><?= e(display_date($row[5])) ?></td><td class="right"><?= $row[4] === null ? '' : e(money($row[4])) ?></td><td class="right"><?= signed_money($row[2]) ?></td><td><?= e($row[6]) ?></td><td><?= e($row[7]) ?></td><td><?= e($row[8]) ?></td><td class="right"><?= signed_money($row[9]) ?></td></tr><?php endforeach; ?></tbody>
+      <tbody><?php foreach ($summary['preview'] as $row): ?><tr><td><?= e($row[0]) ?></td><td><?= e($row[3]) ?></td><td><?= e(display_date($row[5])) ?></td><td class="right"><?= $row[4] === null ? '' : signed_money($row[4]) ?></td><td class="right"><?= signed_money($row[2]) ?></td><td><?= e($row[6]) ?></td><td><?= e($row[7]) ?></td><td><?= e($row[8]) ?></td><td class="right"><?= signed_money($row[9]) ?></td></tr><?php endforeach; ?></tbody>
     </table></div>
     <p class="muted">Showing the first <?= count($summary['preview']) ?> rows.</p>
     <?php if ($summary['failed']): ?>

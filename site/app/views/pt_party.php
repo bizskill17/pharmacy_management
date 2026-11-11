@@ -62,9 +62,9 @@ $self = '/payment-tracker/party?' . http_build_query(['name' => $party['name'], 
     <h2>Invoices &middot; <?= number_format(count($party['invoices'])) ?></h2>
     <?php if (!$party['invoices']): ?><p class="muted">This party is not in the last uploaded outstanding.</p><?php else: ?>
     <div class="table-box"><table class="data">
-      <thead><tr><th>Invoice No</th><th>Invoice Date</th><th class="right">Invoice Amount</th><th class="right">Balance</th></tr></thead>
+      <thead><tr><th>Party Name</th><th>Invoice No</th><th>Invoice Date</th><th class="right">Invoice Amount</th><th class="right">Balance</th></tr></thead>
       <tbody><?php foreach ($party['invoices'] as $invoice): ?>
-        <tr><td><?= e($invoice['invoice_no']) ?></td><td><?= e(display_date($invoice['invoice_date'])) ?></td><td class="right"><?= $invoice['invoice_amount'] === null ? '' : e(money($invoice['invoice_amount'])) ?></td><td class="right"><?= signed_money($invoice['balance']) ?></td></tr>
+        <tr><td><?= e($invoice['party_name']) ?></td><td><?= e($invoice['invoice_no']) ?></td><td><?= e(display_date($invoice['invoice_date'])) ?></td><td class="right"><?= $invoice['invoice_amount'] === null ? '' : signed_money($invoice['invoice_amount']) ?></td><td class="right"><?= signed_money($invoice['balance']) ?></td></tr>
       <?php endforeach; ?></tbody>
     </table></div>
     <?php endif; ?>
