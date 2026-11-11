@@ -3,10 +3,11 @@
   <?php if ($error): ?><p class="error" role="alert"><?= e($error) ?></p><?php endif; ?>
   <section class="card">
     <h2>Upload outstanding</h2>
-    <p class="muted">Use the Invoice Receipts file from the billing software. Columns needed: Party Name, Balance, Invoice No, Invoice Amount, Invoice Date, MR, Area, Phone, Closing Balance. Saving replaces the old outstanding; follow ups are kept.</p>
+    <p class="muted">Use the Invoice Receipts file from the billing software. Columns needed: Party Name, Balance, Invoice No, Invoice Amount, Invoice Date, MR, Area, Phone. Closing Balance is optional; without it, each party's balances are added up. Saving replaces the old outstanding; follow ups are kept.</p>
     <?php if ($last): ?><p>Last upload: <strong><?= e(time_text($last['uploaded_at'])) ?></strong> by <?= e($last['full_name']) ?> &middot; <?= number_format((int) $last['row_count']) ?> rows, <?= number_format((int) $last['party_count']) ?> parties</p><?php endif; ?>
     <form method="post" action="/payment-tracker/upload" enctype="multipart/form-data" class="row">
       <?= csrf_field() ?>
+      <a class="btn" href="/payment-tracker/upload/template">Download template</a>
       <input type="hidden" name="action" value="check">
       <input class="input pin-file" type="file" name="file" accept=".xlsx,.csv" required aria-label="Outstanding file">
       <button class="btn primary">Check file</button>

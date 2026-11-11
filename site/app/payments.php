@@ -12,7 +12,7 @@ const PT_BANDS = [
     '1to2' => ['1 to 2 Lakh', 100000, 200000],
     'under1' => ['Less than 1 Lakh', null, 100000],
 ];
-const PT_UPLOAD_HEADERS = ['party name' => true, 'outstanding' => false, 'balance' => true, 'invoice no' => true, 'invoice amount' => true, 'invoice date' => true, 'mr' => true, 'area' => true, 'phone' => true, 'closing balance' => true];
+const PT_UPLOAD_HEADERS = ['party name' => true, 'outstanding' => false, 'balance' => true, 'invoice no' => true, 'invoice amount' => true, 'invoice date' => true, 'mr' => true, 'area' => true, 'phone' => true, 'closing balance' => false];
 
 /** Amounts that may be negative or have commas, such as "-4,082.00". */
 function pt_amount(mixed $value): ?float
@@ -518,6 +518,17 @@ function check_outstanding(array $file): array
     if (!$ready) {
         throw new UserError('No rows with a Party Name and Balance were found.');
     }
+    if (!isset($columns['closing balance'])) {
+        /* Without the column, a party's closing balance is the sum of its invoice balances. */
+        $sums = [];
+        foreach ($ready as $item) {
+            $sums[$item[0]] = ($sums[$item[0]] ?? 0) + $item[2];
+        }
+        foreach ($ready as &$item) {
+            $item[9] = round($sums[$item[0]], 2);
+        }
+        unset($item);
+    }
     $token = bin2hex(random_bytes(12));
     if (file_put_contents(pt_tmp_path($token), json_encode($ready)) === false) {
         throw new UserError('The file could not be kept for saving. Please try again.');
@@ -711,6 +722,14 @@ function route_payment_tracker(bool $get, bool $post, string $path): void
         $dayText = trim((string) ($_GET['day'] ?? ''));
         $day = ($dayText === '' ? null : parse_date($dayText)) ?? date('Y-m-d');
         render('pt_reports', ['day' => $day] + pt_reports($day));
+    }
+    if ($get && $path === '/payment-tracker/upload/template') {
+        require_user(MANAGERS);
+        send_xlsx('outstanding-template.xlsx', ['Outstanding' => [['Party Name', 'Balance', 'Invoice No', 'Invoice Amount', 'Invoice Date', 'MR', 'Area', 'Phone', 'Closing Balance']]]);
+    }
+    if ($get && $path === '/payment-tracker/mr-phones/template') {
+        require_user(MANAGERS);
+        send_xlsx('mr-phones-template.xlsx', ['MR Phones' => [['MR', 'Phone Number']]]);
     }
     if ($path === '/payment-tracker/upload') {
         $manager = require_user(MANAGERS);

@@ -5,6 +5,7 @@
     <p class="muted">Columns: MR, Phone Number. Download the MR tab of the Google Sheet as CSV and upload it here. Used for the MR WhatsApp and Call buttons.</p>
     <form method="post" action="/payment-tracker/mr-phones" enctype="multipart/form-data" class="row">
       <?= csrf_field() ?>
+      <a class="btn" href="/payment-tracker/mr-phones/template">Download template</a>
       <input type="hidden" name="action" value="upload">
       <input class="input pin-file" type="file" name="file" accept=".xlsx,.csv" required aria-label="MR phone file">
       <button class="btn primary">Upload</button>
