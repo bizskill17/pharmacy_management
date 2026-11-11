@@ -565,6 +565,23 @@ function pt_timestamp(mixed $value): ?string
     return null;
 }
 
+/** The Google Sheet writes dates month first, like 6/24/2025 13:52:28. */
+function pt_sheet_date(mixed $value): ?string
+{
+    if (is_string($value) && preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})#', trim($value), $m)) {
+        return valid_date((int) $m[3], (int) $m[1], (int) $m[2]);
+    }
+    return pt_date($value);
+}
+
+function pt_sheet_timestamp(mixed $value): ?string
+{
+    if (is_string($value) && preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?#', trim($value), $m) && checkdate((int) $m[1], (int) $m[2], (int) $m[3])) {
+        return sprintf('%04d-%02d-%02d %02d:%02d:%02d', $m[3], $m[1], $m[2], $m[4], $m[5], $m[6] ?? 0);
+    }
+    return pt_timestamp($value);
+}
+
 function import_followups(array $file, array $admin): array
 {
     [$columns, $table] = pt_read_table($file);
@@ -593,8 +610,8 @@ function import_followups(array $file, array $admin): array
                 $skipped++;
                 continue;
             }
-            $date = pt_date($cell($row, 'follow up date'));
-            $stamp = pt_timestamp($cell($row, 'follow up timestamp')) ?? ($date ? "$date 00:00:00" : null);
+            $date = pt_sheet_date($cell($row, 'follow up date'));
+            $stamp = pt_sheet_timestamp($cell($row, 'follow up timestamp')) ?? ($date ? "$date 00:00:00" : null);
             if ($date === null) {
                 $date = $stamp ? substr($stamp, 0, 10) : null;
             }
@@ -606,10 +623,10 @@ function import_followups(array $file, array $admin): array
             run(
                 'INSERT INTO pt_followups (legacy_id, party_name, amount_due, followup_at, followup_date, amount_promised, expected_date, followup_by, followup_by_name, remarks, time_slot, area, mr, phone, received_amount, received_date)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [$legacy, $party, pt_amount($cell($row, 'amount due')), $stamp, $date, pt_amount($cell($row, 'amount promised')), pt_date($cell($row, 'expected payment date')),
+                [$legacy, $party, pt_amount($cell($row, 'amount due')), $stamp, $date, pt_amount($cell($row, 'amount promised')), pt_sheet_date($cell($row, 'expected payment date')),
                  $users[mb_strtolower($by)] ?? null, $by === '' ? 'Unknown' : $by, pt_text($cell($row, 'remarks'), 1000) ?: null, pt_text($cell($row, 'time'), 10) ?: null,
                  pt_text($cell($row, 'area'), 120) ?: null, pt_text($cell($row, 'mr'), 120) ?: null, pt_text($cell($row, 'phone number'), 40) ?: null,
-                 pt_amount($cell($row, 'received amount')), pt_date($cell($row, 'amount received date'))]
+                 pt_amount($cell($row, 'received amount')), pt_sheet_date($cell($row, 'amount received date'))]
             );
             if ($legacy !== null) {
                 $known[$legacy] = true;

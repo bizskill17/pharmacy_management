@@ -7,7 +7,7 @@
   <?php endif; ?>
   <section class="card">
     <h2>Import old follow ups</h2>
-    <p class="muted">Upload the Payment Follow Ups sheet as Excel, with the same columns. Rows already imported (same Follow Up Id) are skipped, so the same file can be uploaded again safely. Follow ups now in the app: <?= number_format($count) ?>.</p>
+    <p class="muted">Open the Payment Follow Ups tab in the Google Sheet, choose File, Download, CSV, and upload that file here. Rows already imported (same Follow Up Id) are skipped, so the same file can be uploaded again safely. Follow ups now in the app: <?= number_format($count) ?>.</p>
     <form method="post" action="/payment-tracker/import" enctype="multipart/form-data" class="row">
       <?= csrf_field() ?>
       <a class="btn" href="/payment-tracker/import/template">Download template</a>

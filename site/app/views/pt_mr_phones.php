@@ -2,7 +2,7 @@
 <main class="page">
   <section class="card">
     <h2>Upload MR phone numbers</h2>
-    <p class="muted">Columns: MR, Phone Number. Used for the MR WhatsApp and Call buttons.</p>
+    <p class="muted">Columns: MR, Phone Number. Download the MR tab of the Google Sheet as CSV and upload it here. Used for the MR WhatsApp and Call buttons.</p>
     <form method="post" action="/payment-tracker/mr-phones" enctype="multipart/form-data" class="row">
       <?= csrf_field() ?>
       <input type="hidden" name="action" value="upload">
