@@ -13,7 +13,6 @@ const PT_BANDS = [
     'under1' => ['Less than 1 Lakh', null, 100000],
 ];
 const PT_UPLOAD_HEADERS = ['party name' => true, 'outstanding' => false, 'balance' => true, 'invoice no' => true, 'invoice amount' => true, 'invoice date' => true, 'mr' => true, 'area' => true, 'phone' => true, 'closing balance' => true];
-const PT_HISTORY_HEADERS = ['follow up id', 'party name', 'amount due', 'follow up timestamp', 'follow up date', 'amount promised', 'expected payment date', 'follow up by', 'remarks', 'time', 'area', 'mr', 'phone number', 'received amount', 'amount received date'];
 
 /** Amounts that may be negative or have commas, such as "-4,082.00". */
 function pt_amount(mixed $value): ?float
@@ -551,93 +550,6 @@ function save_outstanding(array $user): int
     return (int) $summary['rows'];
 }
 
-/* ---------- Old follow ups from the Google Sheet ---------- */
-
-function pt_timestamp(mixed $value): ?string
-{
-    if ($value instanceof DateTimeInterface) {
-        return $value->format('Y-m-d H:i:s');
-    }
-    $text = trim((string) $value);
-    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/', $text, $m) && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
-        return sprintf('%s-%s-%s %02d:%s:%s', $m[1], $m[2], $m[3], (int) $m[4], $m[5], $m[6] ?? '00');
-    }
-    return null;
-}
-
-/** The Google Sheet writes dates month first, like 6/24/2025 13:52:28. */
-function pt_sheet_date(mixed $value): ?string
-{
-    if (is_string($value) && preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})#', trim($value), $m)) {
-        return valid_date((int) $m[3], (int) $m[1], (int) $m[2]);
-    }
-    return pt_date($value);
-}
-
-function pt_sheet_timestamp(mixed $value): ?string
-{
-    if (is_string($value) && preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?#', trim($value), $m) && checkdate((int) $m[1], (int) $m[2], (int) $m[3])) {
-        return sprintf('%04d-%02d-%02d %02d:%02d:%02d', $m[3], $m[1], $m[2], $m[4], $m[5], $m[6] ?? 0);
-    }
-    return pt_timestamp($value);
-}
-
-function import_followups(array $file, array $admin): array
-{
-    [$columns, $table] = pt_read_table($file);
-    foreach (['party name', 'follow up date'] as $label) {
-        if (!isset($columns[$label])) {
-            throw new UserError('Columns must match the Payment Follow Ups sheet: ' . implode(', ', array_map('ucwords', PT_HISTORY_HEADERS)) . '.');
-        }
-    }
-    $cell = fn (array $row, string $label) => isset($columns[$label]) ? ($row['cells'][$columns[$label]] ?? null) : null;
-    $users = [];
-    foreach (rows('SELECT id, full_name FROM users') as $person) {
-        $users[mb_strtolower(trim($person['full_name']))] = (int) $person['id'];
-    }
-    $known = array_flip(array_column(rows('SELECT legacy_id FROM pt_followups WHERE legacy_id IS NOT NULL'), 'legacy_id'));
-    $added = 0;
-    $skipped = 0;
-    $failed = [];
-    tx(function () use ($table, $cell, $users, &$known, &$added, &$skipped, &$failed, $admin) {
-        foreach ($table as $row) {
-            $party = pt_text($cell($row, 'party name'), 200);
-            if ($party === '') {
-                continue;
-            }
-            $legacy = pt_text($cell($row, 'follow up id'), 20) ?: null;
-            if ($legacy !== null && isset($known[$legacy])) {
-                $skipped++;
-                continue;
-            }
-            $date = pt_sheet_date($cell($row, 'follow up date'));
-            $stamp = pt_sheet_timestamp($cell($row, 'follow up timestamp')) ?? ($date ? "$date 00:00:00" : null);
-            if ($date === null) {
-                $date = $stamp ? substr($stamp, 0, 10) : null;
-            }
-            if ($date === null) {
-                $failed[] = "Row {$row['number']}: Follow Up Date is missing";
-                continue;
-            }
-            $by = pt_text($cell($row, 'follow up by'), 120);
-            run(
-                'INSERT INTO pt_followups (legacy_id, party_name, amount_due, followup_at, followup_date, amount_promised, expected_date, followup_by, followup_by_name, remarks, time_slot, area, mr, phone, received_amount, received_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [$legacy, $party, pt_amount($cell($row, 'amount due')), $stamp, $date, pt_amount($cell($row, 'amount promised')), pt_sheet_date($cell($row, 'expected payment date')),
-                 $users[mb_strtolower($by)] ?? null, $by === '' ? 'Unknown' : $by, pt_text($cell($row, 'remarks'), 1000) ?: null, pt_text($cell($row, 'time'), 10) ?: null,
-                 pt_text($cell($row, 'area'), 120) ?: null, pt_text($cell($row, 'mr'), 120) ?: null, pt_text($cell($row, 'phone number'), 40) ?: null,
-                 pt_amount($cell($row, 'received amount')), pt_sheet_date($cell($row, 'amount received date'))]
-            );
-            if ($legacy !== null) {
-                $known[$legacy] = true;
-            }
-            $added++;
-        }
-        audit($admin['id'], 'PT_IMPORT_HISTORY', 'pt_followup', null, null, ['added' => $added, 'skipped' => $skipped]);
-    });
-    return ['added' => $added, 'skipped' => $skipped, 'failed' => $failed];
-}
-
 /* ---------- MR phone numbers ---------- */
 
 function pt_mr_list(): array
@@ -827,24 +739,6 @@ function route_payment_tracker(bool $get, bool $post, string $path): void
             handle_mr_phones($manager);
         }
         render('pt_mr_phones', ['list' => pt_mr_list()]);
-    }
-    if ($get && $path === '/payment-tracker/import/template') {
-        require_user(ADMINS);
-        send_xlsx('follow-ups-template.xlsx', ['Follow Ups' => [array_map('ucwords', PT_HISTORY_HEADERS)]]);
-    }
-    if ($path === '/payment-tracker/import') {
-        $admin = require_user(ADMINS);
-        $result = null;
-        $error = null;
-        if ($post) {
-            require_csrf();
-            try {
-                $result = import_followups($_FILES['file'] ?? [], $admin);
-            } catch (UserError $failure) {
-                $error = $failure->getMessage();
-            }
-        }
-        render('pt_import', ['result' => $result, 'error' => $error, 'count' => (int) value('SELECT COUNT(*) FROM pt_followups')]);
     }
     not_found();
 }
