@@ -271,6 +271,7 @@ table.data tr.row-link:hover td { filter: brightness(0.93); }
 .app-shell.menu-purchase-in { --menu: #a16207; --menu-bg: #fbeccb; --page-tint: #fdf6e3; --photo-head: #1d4ed8; }
 .app-shell.menu-sales-challan { --menu: #0e7490; --menu-bg: #cfeef5; --page-tint: #e8f7fb; --photo-head: #be185d; }
 .app-shell.menu-masters { --menu: #b8460e; --menu-bg: #fbe1d1; }
+.app-shell.menu-payment-tracker { --menu: #4338ca; --menu-bg: #e0e7ff; --page-tint: #eef2ff; --photo-head: #be185d; }
 .sidebar { background: var(--menu-bg); padding: 12px 8px; }
 .sidebar-top { gap: 4px; }
 .side-line { height: 1px; margin: 6px 4px; border: 0; background: var(--menu); opacity: 0.35; }
@@ -538,3 +539,21 @@ table.data, table.data th, table.data td { font-size: 14px; }
   .side-label { overflow: visible; white-space: normal; text-overflow: clip; overflow-wrap: anywhere; }
   .side-count { margin-left: auto; }
 }
+
+/* Payment Tracker */
+.home-row.payment-tracker { background: #4338ca; }
+.home-row.payment-tracker .home-icon { color: #4338ca; }
+.pt-summary { display: flex; flex-wrap: wrap; gap: 10px; }
+.pt-stat { flex: 1 1 180px; padding: 10px 14px; border-radius: 10px; background: #e0e7ff; color: #000; }
+.pt-stat b { display: block; font-size: 20px; }
+.pt-stat.green { background: #d8efe6; } .pt-stat.amber { background: #fce9c8; } .pt-stat.rose { background: #fde3ec; }
+.pt-actions { display: flex; gap: 6px; align-items: center; }
+.pt-icon { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; color: #fff; text-decoration: none; }
+.pt-icon.wa { background: #16a34a; } .pt-icon.call { background: #2563eb; } .pt-icon.ok { background: #4338ca; }
+.pt-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.pt-form .pt-wide { grid-column: 1 / -1; }
+.pt-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.pt-head h1 { margin: 0; font-size: 20px; }
+.neg { color: #b91c1c; }
+.pt-hours th, .pt-hours td { text-align: center; }
+@media (max-width: 760px) { .pt-form { grid-template-columns: minmax(0, 1fr); } .pt-stat b { font-size: 17px; } }

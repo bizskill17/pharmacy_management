@@ -130,6 +130,7 @@ function section_icon(string $slug): string
         'expiry' => '<path d="M6 3h12M6 21h12"/><path d="M8 3v4l4 5-4 5v4M16 3v4l-4 5 4 5v4"/>',
         'sales-challan' => '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/>',
         'purchase-in' => '<path d="M12 3v11M7 10l5 5 5-5"/><path d="M3 15v5h18v-5"/>',
+        'payment-tracker' => '<rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.8"/><path d="M6 10v5M18 10v5"/>',
         'masters' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.7 6.5-5.7s5.9 2.1 6.5 5.7"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c1.9.8 3.1 2.6 3.5 5.2"/>',
     ][$slug];
 }
@@ -143,6 +144,7 @@ function section_links(array $user): array
     }
     $links[] = ['slug' => 'sales-challan', 'label' => 'Sales Challan', 'href' => '/sales-challan/add', 'match' => '/sales-challan'];
     $links[] = ['slug' => 'purchase-in', 'label' => 'Purchase In', 'href' => '/purchase-in/add', 'match' => '/purchase-in'];
+    $links[] = ['slug' => 'payment-tracker', 'label' => 'Payment Tracker', 'href' => '/payment-tracker/due', 'match' => '/payment-tracker'];
     if ($user['role'] === 'ADMIN') {
         $links[] = ['slug' => 'masters', 'label' => 'Masters', 'href' => '/admin/users', 'match' => '/admin'];
     }
@@ -189,6 +191,14 @@ function menu_icon(string $label): string
         'Missing Challan' => '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M12 11v4M12 18h.01"/>',
         'Challan No.' => '<path d="M5 9h15M4 15h15M10 4 8 20M16 4l-2 16"/>',
         'Clear data' => '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>',
+        'Payment Due' => '<rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.8"/>',
+        'Today Collection' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/>',
+        'Tomorrow' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M10 14h5M13 12l2 2-2 2"/>',
+        'Broken Promises' => '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+        'Follow Ups' => '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+        'Upload Outstanding' => '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/>',
+        'MR Phones' => '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+        'Import History' => '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
         'Log out' => '<path d="M14 4h6v16h-6"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
     ];
     return '<svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$label] . '</svg>';
@@ -215,6 +225,9 @@ function menu_counts(string $section): array
                 'Master' => (int) value('SELECT COUNT(*) FROM purchase_in'),
                 'Pending Update Party' => (int) value('SELECT COUNT(*) FROM purchase_in WHERE party_id IS NULL'),
             ];
+        }
+        if ($section === 'payment-tracker') {
+            return pt_counts();
         }
         if ($section === 'masters') {
             return [
@@ -259,6 +272,24 @@ function sidebar_for(string $path, array $user): ?array
             $items[] = ['label' => 'Settings', 'href' => '/purchase-in/settings', 'current' => $path === '/purchase-in/settings'];
         }
         return ['title' => 'Purchase In', 'section' => 'purchase-in', 'items' => $items];
+    }
+    if ($path === '/payment-tracker' || str_starts_with($path, '/payment-tracker/')) {
+        $items = [
+            ['label' => 'Payment Due', 'href' => '/payment-tracker/due', 'current' => $path === '/payment-tracker/due' || $path === '/payment-tracker/party'],
+            ['label' => 'Today Collection', 'href' => '/payment-tracker/today', 'current' => $path === '/payment-tracker/today'],
+            ['label' => 'Tomorrow', 'href' => '/payment-tracker/tomorrow', 'current' => $path === '/payment-tracker/tomorrow'],
+            ['label' => 'Broken Promises', 'href' => '/payment-tracker/broken', 'current' => $path === '/payment-tracker/broken'],
+            ['label' => 'Follow Ups', 'href' => '/payment-tracker/followups', 'current' => str_starts_with($path, '/payment-tracker/followups')],
+        ];
+        if ($user['role'] !== 'UPLOADER') {
+            $items[] = ['label' => 'Reports', 'href' => '/payment-tracker/reports', 'current' => $path === '/payment-tracker/reports'];
+            $items[] = ['label' => 'Upload Outstanding', 'href' => '/payment-tracker/upload', 'current' => $path === '/payment-tracker/upload'];
+            $items[] = ['label' => 'MR Phones', 'href' => '/payment-tracker/mr-phones', 'current' => $path === '/payment-tracker/mr-phones'];
+        }
+        if ($user['role'] === 'ADMIN') {
+            $items[] = ['label' => 'Import History', 'href' => '/payment-tracker/import', 'current' => $path === '/payment-tracker/import'];
+        }
+        return ['title' => 'Payment Tracker', 'section' => 'payment-tracker', 'items' => $items];
     }
     if (str_starts_with($path, '/admin')) {
         return ['title' => 'Masters', 'section' => 'masters', 'items' => [

@@ -519,6 +519,7 @@ const CLEAR_TABLES = [
     'audit_changes' => 'History of changes', 'audit_log' => 'Activity log', 'import_errors' => 'Upload errors', 'attachments' => 'Photos on records',
     'documents' => 'Invoices, PROHUB C&F, Purchase Challan and Expiry records', 'import_batches' => 'Bulk upload history', 'challan_numbers' => 'Challan No. list',
     'sales_challans' => 'Sales Challan records', 'challan_series' => 'First Challan No. of each FY', 'purchase_in' => 'Purchase In records',
+    'pt_followups' => 'Payment follow ups', 'pt_invoices' => 'Uploaded outstanding', 'pt_uploads' => 'Outstanding upload history',
     'parties' => 'Sales Parties and Purchase Parties', 'areas' => 'Areas',
 ];
 

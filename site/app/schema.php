@@ -231,4 +231,62 @@ return [
       KEY challan_numbers_pick (fy, used_by, seq),
       CONSTRAINT fk_cn_challan FOREIGN KEY (used_by) REFERENCES sales_challans(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS pt_invoices (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      party_name VARCHAR(200) NOT NULL,
+      outstanding DECIMAL(16,2) NULL,
+      balance DECIMAL(14,2) NOT NULL,
+      invoice_no VARCHAR(40) NULL,
+      invoice_amount DECIMAL(14,2) NULL,
+      invoice_date DATE NULL,
+      mr VARCHAR(120) NULL,
+      area VARCHAR(120) NULL,
+      phone VARCHAR(40) NULL,
+      closing_balance DECIMAL(14,2) NOT NULL DEFAULT 0,
+      KEY pt_inv_party (party_name),
+      KEY pt_inv_date (invoice_date)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS pt_uploads (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      uploaded_at DATETIME NOT NULL,
+      uploaded_by BIGINT NOT NULL,
+      file_name VARCHAR(255) NULL,
+      row_count INT NOT NULL,
+      party_count INT NOT NULL,
+      total_balance DECIMAL(16,2) NOT NULL,
+      CONSTRAINT fk_pt_upload_user FOREIGN KEY (uploaded_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS pt_followups (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      legacy_id VARCHAR(20) NULL UNIQUE,
+      party_name VARCHAR(200) NOT NULL,
+      amount_due DECIMAL(14,2) NULL,
+      followup_at DATETIME NOT NULL,
+      followup_date DATE NOT NULL,
+      amount_promised DECIMAL(14,2) NULL,
+      expected_date DATE NULL,
+      followup_by BIGINT NULL,
+      followup_by_name VARCHAR(120) NOT NULL,
+      remarks VARCHAR(1000) NULL,
+      time_slot VARCHAR(10) NULL,
+      area VARCHAR(120) NULL,
+      mr VARCHAR(120) NULL,
+      phone VARCHAR(40) NULL,
+      received_amount DECIMAL(14,2) NULL,
+      received_date DATE NULL,
+      received_by BIGINT NULL,
+      KEY pt_fu_party (party_name, id),
+      KEY pt_fu_expected (expected_date),
+      KEY pt_fu_date (followup_date),
+      CONSTRAINT fk_pt_fu_user FOREIGN KEY (followup_by) REFERENCES users(id),
+      CONSTRAINT fk_pt_fu_received FOREIGN KEY (received_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+    "CREATE TABLE IF NOT EXISTS pt_mr_phones (
+      mr VARCHAR(120) PRIMARY KEY,
+      phone VARCHAR(20) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 ];

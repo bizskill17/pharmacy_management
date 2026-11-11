@@ -11,7 +11,7 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <script>try { if (localStorage.getItem('menuHidden') === '1') { document.documentElement.classList.add('menu-hidden'); } } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=62">
+<link rel="stylesheet" href="/assets/app.css?v=63">
 </head>
 <body>
 <?php
