@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 25;
 const MAX_IMAGE_BYTES = 10485760;
 const IMAGE_EXTENSIONS = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
 
