@@ -11,7 +11,7 @@ $currentPath = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP
 <script>try { if (localStorage.getItem('menuHidden') === '1') { document.documentElement.classList.add('menu-hidden'); } } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/app.css?v=59">
+<link rel="stylesheet" href="/assets/app.css?v=60">
 </head>
 <body>
 <?php
@@ -21,7 +21,7 @@ $account = function () use ($user) { ?>
       <form method="post" action="/logout"><?= csrf_field() ?><button class="btn sidebar-logout"><?= menu_icon('Log out') ?>Log out</button></form>
 <?php };
 ?>
-<?php if ($sidebar): ?>
+<?php if ($sidebar): $menuCounts = menu_counts($sidebar['section']); ?>
 <div class="app-shell menu-<?= e($sidebar['section']) ?>">
   <aside class="sidebar">
     <div class="sidebar-top">
@@ -29,7 +29,7 @@ $account = function () use ($user) { ?>
       <hr class="side-line">
       <nav class="sidebar-nav" aria-label="<?= e($sidebar['title']) ?>">
         <?php foreach ($sidebar['items'] as $item): ?>
-        <a class="side-item" href="<?= e($item['href']) ?>"<?= $item['current'] ? ' aria-current="page"' : '' ?>><?= menu_icon($item['label']) ?><?= e($item['label']) ?></a>
+        <a class="side-item" href="<?= e($item['href']) ?>"<?= $item['current'] ? ' aria-current="page"' : '' ?>><?= menu_icon($item['label']) ?><span class="side-label"><?= e($item['label']) ?></span><?php if (isset($menuCounts[$item['label']])): ?><span class="side-count"><?= number_format($menuCounts[$item['label']]) ?></span><?php endif; ?></a>
         <?php endforeach; ?>
       </nav>
     </div>

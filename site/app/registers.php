@@ -194,6 +194,48 @@ function menu_icon(string $label): string
     return '<svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $paths[$label] . '</svg>';
 }
 
+/** Record counts shown beside left menu items, by item label. */
+function menu_counts(string $section): array
+{
+    try {
+        if ($section === 'sales-challan') {
+            $counts = ['Pending Packing' => 0, 'Matching' => 0, 'Master' => 0];
+            foreach (rows("SELECT status, COUNT(*) AS total FROM sales_challans WHERE deleted_at IS NULL GROUP BY status") as $row) {
+                $counts[['PACKING' => 'Pending Packing', 'MATCHING' => 'Matching', 'DONE' => 'Done'][$row['status']]] = (int) $row['total'];
+                $counts['Master'] += (int) $row['total'];
+            }
+            unset($counts['Done']);
+            $counts['Pending Update Party'] = (int) value('SELECT COUNT(*) FROM sales_challans WHERE deleted_at IS NULL AND party_id IS NULL');
+            $counts['Missing Challan'] = (int) value('SELECT COUNT(*) FROM challan_numbers n JOIN (SELECT fy, MAX(seq) AS top FROM challan_numbers WHERE used_by IS NOT NULL GROUP BY fy) x ON x.fy = n.fy WHERE n.used_by IS NULL AND n.seq < x.top');
+            return $counts;
+        }
+        if ($section === 'purchase-in') {
+            return [
+                'Pending Challan' => (int) value("SELECT COUNT(*) FROM purchase_in WHERE status = 'PENDING'"),
+                'Master' => (int) value('SELECT COUNT(*) FROM purchase_in'),
+                'Pending Update Party' => (int) value('SELECT COUNT(*) FROM purchase_in WHERE party_id IS NULL'),
+            ];
+        }
+        if ($section === 'masters') {
+            return [
+                'Users' => (int) value('SELECT COUNT(*) FROM users'),
+                'Sales Parties' => (int) value('SELECT COUNT(*) FROM parties WHERE is_customer = 1'),
+                'Purchase Parties' => (int) value('SELECT COUNT(*) FROM parties WHERE is_supplier = 1'),
+                'Areas' => (int) value('SELECT COUNT(*) FROM areas'),
+                'Challan No.' => (int) value('SELECT COUNT(*) FROM challan_numbers WHERE used_by IS NULL'),
+            ];
+        }
+        $register = register_by_slug($section);
+        if ($register) {
+            $counts = register_counts($register['type']);
+            return ['Master' => $counts['PENDING'] + $counts['UPLOADED'], 'Pending' => $counts['PENDING'], 'Uploaded' => $counts['UPLOADED']];
+        }
+    } catch (Throwable $error) {
+        error_log('Menu counts: ' . $error->getMessage());
+    }
+    return [];
+}
+
 function sidebar_for(string $path, array $user): ?array
 {
     if ($path === '/sales-challan' || str_starts_with($path, '/sales-challan/')) {
